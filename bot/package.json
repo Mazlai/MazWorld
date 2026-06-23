@@ -1,0 +1,39 @@
+{
+  "name": "mazworld-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord RPG/Jeux - MazWorld",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "tsx src/utils/clean-commands.ts",
+    "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts",
+    "rest": "tsx src/utils/rest.ts",
+    "rest-guild": "tsx src/utils/rest-guild.ts",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mazlai/MazWorld.git"
+  },
+  "author": "Mazlai",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mazlai/MazWorld/issues"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^2.6.0",
+    "@discordjs/voice": "^0.19.0",
+    "canvas": "^3.2.1",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.2.3",
+    "mysql2": "^3.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.6",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
