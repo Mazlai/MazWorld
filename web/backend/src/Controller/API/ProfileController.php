@@ -3,6 +3,7 @@
 namespace App\Controller\API;
 
 use App\Entity\UserEquippedBadge;
+use App\Service\Discord\DiscordOAuthService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +15,7 @@ class ProfileController extends AbstractApiController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly DiscordOAuthService $discordOAuth,
     ) {}
 
     #[Route('/me', name: 'me', methods: ['GET'])]
@@ -51,6 +53,51 @@ class ProfileController extends AbstractApiController
             ]]);
         } catch (\Throwable $e) {
             return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/guilds', name: 'guilds', methods: ['GET'])]
+    public function getAdminGuilds(): JsonResponse
+    {
+        $user = $this->getCurrentUser();
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $accessToken = $user->getOauthAccessToken();
+
+        if (!$accessToken) {
+            return new JsonResponse(['guilds' => []]);
+        }
+
+        try {
+            if ($user->isAccessTokenExpired() && $user->getOauthRefreshToken()) {
+                $newTokens = $this->discordOAuth->refreshTokens($user->getOauthRefreshToken());
+                $user->setOauthAccessToken($newTokens->accessToken);
+                $user->setOauthRefreshToken($newTokens->refreshToken);
+                $user->setOauthTokenExpiresAt($newTokens->getExpiresAt());
+                $this->entityManager->flush();
+
+                $accessToken = $newTokens->accessToken;
+            }
+
+            $allGuilds = $this->discordOAuth->getDiscordUserGuilds($accessToken, true);
+
+            $adminGuilds = array_filter($allGuilds, fn($guild) => $guild->owner || (((int)$guild->permissions & 0x8) === 0x8));
+
+            return new JsonResponse(['guilds' => array_values(array_map(fn($guild) => [
+                'id' => $guild->id,
+                'name' => $guild->name,
+                'icon' => $guild->icon,
+                'owner' => $guild->owner,
+                'permissions' => $guild->permissions,
+                'member_count' => $guild->approximate_member_count,
+                'presence_count' => $guild->approximate_presence_count,
+                'has_bot' => $this->discordOAuth->isBotInGuild($guild->id),
+            ], $adminGuilds))]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Failed to fetch guilds', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
