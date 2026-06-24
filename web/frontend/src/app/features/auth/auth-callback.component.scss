@@ -25,18 +25,3 @@
   color: var(--color-text-dim);
   font-size: 0.9rem;
 }
-
-.btn-retry {
-  margin-top: var(--spacing-sm);
-  padding: 0.6rem 1.5rem;
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  transition: background var(--transition-fast);
-
-  &:hover {
-    background: var(--color-accent-2);
-  }
-}

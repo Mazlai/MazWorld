@@ -45,13 +45,6 @@
     margin-left: auto;
   }
 
-  &__avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 107, 53, 0.4);
-  }
-
   &__username {
     color: var(--color-text);
     font-weight: 500;
@@ -62,32 +55,6 @@
   }
 }
 
-.btn-discord {
-  padding: 0.5rem 1.25rem;
-  background: #5865f2;
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  transition: background var(--transition-fast);
-
-  &:hover { background: #4752c4; }
-}
-
-.btn-logout {
-  padding: 0.4rem 1rem;
-  background: transparent;
-  color: var(--color-text-dim);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    color: var(--color-text);
-    border-color: rgba(255, 107, 53, 0.4);
-  }
-}
 
 @media (max-width: 768px) {
   .site-header {
