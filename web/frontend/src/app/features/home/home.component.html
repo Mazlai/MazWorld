@@ -1,0 +1,11 @@
+<main class="home-page container">
+  <section class="hero">
+    <h1 class="text-gradient">MazWorld</h1>
+    <p>Voyageur aujourd'hui, magnat demain.</p>
+    @if (auth.isAuthenticated()) {
+      <a routerLink="/dashboard" class="btn-primary">Mon dashboard</a>
+    } @else {
+      <button class="btn-discord" (click)="login()">Se connecter avec Discord</button>
+    }
+  </section>
+</main>

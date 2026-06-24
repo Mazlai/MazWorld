@@ -1,0 +1,30 @@
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a routerLink="/" class="site-header__logo">
+      <span class="text-gradient">MazWorld</span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Navigation principale">
+      @if (auth.isAuthenticated()) {
+        <a routerLink="/map"         routerLinkActive="active">Carte</a>
+        <a routerLink="/shop"        routerLinkActive="active">Boutique</a>
+        <a routerLink="/leaderboard" routerLinkActive="active">Classement</a>
+        <a routerLink="/commands"    routerLinkActive="active">Commandes</a>
+      }
+    </nav>
+
+    <div class="site-header__actions">
+      @if (auth.isLoading()) {
+        <span class="loading" style="width:24px;height:24px;border-width:2px"></span>
+      } @else if (auth.isAuthenticated()) {
+        @if (auth.userAvatar()) {
+          <img [src]="auth.userAvatar()!" [alt]="auth.displayName()!" class="site-header__avatar" />
+        }
+        <a routerLink="/dashboard" class="site-header__username">{{ auth.displayName() }}</a>
+        <button class="btn-logout" (click)="logout()">Déconnexion</button>
+      } @else {
+        <button class="btn-discord" (click)="login()">Connexion Discord</button>
+      }
+    </div>
+  </div>
+</header>
