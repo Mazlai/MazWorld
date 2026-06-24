@@ -15,11 +15,9 @@
 
     <div class="site-header__actions">
       @if (auth.isLoading()) {
-        <span class="loading" style="width:24px;height:24px;border-width:2px"></span>
+        <app-spinner size="sm" />
       } @else if (auth.isAuthenticated()) {
-        @if (auth.userAvatar()) {
-          <img [src]="auth.userAvatar()!" [alt]="auth.displayName()!" class="site-header__avatar" />
-        }
+        <app-avatar [src]="auth.userAvatar()" [alt]="auth.displayName() ?? 'Avatar'" size="sm" />
         <a routerLink="/dashboard" class="site-header__username">{{ auth.displayName() }}</a>
         <button class="btn-ghost" (click)="logout()">Déconnexion</button>
       } @else {
