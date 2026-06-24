@@ -1,11 +1,58 @@
-<main class="home-page container">
-  <section class="hero">
-    <h1 class="text-gradient">MazWorld</h1>
-    <p>Voyageur aujourd'hui, magnat demain.</p>
-    @if (auth.isAuthenticated()) {
-      <a routerLink="/dashboard" class="btn-primary">Mon dashboard</a>
-    } @else {
-      <button class="btn-discord" (click)="login()">Se connecter avec Discord</button>
-    }
+<main class="home-page">
+
+  <!-- Hero -->
+  <section class="hero container">
+    <div class="hero__content">
+      <p class="hero__eyebrow">Discord RPG</p>
+      <h1 class="hero__title">
+        <span class="text-gradient">MazWorld</span>
+      </h1>
+      <p class="hero__subtitle">
+        Voyagez de ville en ville, accumulez des MazCoins et gravissez le classement
+        au fil de vos aventures Discord.
+      </p>
+      <div class="hero__actions">
+        @if (auth.isAuthenticated()) {
+          <a routerLink="/dashboard" class="btn-primary">Mon dashboard</a>
+          <a routerLink="/map" class="btn-ghost">Explorer la carte</a>
+        } @else {
+          <button class="btn-discord" (click)="login()">
+            Se connecter avec Discord
+          </button>
+          <a routerLink="/leaderboard" class="btn-ghost">Voir le classement</a>
+        }
+      </div>
+    </div>
+    <div class="hero__visual" aria-hidden="true">
+      <div class="hero__orb hero__orb--1"></div>
+      <div class="hero__orb hero__orb--2"></div>
+    </div>
   </section>
+
+  <!-- Features -->
+  <section class="features container">
+    <div class="features__grid">
+      <div class="feature-card">
+        <span class="feature-card__icon">🗺️</span>
+        <h3>Carte interactive</h3>
+        <p>Voyagez entre les villes, découvrez de nouveaux territoires et construisez votre empire.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card__icon">🪙</span>
+        <h3>MazCoins</h3>
+        <p>Gagnez des MazCoins en interagissant sur Discord. Dépensez-les dans la boutique.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card__icon">🏆</span>
+        <h3>Classement</h3>
+        <p>Affrontez la communauté et hissez-vous en haut du classement mondial.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card__icon">🤖</span>
+        <h3>Bot Discord</h3>
+        <p>Invitez le bot sur votre serveur et jouez directement depuis Discord.</p>
+      </div>
+    </div>
+  </section>
+
 </main>
