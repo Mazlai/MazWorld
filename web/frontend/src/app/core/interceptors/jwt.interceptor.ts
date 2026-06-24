@@ -1,12 +1,22 @@
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { catchError, throwError } from 'rxjs';
+import { AuthStorageService } from '../services/auth-storage.service';
+
+const PUBLIC_URLS = ['/api/auth/discord/login', '/api/auth/discord/callback', '/api/auth/verify'];
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(AuthService).getToken();
-  if (!token) return next(req);
+  if (!isPlatformBrowser(inject(PLATFORM_ID))) return next(req);
 
-  return next(
-    req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }),
+  if (PUBLIC_URLS.some(url => req.url.includes(url))) return next(req);
+
+  const token = inject(AuthStorageService).getToken();
+  const authReq = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
+
+  return next(authReq).pipe(
+    catchError((err: HttpErrorResponse) => throwError(() => err)),
   );
 };
