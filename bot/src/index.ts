@@ -1,6 +1,6 @@
 import path from "path";
 import { Collection, MessageFlags } from 'discord.js';
-import { readdirSync } from "fs";
+import { readdirSync, existsSync } from "fs";
 import { TOKEN } from "./config/config";
 import { bot } from './utils/client';
 import { Command } from "./models/Command";
@@ -8,36 +8,29 @@ import { ExtendedClient } from "./models/ExtendedClient";
 
 import "./utils/discord";
 
-/************| Setup |************/
-
 const loadCommands = async (): Promise<Command[]> => {
-  const Commands: Command[] = [];
-
+  const commands: Command[] = [];
   const commandsPath = path.join(__dirname, "commands");
-  const commandFiles: string[] = [];
+
+  if (!existsSync(commandsPath)) return commands;
 
   for (const folder of readdirSync(commandsPath)) {
     const folderPath = path.join(commandsPath, folder);
-    if (!folder.endsWith(".js") && !folder.endsWith(".ts")) {
-      for (const file of readdirSync(folderPath)) {
-        if (file.endsWith(".js") || file.endsWith(".ts")) {
-          commandFiles.push(path.join(folder, file));
-        }
-      }
-    } else {
-      commandFiles.push(folder);
+    if (folder.endsWith(".js") || folder.endsWith(".ts")) {
+      const cmd = require(path.join(commandsPath, folder)).default;
+      if (cmd) commands.push(cmd);
+      continue;
+    }
+    for (const file of readdirSync(folderPath)) {
+      if (!file.endsWith(".js") && !file.endsWith(".ts")) continue;
+      const cmd = require(path.join(folderPath, file)).default;
+      if (cmd?.data?.name) commands.push(cmd);
+      else console.warn(`⚠️  Pas d'export default valide dans ${folder}/${file}`);
     }
   }
 
-  for (const file of commandFiles) {
-    const command = require(path.join(commandsPath, file)).default;
-
-    if (!command) console.warn(`Command ${file} has not a data property`);
-    Commands.push(command);
-  }
-
-  return Commands;
-}
+  return commands;
+};
 
 const initializeBot = async () => {
   console.log('🤖 Démarrage de MazWorld...\n');
@@ -47,10 +40,8 @@ const initializeBot = async () => {
 
   const commands = await loadCommands();
   for (const command of commands) {
-    if (command.data && command.data.name) {
-      extendedBot.commands.set(command.data.name, command);
-      console.log(`✅ Commande chargée: ${command.data.name}`);
-    }
+    extendedBot.commands.set(command.data.name, command);
+    console.log(`✅ Commande chargée : /${command.data.name}`);
   }
 
   console.log(`\n📦 ${extendedBot.commands.size} commande(s) chargée(s)\n`);
@@ -58,27 +49,24 @@ const initializeBot = async () => {
   bot.on("interactionCreate", async (interaction) => {
     if (interaction.isChatInputCommand()) {
       const command = extendedBot.commands.get(interaction.commandName);
-      if (command) {
-        try {
-          await command.execute(interaction);
-        } catch (error: any) {
-          console.error(`Error executing command ${interaction.commandName}:`, error);
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
-            flags: MessageFlags.Ephemeral
-          });
+      if (!command) return;
+      try {
+        await command.execute(interaction);
+      } catch (error: any) {
+        console.error(`Erreur lors de /${interaction.commandName} :`, error);
+        const reply = { content: "❌ Une erreur est survenue lors de l'exécution de cette commande.", flags: MessageFlags.Ephemeral };
+        if (interaction.replied || interaction.deferred) {
+          await interaction.editReply(reply);
+        } else {
+          await interaction.reply(reply);
         }
       }
-    } else if (interaction.isButton()) {
-      const fairPriceCommand = extendedBot.commands.get('fairprice');
-      if (fairPriceCommand && fairPriceCommand.handleButtons) {
-        try {
-          await fairPriceCommand.handleButtons(interaction);
-        } catch (error: any) {
-          await interaction.reply({
-            content: 'There was an error while handling this interaction!',
-            flags: MessageFlags.Ephemeral
-          });
+    } else if (interaction.isButton() || interaction.isStringSelectMenu()) {
+      for (const command of extendedBot.commands.values()) {
+        if (command.handleButtons) {
+          try {
+            await command.handleButtons(interaction as any);
+          } catch { /* laisse les autres commandes gérer */ }
         }
       }
     }
