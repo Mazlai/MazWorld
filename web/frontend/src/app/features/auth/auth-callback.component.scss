@@ -1,0 +1,27 @@
+.callback-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.callback-state {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+
+  &--error .error-message {
+    color: #ff4444;
+  }
+
+  &--success p {
+    color: var(--color-text);
+  }
+}
+
+.redirect-hint {
+  color: var(--color-text-dim);
+  font-size: 0.9rem;
+}
