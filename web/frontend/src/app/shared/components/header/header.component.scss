@@ -45,13 +45,6 @@
     margin-left: auto;
   }
 
-  &__avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 107, 53, 0.4);
-  }
-
   &__username {
     color: var(--color-text);
     font-weight: 500;
