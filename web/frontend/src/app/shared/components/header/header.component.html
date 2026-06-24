@@ -21,7 +21,7 @@
           <img [src]="auth.userAvatar()!" [alt]="auth.displayName()!" class="site-header__avatar" />
         }
         <a routerLink="/dashboard" class="site-header__username">{{ auth.displayName() }}</a>
-        <button class="btn-logout" (click)="logout()">Déconnexion</button>
+        <button class="btn-ghost" (click)="logout()">Déconnexion</button>
       } @else {
         <button class="btn-discord" (click)="login()">Connexion Discord</button>
       }
