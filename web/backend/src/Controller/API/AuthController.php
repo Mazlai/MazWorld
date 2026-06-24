@@ -20,10 +20,9 @@ class AuthController extends AbstractApiController
     ) {}
 
     #[Route('/discord/login', name: 'discord_login', methods: ['GET'])]
-    public function discordLogin(Request $request): JsonResponse
+    public function discordLogin(): JsonResponse
     {
         $state = bin2hex(random_bytes(16));
-        $request->getSession()->set('oauth_state', $state);
 
         return new JsonResponse([
             'authorization_url' => $this->discordOAuth->getAuthorizationUrl($state),
