@@ -1,0 +1,98 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(5, 5, 8, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.15);
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    height: 64px;
+  }
+
+  &__logo {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  &__nav {
+    display: flex;
+    gap: var(--spacing-md);
+    flex: 1;
+
+    a {
+      color: var(--color-text-dim);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color var(--transition-fast);
+
+      &:hover, &.active {
+        color: var(--color-accent);
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-left: auto;
+  }
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 107, 53, 0.4);
+  }
+
+  &__username {
+    color: var(--color-text);
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-decoration: none;
+
+    &:hover { color: var(--color-accent); }
+  }
+}
+
+.btn-discord {
+  padding: 0.5rem 1.25rem;
+  background: #5865f2;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  transition: background var(--transition-fast);
+
+  &:hover { background: #4752c4; }
+}
+
+.btn-logout {
+  padding: 0.4rem 1rem;
+  background: transparent;
+  color: var(--color-text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    color: var(--color-text);
+    border-color: rgba(255, 107, 53, 0.4);
+  }
+}
+
+@media (max-width: 768px) {
+  .site-header {
+    &__nav { display: none; }
+
+    &__inner { gap: var(--spacing-sm); }
+  }
+}
