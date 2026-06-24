@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
