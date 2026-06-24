@@ -1,0 +1,8 @@
+<div class="dashboard-page container">
+  @if (auth.currentUser()) {
+    <h2>Bonjour, {{ auth.currentUser()!.username }} 👋</h2>
+    <p>Ville actuelle : {{ auth.currentUser()!.current_city }}</p>
+    <p>MazCoins : {{ auth.currentUser()!.coins }}</p>
+    <button (click)="auth.logout()">Déconnexion</button>
+  }
+</div>

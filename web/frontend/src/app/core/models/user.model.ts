@@ -4,15 +4,10 @@ export interface User {
   username: string;
   discord_avatar: string | null;
   discord_email: string | null;
-  city: string;
+  current_city: string;
   coins: number;
+  equipped_background: string | null;
   roles: string[];
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-  guilds: Guild[];
 }
 
 export interface Guild {
@@ -22,4 +17,15 @@ export interface Guild {
   owner: boolean;
   permissions: number;
   approximate_member_count?: number;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+  guilds?: Guild[];
+}
+
+export interface LoginUrlResponse {
+  authorization_url: string;
+  state?: string;
 }
