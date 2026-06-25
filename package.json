@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "install:all": "cd web/frontend && npm i && cd ../../bot && npm i",
-    "dev": "concurrently --kill-others --kill-others-on-fail -c red,blue,green --names Back,Front,Bot \"npm run dev:back\" \"npm run dev:front\" \"npm run dev:bot\"",
+    "dev": "concurrently --kill-others-on-fail -c red,blue,green --names Back,Front,Bot \"npm run dev:back\" \"npm run dev:front\" \"npm run dev:bot\"",
     "dev:front": "cd web/frontend && npm run start",
-    "dev:back": "cd web/backend && symfony server:start -p 8008",
+    "dev:back": "cd web/backend && symfony server:start --port=8008 --no-tls",
     "dev:bot": "cd bot && npm run dev"
   },
   "devDependencies": {
