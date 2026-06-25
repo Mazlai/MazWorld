@@ -1,0 +1,10 @@
+{
+  "badges": [
+    { "id": "badge_founder", "name": "Fondateur", "emoji": "👑", "icon": "crown", "price": 500 },
+    { "id": "badge_verified", "name": "Vérifié", "emoji": "✅", "icon": "check-circle", "price": 100 },
+    { "id": "badge_star", "name": "Étoile", "emoji": "⭐", "icon": "star", "price": 150 },
+    { "id": "badge_heart", "name": "Cœur", "emoji": "❤️", "icon": "heart", "price": 100 },
+    { "id": "badge_fire", "name": "Feu", "emoji": "🔥", "icon": "flame", "price": 200 },
+    { "id": "badge_diamond", "name": "Diamant", "emoji": "💎", "icon": "gem", "price": 300 }
+  ]
+}
