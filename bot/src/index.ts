@@ -54,11 +54,11 @@ const initializeBot = async () => {
         await command.execute(interaction);
       } catch (error: any) {
         console.error(`Erreur lors de /${interaction.commandName} :`, error);
-        const reply = { content: "❌ Une erreur est survenue lors de l'exécution de cette commande.", flags: MessageFlags.Ephemeral };
+        const errorMsg = "❌ Une erreur est survenue lors de l'exécution de cette commande.";
         if (interaction.replied || interaction.deferred) {
-          await interaction.editReply(reply);
+          await interaction.editReply({ content: errorMsg });
         } else {
-          await interaction.reply(reply);
+          await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
         }
       }
     } else if (interaction.isButton() || interaction.isStringSelectMenu()) {
