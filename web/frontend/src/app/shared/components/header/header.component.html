@@ -13,9 +13,10 @@
     <!-- Nav desktop -->
     <nav class="site-header__nav" aria-label="Navigation principale">
       @if (auth.isAuthenticated()) {
-        <a routerLink="/map"   routerLinkActive="active"><span aria-hidden="true">🗺️</span> Carte</a>
-        <a routerLink="/shop"  routerLinkActive="active"><span aria-hidden="true">🛒</span> Boutique</a>
-        <a routerLink="/stats" routerLinkActive="active"><span aria-hidden="true">📊</span> Stats</a>
+        <a routerLink="/map"       routerLinkActive="active"><span aria-hidden="true">🗺️</span> Carte</a>
+        <a routerLink="/shop"      routerLinkActive="active"><span aria-hidden="true">🛒</span> Boutique</a>
+        <a routerLink="/inventory" routerLinkActive="active"><span aria-hidden="true">🎒</span> Inventaire</a>
+        <a routerLink="/stats"     routerLinkActive="active"><span aria-hidden="true">📊</span> Stats</a>
       }
       <a routerLink="/leaderboard" routerLinkActive="active"><span aria-hidden="true">🏆</span> Classement</a>
       <a routerLink="/commands"    routerLinkActive="active"><span aria-hidden="true">📜</span> Commandes</a>
@@ -76,6 +77,7 @@
       @if (auth.isAuthenticated()) {
         <a routerLink="/map"       routerLinkActive="active" (click)="closeMobileMenu()">🗺️ Carte</a>
         <a routerLink="/shop"      routerLinkActive="active" (click)="closeMobileMenu()">🛒 Boutique</a>
+        <a routerLink="/inventory" routerLinkActive="active" (click)="closeMobileMenu()">🎒 Inventaire</a>
         <a routerLink="/stats"     routerLinkActive="active" (click)="closeMobileMenu()">📊 Stats</a>
         <a routerLink="/profile"   routerLinkActive="active" (click)="closeMobileMenu()">👤 Mon profil</a>
         <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">🏠 Dashboard</a>

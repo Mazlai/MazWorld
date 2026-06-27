@@ -38,6 +38,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'inventory',
+    loadComponent: () => import('./features/inventory/inventory.component').then(m => m.InventoryComponent),
+    title: 'Inventaire — MazWorld',
+    canActivate: [authGuard],
+  },
+  {
     path: 'leaderboard',
     loadComponent: () => import('./features/leaderboard/leaderboard.component').then(m => m.LeaderboardComponent),
     title: 'Classement — MazWorld',
