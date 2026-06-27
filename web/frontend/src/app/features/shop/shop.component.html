@@ -1,3 +1,171 @@
-<div class="container">
-  <h2>Boutique — à venir</h2>
+<div class="shop-page">
+
+  <!-- Header -->
+  <div class="shop-header container">
+    <div class="shop-header__content">
+      <span class="section-label">SHOP</span>
+      <h1>Boutique</h1>
+      <p class="subtitle">Personnalisez votre profil avec des backgrounds et badges uniques</p>
+    </div>
+    <div class="shop-header__balance">
+      <span>💰</span>
+      <span class="balance-value">{{ userCoins() }}</span>
+      <span class="balance-unit">MC</span>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  @if (notification(); as notif) {
+    <div class="notification container" [class.notification--success]="notif.type === 'success'" [class.notification--error]="notif.type === 'error'">
+      <span>{{ notif.type === 'success' ? '✅' : '❌' }}</span>
+      <span>{{ notif.message }}</span>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="shop-state">
+      <div class="loading"></div>
+      <p>Chargement de la boutique…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (hasError()) {
+    <div class="shop-state shop-state--error">
+      <span>⚠️</span>
+      <p>Impossible de charger la boutique.</p>
+      <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  @else {
+    <!-- Stats -->
+    <div class="shop-stats container">
+      <div class="stat-chip">
+        <span>🛍️</span>
+        <strong>{{ totalCount() }}</strong>
+        <span>Articles</span>
+      </div>
+      <div class="stat-chip">
+        <span>🖼️</span>
+        <strong>{{ bgCount() }}</strong>
+        <span>Backgrounds</span>
+      </div>
+      <div class="stat-chip">
+        <span>🏅</span>
+        <strong>{{ badgeCount() }}</strong>
+        <span>Badges</span>
+      </div>
+      <div class="stat-chip stat-chip--owned">
+        <span>📦</span>
+        <strong>{{ ownedCount() }}</strong>
+        <span>Possédés</span>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="shop-filters container">
+      @for (f of filters; track f) {
+        <button class="filter-btn" [class.filter-btn--active]="filter() === f" (click)="setFilter(f)">
+          <span>{{ filterIcon(f) }}</span>
+          <span>{{ filterLabel(f) }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Grille articles -->
+    @if (filteredItems().length === 0) {
+      <div class="shop-state container">
+        <span style="font-size:3rem">🔍</span>
+        <p>Aucun article dans cette catégorie.</p>
+      </div>
+    } @else {
+      <div class="items-grid container">
+        @for (item of paginatedItems(); track item.item_id) {
+          <div class="item-card"
+            [class.item-card--owned]="item.owned"
+            [class.item-card--equipped]="item.equipped">
+
+            <!-- En-tête visuel -->
+            <div class="item-card__header" [class.item-card__header--bg]="item.item_type === 'background'" [class.item-card__header--badge]="item.item_type === 'badge'">
+              <span class="item-emoji">{{ getEmoji(item) }}</span>
+              @if (item.equipped) {
+                <span class="item-tag item-tag--equipped">⭐ Équipé</span>
+              } @else if (item.owned) {
+                <span class="item-tag item-tag--owned">✓ Possédé</span>
+              }
+            </div>
+
+            <!-- Contenu -->
+            <div class="item-card__body">
+              <h3 class="item-name">{{ item.name }}</h3>
+              @if (item.description) {
+                <p class="item-desc">{{ item.description }}</p>
+              }
+              <span class="item-type-tag" [class.item-type-tag--bg]="item.item_type === 'background'" [class.item-type-tag--badge]="item.item_type === 'badge'">
+                {{ item.item_type === 'background' ? '🖼️ Background' : '🏅 Badge' }}
+              </span>
+            </div>
+
+            <!-- Pied -->
+            <div class="item-card__footer">
+              @if (!item.owned) {
+                <span class="item-price" [class.item-price--affordable]="canBuy(item)">
+                  {{ item.price }} 🪙
+                </span>
+                <button
+                  class="btn-buy"
+                  [disabled]="!canBuy(item) || purchasing() === item.item_id"
+                  (click)="purchase(item)">
+                  @if (purchasing() === item.item_id) {
+                    <span class="loading-dot"></span>
+                  } @else if (!item.available) {
+                    Indisponible
+                  } @else if (userCoins() < item.price) {
+                    Fonds insuffisants
+                  } @else {
+                    Acheter
+                  }
+                </button>
+              } @else {
+                @if (item.item_type === 'background' && !item.equipped) {
+                  <button class="btn-equip" (click)="equipBg(item)">Équiper</button>
+                } @else if (item.item_type === 'badge' && !item.equipped) {
+                  <div class="badge-slots">
+                    <span class="badge-slots__label">Slot :</span>
+                    @for (slot of [0,1,2,3,4,5]; track slot) {
+                      <button class="slot-btn" [title]="'Slot ' + (slot + 1)" (click)="equipBadge(item, slot)">
+                        {{ slot + 1 }}
+                      </button>
+                    }
+                  </div>
+                } @else if (item.equipped) {
+                  <span class="item-status item-status--equipped">Actuellement équipé</span>
+                } @else {
+                  <span class="item-status">Dans l'inventaire</span>
+                }
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination container">
+          <button class="pagination-btn" [disabled]="!canGoPrev()" (click)="prevPage()">◀</button>
+          <div class="pagination-pages">
+            @for (p of pagesArray(); track p) {
+              <button class="pagination-page" [class.pagination-page--active]="page() === p" (click)="goToPage(p)">{{ p }}</button>
+            }
+          </div>
+          <button class="pagination-btn" [disabled]="!canGoNext()" (click)="nextPage()">▶</button>
+          <span class="pagination-info">{{ page() }}/{{ totalPages() }}</span>
+        </div>
+      }
+    }
+  }
+
 </div>
