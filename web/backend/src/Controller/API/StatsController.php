@@ -3,14 +3,15 @@
 namespace App\Controller\API;
 
 use App\Entity\ShopItem;
-use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/stats', name: 'api_stats_')]
+#[IsGranted('ROLE_ADMIN')]
 class StatsController extends AbstractController
 {
     public function __construct(

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard, adminGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -52,7 +52,7 @@ export const routes: Routes = [
     path: 'stats',
     loadComponent: () => import('./features/stats/stats.component').then(m => m.StatsComponent),
     title: 'Statistiques — MazWorld',
-    canActivate: [authGuard],
+    canActivate: [adminGuard],
   },
   {
     path: 'commands',

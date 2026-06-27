@@ -1,5 +1,14 @@
 <div class="map-page">
 
+  <!-- Header -->
+  <div class="map-header container">
+    <div class="map-header__content">
+      <span class="section-label">MAP</span>
+      <h1>Carte du monde</h1>
+      <p class="subtitle">6 villes interconnectées vous attendent</p>
+    </div>
+  </div>
+
   <!-- Loading -->
   @if (isLoading()) {
     <div class="map-state">
@@ -18,15 +27,6 @@
   }
 
   @else {
-    <!-- Header -->
-    <section class="map-header">
-      <div class="container">
-        <span class="section-label">MAP</span>
-        <h1>Carte du monde</h1>
-        <p class="subtitle">6 villes interconnectées vous attendent</p>
-      </div>
-    </section>
-
     <!-- Bannière voyage en cours -->
     @if (isTraveling()) {
       <div class="travel-banner container">
