@@ -16,7 +16,8 @@ class DiscordApiClient
         private readonly HttpClientInterface $httpClient,
         private readonly string $clientId,
         private readonly string $clientSecret,
-        private readonly string $redirectUri
+        private readonly string $redirectUri,
+        private readonly string $botToken = ''
     ) {}
 
     public function getAuthorizationUrl(string $state, array $scopes = ['identify', 'email', 'guilds']): string
@@ -97,16 +98,38 @@ class DiscordApiClient
         return DiscordGuildDTO::fromArrayList($response->toArray());
     }
 
-    public function isBotInGuild(string $botToken, string $guildId): bool
+    public function isBotInGuild(string $guildId): bool
     {
         try {
             $response = $this->httpClient->request('GET', self::API_URL . '/guilds/' . $guildId, [
-                'headers' => ['Authorization' => 'Bot ' . $botToken],
+                'headers' => ['Authorization' => 'Bot ' . $this->botToken],
             ]);
 
             return $response->getStatusCode() === 200;
         } catch (\Exception) {
             return false;
+        }
+    }
+
+    public function getBotInfo(): ?array
+    {
+        try {
+            $response = $this->httpClient->request('GET', self::API_URL . '/users/@me', [
+                'headers' => ['Authorization' => 'Bot ' . $this->botToken],
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            $data = $response->toArray();
+            return [
+                'online'   => true,
+                'username' => $data['username'] ?? null,
+                'bot_id'   => $data['id'] ?? null,
+            ];
+        } catch (\Exception) {
+            return null;
         }
     }
 

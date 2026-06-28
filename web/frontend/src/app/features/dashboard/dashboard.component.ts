@@ -4,13 +4,12 @@ import { ProfileService } from '../../core/services/profile.service';
 import { LeaderboardService } from '../../core/services/leaderboard.service';
 import { StatCardComponent } from '../../shared/components/ui/stat-card/stat-card.component';
 import { AvatarComponent } from '../../shared/components/ui/avatar/avatar.component';
-import { BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import type { UserProfile } from '../../core/models/profile.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [StatCardComponent, AvatarComponent, BadgeComponent],
+  imports: [StatCardComponent, AvatarComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
