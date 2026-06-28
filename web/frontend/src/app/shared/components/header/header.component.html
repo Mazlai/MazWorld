@@ -16,6 +16,7 @@
         <a routerLink="/map"       routerLinkActive="active"><span aria-hidden="true">🗺️</span> Carte</a>
         <a routerLink="/shop"      routerLinkActive="active"><span aria-hidden="true">🛒</span> Boutique</a>
         <a routerLink="/inventory" routerLinkActive="active"><span aria-hidden="true">🎒</span> Inventaire</a>
+        <a routerLink="/records"   routerLinkActive="active"><span aria-hidden="true">📈</span> Records</a>
         @if (auth.currentUser()?.roles?.includes('ROLE_ADMIN')) {
           <a routerLink="/stats" routerLinkActive="active"><span aria-hidden="true">📊</span> Stats</a>
         }
@@ -80,6 +81,7 @@
         <a routerLink="/map"       routerLinkActive="active" (click)="closeMobileMenu()">🗺️ Carte</a>
         <a routerLink="/shop"      routerLinkActive="active" (click)="closeMobileMenu()">🛒 Boutique</a>
         <a routerLink="/inventory" routerLinkActive="active" (click)="closeMobileMenu()">🎒 Inventaire</a>
+        <a routerLink="/records"   routerLinkActive="active" (click)="closeMobileMenu()">📈 Records</a>
         @if (auth.currentUser()?.roles?.includes('ROLE_ADMIN')) {
           <a routerLink="/stats" routerLinkActive="active" (click)="closeMobileMenu()">📊 Stats</a>
         }

@@ -49,6 +49,12 @@ export const routes: Routes = [
     title: 'Classement — MazWorld',
   },
   {
+    path: 'records',
+    loadComponent: () => import('./features/records/records.component').then(m => m.RecordsComponent),
+    title: 'Records — MazWorld',
+    canActivate: [authGuard],
+  },
+  {
     path: 'stats',
     loadComponent: () => import('./features/stats/stats.component').then(m => m.StatsComponent),
     title: 'Statistiques — MazWorld',
