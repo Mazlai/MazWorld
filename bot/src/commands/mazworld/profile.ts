@@ -3,7 +3,8 @@ import {
   ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
+import { handleCommandError } from "../../utils/errorHandler";
 import { generateProfileCard } from "./utils/profileCard";
 import { Command } from "../../models/Command";
 import type { ProfileResponse } from "./data";
@@ -50,15 +51,7 @@ const profile: Command = {
         files: [profileCard],
       });
     } catch (error) {
-      console.error("Erreur lors de la génération du profil:", error);
-      const msg = error instanceof ApiError
-        ? `❌ ${error.message}`
-        : "❌ Une erreur est survenue lors de la génération de votre profil.";
-      if (interaction.deferred) {
-        await interaction.editReply({ content: msg });
-      } else {
-        await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
-      }
+      await handleCommandError(error, interaction);
     }
   },
 };

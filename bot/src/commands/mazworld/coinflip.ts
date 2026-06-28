@@ -1,12 +1,12 @@
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
 import { Command } from "../../models/Command";
 import type { CoinflipResponse } from "./data";
 import { buildCoinflipLoadingEmbed, buildCoinflipResultEmbed } from "./utils/embeds";
+import { handleCommandError } from "../../utils/errorHandler";
 
 const coinflip: Command = {
   data: new SlashCommandBuilder()
@@ -49,22 +49,7 @@ const coinflip: Command = {
       await new Promise(resolve => setTimeout(resolve, 2000));
       await interaction.editReply({ embeds: [buildCoinflipResultEmbed(result, avatarURL)] });
     } catch (error) {
-      if (error instanceof ApiError) {
-        const content = `❌ ${error.message}`;
-        if (interaction.deferred || interaction.replied) {
-          await interaction.editReply({ content, embeds: [] });
-        } else {
-          await interaction.reply({ content, flags: MessageFlags.Ephemeral });
-        }
-        return;
-      }
-      console.error("Erreur dans /coinflip:", error);
-      const errorMessage = "❌ Une erreur est survenue lors du lancement de la pièce.";
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: errorMessage, embeds: [] });
-      } else {
-        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
-      }
+      await handleCommandError(error, interaction);
     }
   },
 };

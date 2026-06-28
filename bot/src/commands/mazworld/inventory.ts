@@ -2,9 +2,9 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   StringSelectMenuInteraction,
-  MessageFlags,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
+import { handleCommandError } from "../../utils/errorHandler";
 import { Command } from "../../models/Command";
 import type { ProfileResponse, ShopListResponse, EquipResponse } from "./data";
 import {
@@ -113,8 +113,7 @@ const inventory: Command = {
             collector.stop("equipped");
           }
         } catch (error) {
-          const msg = error instanceof ApiError ? error.message : "Erreur lors du traitement.";
-          await i.editReply({ content: `❌ ${msg}`, embeds: [], components: [] });
+          await handleCommandError(error, i as any);
         }
       });
 
@@ -124,13 +123,7 @@ const inventory: Command = {
         }
       });
     } catch (error) {
-      console.error("Erreur dans /inventory:", error);
-      const msg = "❌ Une erreur est survenue lors de la consultation de votre inventaire.";
-      if (interaction.deferred) {
-        await interaction.editReply({ content: msg });
-      } else {
-        await interaction.reply({ content: msg, flags: MessageFlags.Ephemeral });
-      }
+      await handleCommandError(error, interaction);
     }
   },
 };

@@ -3,10 +3,11 @@ import {
   ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
 import { Command } from "../../models/Command";
 import type { DailyResponse } from "./data";
 import { buildDailySuccessEmbed, buildDailyAlreadyClaimedEmbed } from "./utils/embeds";
+import { handleCommandError } from "../../utils/errorHandler";
 
 const daily: Command = {
   data: new SlashCommandBuilder()
@@ -29,15 +30,7 @@ const daily: Command = {
         await interaction.reply({ embeds: [buildDailyAlreadyClaimedEmbed(result, avatarURL)], flags: MessageFlags.Ephemeral });
       }
     } catch (error) {
-      if (error instanceof ApiError && error.status === 429) {
-        await interaction.reply({ content: `⏰ ${error.message}`, flags: MessageFlags.Ephemeral });
-        return;
-      }
-      console.error("Erreur dans /daily:", error);
-      await interaction.reply({
-        content: "❌ Une erreur est survenue lors de la réclamation de votre récompense quotidienne.",
-        flags: MessageFlags.Ephemeral,
-      });
+      await handleCommandError(error, interaction);
     }
   },
 };
