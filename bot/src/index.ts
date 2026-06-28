@@ -1,10 +1,12 @@
 import path from "path";
-import { Collection, MessageFlags } from 'discord.js';
+import { Collection } from 'discord.js';
 import { readdirSync, existsSync } from "fs";
 import { TOKEN } from "./config/config";
 import { bot } from './utils/client';
 import { Command } from "./models/Command";
 import { ExtendedClient } from "./models/ExtendedClient";
+import { handleCommandError } from "./utils/errorHandler";
+import { logger } from "./utils/logger";
 
 import "./utils/discord";
 
@@ -25,7 +27,7 @@ const loadCommands = async (): Promise<Command[]> => {
       if (!file.endsWith(".js") && !file.endsWith(".ts")) continue;
       const cmd = require(path.join(folderPath, file)).default;
       if (cmd?.data?.name) commands.push(cmd);
-      else console.warn(`⚠️  Pas d'export default valide dans ${folder}/${file}`);
+      else logger.warn(`Pas d'export default valide dans ${folder}/${file}`);
     }
   }
 
@@ -33,7 +35,7 @@ const loadCommands = async (): Promise<Command[]> => {
 };
 
 const initializeBot = async () => {
-  console.log('🤖 Démarrage de MazWorld...\n');
+  logger.info('Démarrage de MazWorld...');
 
   const extendedBot = bot as ExtendedClient;
   extendedBot.commands = new Collection<string, Command>();
@@ -41,25 +43,38 @@ const initializeBot = async () => {
   const commands = await loadCommands();
   for (const command of commands) {
     extendedBot.commands.set(command.data.name, command);
-    console.log(`✅ Commande chargée : /${command.data.name}`);
+    logger.info(`Commande chargée : /${command.data.name}`);
   }
 
-  console.log(`\n📦 ${extendedBot.commands.size} commande(s) chargée(s)\n`);
+  logger.info(`${extendedBot.commands.size} commande(s) chargée(s)`);
 
   bot.on("interactionCreate", async (interaction) => {
     if (interaction.isChatInputCommand()) {
       const command = extendedBot.commands.get(interaction.commandName);
       if (!command) return;
+
+      const start = Date.now();
       try {
         await command.execute(interaction);
-      } catch (error: any) {
-        console.error(`Erreur lors de /${interaction.commandName} :`, error);
-        const errorMsg = "❌ Une erreur est survenue lors de l'exécution de cette commande.";
-        if (interaction.replied || interaction.deferred) {
-          await interaction.editReply({ content: errorMsg });
-        } else {
-          await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
-        }
+        logger.command(
+          interaction.commandName,
+          interaction.user.id,
+          interaction.user.username,
+          interaction.guildId,
+          true,
+          Date.now() - start,
+        );
+      } catch (error) {
+        logger.command(
+          interaction.commandName,
+          interaction.user.id,
+          interaction.user.username,
+          interaction.guildId,
+          false,
+          Date.now() - start,
+        );
+        logger.error(`Erreur non gérée dans /${interaction.commandName}`, error);
+        await handleCommandError(error, interaction);
       }
     } else if (interaction.isButton() || interaction.isStringSelectMenu()) {
       for (const command of extendedBot.commands.values()) {

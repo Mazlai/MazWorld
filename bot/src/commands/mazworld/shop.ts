@@ -4,7 +4,8 @@ import {
   StringSelectMenuInteraction,
   ComponentType,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
+import { handleCommandError } from "../../utils/errorHandler";
 import { Command } from "../../models/Command";
 import type { ShopListResponse, PurchaseResponse } from "./data";
 import {
@@ -32,8 +33,8 @@ const shop: Command = {
     try {
       const data = await api.get<ShopListResponse>("/api/shop", userId, username);
       userCoins = data.user_coins;
-    } catch {
-      await interaction.reply({ content: "❌ Impossible de charger le magasin.", flags: 64 });
+    } catch (error) {
+      await handleCommandError(error, interaction);
       return;
     }
 
@@ -53,8 +54,8 @@ const shop: Command = {
       let shopData: ShopListResponse;
       try {
         shopData = await api.get<ShopListResponse>(`/api/shop?type=${category}`, userId, username);
-      } catch {
-        await i.editReply({ content: "❌ Impossible de charger les items.", embeds: [], components: [] });
+      } catch (error) {
+        await handleCommandError(error, i as any);
         return;
       }
 
@@ -114,8 +115,7 @@ const shop: Command = {
                 { item_id: itemId },
               );
             } catch (error) {
-              const msg = error instanceof ApiError ? error.message : "Erreur lors de l'achat.";
-              await btn.editReply({ content: `❌ ${msg}`, embeds: [], components: [] });
+              await handleCommandError(error, btn as any);
               buttonCollector.stop();
               return;
             }

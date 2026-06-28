@@ -3,7 +3,8 @@ import {
   ChatInputCommandInteraction,
   MessageFlags,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
+import { handleCommandError } from "../../utils/errorHandler";
 import { Command } from "../../models/Command";
 import type { TravelStatus, MapResponse } from "./data";
 import { buildCityinfoEmbed } from "./utils/embeds";
@@ -39,17 +40,7 @@ const cityinfo: Command = {
       const mapData = await api.get<MapResponse>("/api/travel/map", userId, username);
       await interaction.reply({ embeds: [buildCityinfoEmbed(mapData, avatarURL)] });
     } catch (error) {
-      if (error instanceof ApiError) {
-        await interaction.reply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
-        return;
-      }
-      console.error("Erreur dans /cityinfo:", error);
-      const errorMessage = "❌ Une erreur est survenue lors de l'affichage des informations de la ville.";
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: errorMessage });
-      } else {
-        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
-      }
+      await handleCommandError(error, interaction);
     }
   },
 };

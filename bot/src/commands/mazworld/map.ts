@@ -2,9 +2,9 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   ComponentType,
-  MessageFlags,
 } from "discord.js";
-import { api, ApiError } from "../../api/client";
+import { api } from "../../api/client";
+import { handleCommandError } from "../../utils/errorHandler";
 import { Command } from "../../models/Command";
 import type { TravelStatus, MapResponse, TravelStartResponse } from "./data";
 import {
@@ -88,8 +88,7 @@ const map: Command = {
               }
               await btn.editReply({ embeds: [buildTravelSuccessEmbed(route, result, avatarURL)], components: [] });
             } catch (error) {
-              const msg = error instanceof ApiError ? error.message : "Erreur lors du départ.";
-              await btn.editReply({ content: `❌ ${msg}`, embeds: [], components: [] });
+              await handleCommandError(error, btn as any);
             }
             confirmCollector.stop();
           } else {
@@ -111,13 +110,7 @@ const map: Command = {
         }
       });
     } catch (error) {
-      console.error("Erreur dans /map:", error);
-      const errorMessage = "❌ Une erreur est survenue lors de l'affichage de la carte.";
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: errorMessage });
-      } else {
-        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
-      }
+      await handleCommandError(error, interaction);
     }
   },
 };
