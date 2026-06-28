@@ -65,5 +65,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/commands/commands.component').then(m => m.CommandsComponent),
     title: 'Commandes — MazWorld',
   },
+  {
+    path: 'servers',
+    loadComponent: () => import('./features/servers/servers.component').then(m => m.ServersComponent),
+    title: 'Mes serveurs — MazWorld',
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: '' },
 ];
