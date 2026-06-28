@@ -1,0 +1,167 @@
+<div class="records-page">
+
+  <!-- Header -->
+  <div class="records-header container">
+    <span class="section-label">Records personnels</span>
+    <h1>Vos records & historique</h1>
+    <p class="subtitle">Retracez votre parcours sur MazWorld, catégorie par catégorie.</p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="records-state container">
+      <div class="loading"></div>
+      <p>Chargement de vos records…</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="records-state records-state--error container">
+      <span class="records-state__icon">⚠️</span>
+      <p>Impossible de charger vos records.</p>
+      <button class="btn-primary" (click)="load()">Réessayer</button>
+    </div>
+  } @else if (records(); as r) {
+
+    <!-- ===== COINS ===== -->
+    <section class="records-section container">
+      <div class="rec-block">
+        <div class="rec-block__label">
+          <span class="rec-icon">🪙</span>
+          <span class="section-label">MazCoins</span>
+        </div>
+
+        <div class="coins-hero">
+          <div class="coins-hero__main">
+            <span class="coins-hero__value text-gradient">{{ fmt(r.coins.current) }}</span>
+            <span class="coins-hero__unit">MZC</span>
+          </div>
+          <div class="coins-hero__meta">
+            <span class="rank-badge">🏆 #{{ r.coins.rank }} mondial</span>
+            <span class="coins-hero__sub">sur {{ r.coins.total_users }} joueurs</span>
+          </div>
+        </div>
+
+        <div class="percentile-bar">
+          <div class="percentile-bar__header">
+            <span>Meilleur que {{ r.coins.percentile }}% des joueurs</span>
+            <span class="percentile-bar__pct">{{ r.coins.percentile }}e percentile</span>
+          </div>
+          <div class="percentile-bar__track">
+            <div class="percentile-bar__fill" [style.width.%]="r.coins.percentile"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="records-divider container"></div>
+
+    <!-- ===== EXPLORATION ===== -->
+    <section class="records-section container">
+      <div class="rec-block">
+        <div class="rec-block__label">
+          <span class="rec-icon">🗺️</span>
+          <span class="section-label">Exploration</span>
+        </div>
+
+        <div class="exploration-progress">
+          <div class="exploration-progress__counter">
+            <span class="exploration-progress__num">{{ r.exploration.visited_count }}</span>
+            <span class="exploration-progress__sep">/</span>
+            <span class="exploration-progress__total">{{ r.exploration.total_cities }}</span>
+          </div>
+          <div class="exploration-progress__label">villes découvertes</div>
+          <div class="exploration-progress__track">
+            <div class="exploration-progress__fill" [style.width.%]="explorationPct()"></div>
+          </div>
+          <div class="exploration-progress__pct">{{ explorationPct() }}% exploré</div>
+        </div>
+
+        <div class="cities-grid-rec">
+          @for (city of r.exploration.cities; track city.city_id) {
+            <div class="city-rec" [class.city-rec--visited]="city.visited" [class.city-rec--locked]="!city.visited">
+              <div class="city-rec__inner">
+                <span class="city-rec__emoji">{{ city.visited ? (city.emoji ?? '🏙️') : '🔒' }}</span>
+                <span class="city-rec__name">{{ city.visited ? city.name : '???' }}</span>
+                @if (city.visited && city.first_visit) {
+                  <span class="city-rec__date">{{ city.first_visit | date:'d MMM yy' }}</span>
+                } @else if (!city.visited) {
+                  <span class="city-rec__locked-label">Non découverte</span>
+                }
+              </div>
+              @if (city.visited) {
+                <span class="city-rec__check">✓</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <div class="records-divider container"></div>
+
+    <!-- ===== COLLECTION ===== -->
+    <section class="records-section container">
+      <div class="rec-block">
+        <div class="rec-block__label">
+          <span class="rec-icon">🛒</span>
+          <span class="section-label">Collection</span>
+        </div>
+
+        <div class="collection-stats">
+          <div class="collection-stat">
+            <span class="collection-stat__value">{{ r.collection.inventory_count }}</span>
+            <span class="collection-stat__icon">📦</span>
+            <span class="collection-stat__label">Items possédés</span>
+          </div>
+          <div class="collection-stat collection-stat--gold">
+            <span class="collection-stat__value">{{ r.collection.badges_count }}</span>
+            <span class="collection-stat__icon">🏅</span>
+            <span class="collection-stat__label">Badges équipés</span>
+          </div>
+          @if (r.collection.recent_item) {
+            <div class="collection-stat collection-stat--accent">
+              <span class="collection-stat__value collection-stat__value--sm">{{ r.collection.recent_item }}</span>
+              <span class="collection-stat__icon">✨</span>
+              <span class="collection-stat__label">Dernier achat</span>
+            </div>
+          }
+        </div>
+
+        @if (r.collection.inventory_count === 0) {
+          <p class="records-empty">Aucun item acheté — visitez la boutique pour personnaliser votre profil !</p>
+        }
+      </div>
+    </section>
+
+    <div class="records-divider container"></div>
+
+    <!-- ===== ACTIVITÉ ===== -->
+    <section class="records-section container">
+      <div class="rec-block">
+        <div class="rec-block__label">
+          <span class="rec-icon">📅</span>
+          <span class="section-label">Activité</span>
+        </div>
+
+        <div class="activity-timeline">
+          <div class="timeline-item">
+            <div class="timeline-item__dot"></div>
+            <div class="timeline-item__body">
+              <span class="timeline-item__title">Membre depuis</span>
+              <span class="timeline-item__value">{{ r.activity.joined_at | date:'d MMMM yyyy' }}</span>
+            </div>
+            <span class="timeline-item__badge">{{ r.activity.days_active }} jours</span>
+          </div>
+          <div class="timeline-item__line"></div>
+          <div class="timeline-item">
+            <div class="timeline-item__dot timeline-item__dot--accent"></div>
+            <div class="timeline-item__body">
+              <span class="timeline-item__title">Dernière activité</span>
+              <span class="timeline-item__value">{{ r.activity.last_activity | date:'d MMMM yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  }
+
+</div>
