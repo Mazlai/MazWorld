@@ -46,6 +46,9 @@
             <a routerLink="/dashboard" class="user-menu__item" role="menuitem" (click)="closeUserMenu()">
               <span aria-hidden="true">🏠</span> Dashboard
             </a>
+            <a routerLink="/servers" class="user-menu__item" role="menuitem" (click)="closeUserMenu()">
+              <span aria-hidden="true">🖥️</span> Mes serveurs
+            </a>
             <div class="user-menu__divider" role="separator"></div>
             <button class="user-menu__item user-menu__item--danger" role="menuitem" (click)="logout()">
               <span aria-hidden="true">🚪</span> Déconnexion
@@ -82,6 +85,7 @@
         <a routerLink="/shop"      routerLinkActive="active" (click)="closeMobileMenu()">🛒 Boutique</a>
         <a routerLink="/inventory" routerLinkActive="active" (click)="closeMobileMenu()">🎒 Inventaire</a>
         <a routerLink="/records"   routerLinkActive="active" (click)="closeMobileMenu()">📈 Records</a>
+        <a routerLink="/servers"   routerLinkActive="active" (click)="closeMobileMenu()">🖥️ Mes serveurs</a>
         @if (auth.currentUser()?.roles?.includes('ROLE_ADMIN')) {
           <a routerLink="/stats" routerLinkActive="active" (click)="closeMobileMenu()">📊 Stats</a>
         }

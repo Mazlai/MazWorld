@@ -6,3 +6,4 @@ export * from './inventory.model';
 export * from './leaderboard.model';
 export * from './stats.model';
 export * from './records.model';
+export * from './servers.model';
