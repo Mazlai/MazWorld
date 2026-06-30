@@ -1,0 +1,115 @@
+<div class="servers-page">
+
+  <!-- Header -->
+  <div class="servers-header container">
+    <span class="section-label">Gestion des serveurs</span>
+    <h1>Mes serveurs <span class="text-gradient">Discord</span></h1>
+    <p class="subtitle">Serveurs Discord où vous êtes administrateur ou gérant.</p>
+  </div>
+
+  <!-- Bot status bar -->
+  @if (botStatus(); as status) {
+    <div class="bot-statusbar container">
+      <div class="bot-statusbar__dot" [class.bot-statusbar__dot--online]="status.online" [class.bot-statusbar__dot--offline]="!status.online"></div>
+      <span class="bot-statusbar__label">
+        Bot
+        @if (status.username) { <strong>{{ status.username }}</strong> }
+        — <span [class.text-online]="status.online" [class.text-offline]="!status.online">{{ status.online ? 'En ligne' : 'Hors ligne' }}</span>
+      </span>
+      @if (totalCount() > 0) {
+        <span class="bot-statusbar__count">{{ presentCount() }} / {{ totalCount() }} serveurs</span>
+      }
+    </div>
+  }
+
+  <!-- States -->
+  @if (isLoading()) {
+    <div class="servers-state container">
+      <div class="loading"></div>
+      <p>Récupération de vos serveurs Discord…</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="servers-state servers-state--error container">
+      <span class="servers-state__icon">⚠️</span>
+      <p>Impossible de récupérer vos serveurs. Vérifiez que vous êtes bien connecté via Discord.</p>
+      <button class="btn-primary" (click)="load()">Réessayer</button>
+    </div>
+  } @else if (servers().length === 0) {
+    <div class="servers-state container">
+      <span class="servers-state__icon">🔍</span>
+      <p>Aucun serveur trouvé.</p>
+    </div>
+  } @else {
+
+    <!-- Servers with bot -->
+    @if (presentCount() > 0) {
+      <section class="servers-section container">
+        <div class="servers-section__label">
+          <span class="servers-section__icon">✅</span>
+          <span class="section-label">Bot présent</span>
+        </div>
+        <div class="servers-grid">
+          @for (server of servers(); track server.id) {
+            @if (server.bot_present) {
+              <div class="server-card server-card--active">
+                <div class="server-card__icon">
+                  @if (server.icon) {
+                    <img [src]="server.icon" [alt]="server.name" class="server-card__img" />
+                  } @else {
+                    <span class="server-card__initials">{{ server.name.charAt(0) }}</span>
+                  }
+                </div>
+                <div class="server-card__body">
+                  <span class="server-card__name">{{ server.name }}</span>
+                  @if (server.member_count) {
+                    <span class="server-card__members">{{ fmtCount(server.member_count) }} membres</span>
+                  }
+                </div>
+                <span class="server-card__badge server-card__badge--present">Bot actif</span>
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Servers without bot -->
+    @if (presentCount() < totalCount()) {
+      <div class="servers-divider container"></div>
+      <section class="servers-section container">
+        <div class="servers-section__label">
+          <span class="servers-section__icon">➕</span>
+          <span class="section-label">Ajouter le bot</span>
+        </div>
+        <div class="servers-grid">
+          @for (server of servers(); track server.id) {
+            @if (!server.bot_present) {
+              <div class="server-card">
+                <div class="server-card__icon server-card__icon--dim">
+                  @if (server.icon) {
+                    <img [src]="server.icon" [alt]="server.name" class="server-card__img" />
+                  } @else {
+                    <span class="server-card__initials">{{ server.name.charAt(0) }}</span>
+                  }
+                </div>
+                <div class="server-card__body">
+                  <span class="server-card__name">{{ server.name }}</span>
+                  @if (server.member_count) {
+                    <span class="server-card__members">{{ fmtCount(server.member_count) }} membres</span>
+                  }
+                </div>
+                @if (server.invite_url) {
+                  <button class="server-card__add" (click)="openInvite(server.invite_url!)">
+                    <span aria-hidden="true">➕</span> Ajouter
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
+
+  }
+
+</div>

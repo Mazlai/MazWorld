@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard, adminGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -38,20 +38,38 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'inventory',
+    loadComponent: () => import('./features/inventory/inventory.component').then(m => m.InventoryComponent),
+    title: 'Inventaire — MazWorld',
+    canActivate: [authGuard],
+  },
+  {
     path: 'leaderboard',
     loadComponent: () => import('./features/leaderboard/leaderboard.component').then(m => m.LeaderboardComponent),
     title: 'Classement — MazWorld',
   },
   {
+    path: 'records',
+    loadComponent: () => import('./features/records/records.component').then(m => m.RecordsComponent),
+    title: 'Records — MazWorld',
+    canActivate: [authGuard],
+  },
+  {
     path: 'stats',
     loadComponent: () => import('./features/stats/stats.component').then(m => m.StatsComponent),
     title: 'Statistiques — MazWorld',
-    canActivate: [authGuard],
+    canActivate: [adminGuard],
   },
   {
     path: 'commands',
     loadComponent: () => import('./features/commands/commands.component').then(m => m.CommandsComponent),
     title: 'Commandes — MazWorld',
+  },
+  {
+    path: 'servers',
+    loadComponent: () => import('./features/servers/servers.component').then(m => m.ServersComponent),
+    title: 'Mes serveurs — MazWorld',
+    canActivate: [authGuard],
   },
   { path: '**', redirectTo: '' },
 ];

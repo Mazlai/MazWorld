@@ -38,6 +38,9 @@ security:
         - { path: ^/api/commands, roles: ROLE_USER }
         - { path: ^/api/shop/purchase, roles: ROLE_USER }
         - { path: ^/api/leaderboard/me, roles: ROLE_USER }
+        - { path: ^/api/records, roles: ROLE_USER }
+        - { path: ^/api/servers, roles: ROLE_USER }
+        - { path: ^/api/bot/status, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: PUBLIC_ACCESS }
 
 when@test:

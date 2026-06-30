@@ -1,0 +1,171 @@
+<div class="inventory-page">
+
+  <!-- Header -->
+  <div class="inventory-header container">
+    <div class="inventory-header__content">
+      <span class="section-label">INVENTAIRE</span>
+      <h1>Mon Inventaire</h1>
+      <p class="subtitle">Gérez vos backgrounds et badges équipés</p>
+    </div>
+    <div class="inventory-header__balance">
+      <span>💰</span>
+      <span class="balance-value">{{ userCoins() }}</span>
+      <span class="balance-unit">MC</span>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  @if (notification(); as notif) {
+    <div class="notification container" [class.notification--success]="notif.type === 'success'" [class.notification--error]="notif.type === 'error'">
+      <span>{{ notif.type === 'success' ? '✅' : '❌' }}</span>
+      <span>{{ notif.message }}</span>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="inventory-state">
+      <div class="loading"></div>
+      <p>Chargement de l'inventaire…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (hasError()) {
+    <div class="inventory-state inventory-state--error">
+      <span>⚠️</span>
+      <p>Impossible de charger l'inventaire.</p>
+      <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  @else if (items().length === 0) {
+    <div class="inventory-state container">
+      <span style="font-size:3rem">🎒</span>
+      <p>Votre inventaire est vide.</p>
+      <a class="btn-primary" href="/shop">Visiter la boutique</a>
+    </div>
+  }
+
+  @else {
+    <!-- Onglets -->
+    <div class="inventory-tabs container">
+      <button class="tab-btn" [class.tab-btn--active]="activeTab() === 'background'" (click)="activeTab.set('background')">
+        🖼️ Backgrounds <span class="tab-count">{{ backgrounds().length }}</span>
+      </button>
+      <button class="tab-btn" [class.tab-btn--active]="activeTab() === 'badge'" (click)="activeTab.set('badge')">
+        🏅 Badges <span class="tab-count">{{ badges().length }}</span>
+      </button>
+    </div>
+
+    <!-- ===== TAB BACKGROUNDS ===== -->
+    @if (activeTab() === 'background') {
+      @if (backgrounds().length === 0) {
+        <div class="inventory-state container">
+          <span style="font-size:2.5rem">🖼️</span>
+          <p>Aucun background dans l'inventaire.</p>
+        </div>
+      } @else {
+        <div class="items-grid container">
+          @for (item of backgrounds(); track item.item_id) {
+            <div class="item-card" [class.item-card--equipped]="item.equipped">
+
+              <div class="item-card__header item-card__header--bg">
+                <span class="item-emoji">{{ getEmoji(item) }}</span>
+                @if (item.equipped) {
+                  <span class="item-tag item-tag--equipped">⭐ Équipé</span>
+                }
+              </div>
+
+              <div class="item-card__body">
+                <h3 class="item-name">{{ item.name }}</h3>
+                @if (item.description) {
+                  <p class="item-desc">{{ item.description }}</p>
+                }
+              </div>
+
+              <div class="item-card__footer">
+                @if (item.equipped) {
+                  <span class="item-status item-status--equipped">Actuellement équipé</span>
+                } @else {
+                  <button class="btn-equip" (click)="equipBg(item)">Équiper</button>
+                }
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ===== TAB BADGES ===== -->
+    @if (activeTab() === 'badge') {
+
+      <!-- Slots visuels -->
+      <div class="badge-slots-section container">
+        <h2 class="section-title">Slots équipés</h2>
+        <div class="badge-slots-visual">
+          @for (slot of slots; track slot) {
+            <div class="badge-slot-card" [class.badge-slot-card--filled]="getBadgeInSlot(slot)">
+              @if (getBadgeInSlot(slot); as badge) {
+                <span class="slot-emoji">{{ getEmoji(badge) }}</span>
+                <span class="slot-name">{{ badge.name }}</span>
+                <button class="slot-unequip" (click)="unequipBadge(slot)" title="Déséquiper">✕</button>
+              } @else {
+                <span class="slot-empty">{{ slot + 1 }}</span>
+                <span class="slot-label">Vide</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Liste badges possédés -->
+      @if (badges().length === 0) {
+        <div class="inventory-state container">
+          <span style="font-size:2.5rem">🏅</span>
+          <p>Aucun badge dans l'inventaire.</p>
+        </div>
+      } @else {
+        <div class="section-title container">Mes badges</div>
+        <div class="items-grid container">
+          @for (item of badges(); track item.item_id) {
+            <div class="item-card" [class.item-card--equipped]="item.equipped">
+
+              <div class="item-card__header item-card__header--badge">
+                <span class="item-emoji">{{ getEmoji(item) }}</span>
+                @if (item.equipped) {
+                  <span class="item-tag item-tag--equipped">⭐ Slot {{ (item.slot ?? 0) + 1 }}</span>
+                }
+              </div>
+
+              <div class="item-card__body">
+                <h3 class="item-name">{{ item.name }}</h3>
+                @if (item.description) {
+                  <p class="item-desc">{{ item.description }}</p>
+                }
+              </div>
+
+              <div class="item-card__footer">
+                @if (item.equipped) {
+                  <button class="btn-unequip" (click)="unequipBadge(item.slot!)">Déséquiper</button>
+                } @else {
+                  <div class="badge-equip-slots">
+                    <span class="badge-equip-label">Slot :</span>
+                    @for (slot of slots; track slot) {
+                      <button class="slot-btn" [class.slot-btn--taken]="!!getBadgeInSlot(slot)" [title]="getBadgeInSlot(slot) ? 'Remplace ' + getBadgeInSlot(slot)!.name : 'Slot ' + (slot + 1)" (click)="equipBadge(item, slot)">
+                        {{ slot + 1 }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
+</div>

@@ -1,3 +1,204 @@
-<div class="container">
-  <h2>Carte — à venir</h2>
+<div class="map-page">
+
+  <!-- Header -->
+  <div class="map-header container">
+    <div class="map-header__content">
+      <span class="section-label">MAP</span>
+      <h1>Carte du monde</h1>
+      <p class="subtitle">6 villes interconnectées vous attendent</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="map-state">
+      <div class="loading"></div>
+      <p>Chargement de la carte…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (hasError()) {
+    <div class="map-state map-state--error">
+      <span>⚠️</span>
+      <p>Impossible de charger la carte.</p>
+      <button class="btn btn-primary" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  @else {
+    <!-- Bannière voyage en cours -->
+    @if (isTraveling()) {
+      <div class="travel-banner container">
+        <div class="travel-banner__inner">
+          <span class="travel-banner__icon">🚂</span>
+          <div class="travel-banner__text">
+            <span>En route vers {{ travelingToEmoji() }} <strong>{{ travelingToName() }}</strong></span>
+            <span class="travel-banner__countdown">Arrivée dans {{ formatCountdown(remainingSeconds()) }}</span>
+          </div>
+          <div class="travel-banner__coins">
+            <span>💰</span>
+            <span>{{ coins() }} MC</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="coins-bar container">
+        <span>💰 {{ coins() }} MazCoins</span>
+      </div>
+    }
+
+    <!-- Carte interactive -->
+    <section class="map-container container">
+      <div class="map-viewport">
+
+        <!-- Fond thématique dynamique -->
+        <div class="map-background">
+          @for (city of cities(); track city.city_id) {
+            <div class="bg-zone"
+              [style.left.%]="getCityPosition(city).x"
+              [style.top.%]="getCityPosition(city).y"
+              [style.background]="'radial-gradient(circle, ' + getThemeColor(city.theme) + ', transparent)'">
+            </div>
+          }
+        </div>
+
+        <!-- SVG routes -->
+        <svg class="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:rgba(255,107,53,0.7)" />
+              <stop offset="100%" style="stop-color:rgba(247,147,30,0.7)" />
+            </linearGradient>
+          </defs>
+          @for (r of visualRoutes(); track $index) {
+            <line
+              [attr.x1]="r.x1" [attr.y1]="r.y1"
+              [attr.x2]="r.x2" [attr.y2]="r.y2"
+              stroke="url(#routeGrad)"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-dasharray="16,8"
+              class="route-line" />
+          }
+        </svg>
+
+        <!-- Villes -->
+        <div class="cities">
+          @for (city of cities(); track city.city_id) {
+            <div
+              class="city"
+              [class.city--current]="isCurrentCity(city.city_id)"
+              [class.city--destination]="isDestination(city.city_id)"
+              [class.city--reachable]="getRouteToCity(city.city_id) !== null && !isCurrentCity(city.city_id)"
+              [class.city--selected]="selectedCity()?.city_id === city.city_id"
+              [class.city--near-bottom]="getCityPosition(city).y > 75"
+              [style.left.%]="getCityPosition(city).x"
+              [style.top.%]="getCityPosition(city).y"
+              (click)="selectCity(city)">
+
+              <div class="city-pulse"></div>
+
+              <div class="city-icon">
+                <span class="city-emoji">{{ city.emoji }}</span>
+              </div>
+
+              @if (isCurrentCity(city.city_id)) {
+                <span class="city-badge city-badge--here">Ici</span>
+              } @else if (isDestination(city.city_id)) {
+                <span class="city-badge city-badge--dest">→</span>
+              }
+
+              <div class="city-info">
+                <span class="city-name">{{ city.name }}</span>
+                <span class="city-theme">{{ city.theme }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Panneau de détails -->
+    <aside class="details-panel" [class.open]="selectedCity()">
+      @if (selectedCity(); as city) {
+        <div class="panel-content">
+          <button class="close-btn" (click)="closePanel()">✕</button>
+
+          <div class="panel-header">
+            <span class="panel-emoji">{{ city.emoji }}</span>
+            <div>
+              <h2>{{ city.name }}</h2>
+              <span class="panel-theme">{{ city.theme }}</span>
+              @if (isCurrentCity(city.city_id)) {
+                <span class="panel-badge panel-badge--here">📍 Vous êtes ici</span>
+              }
+            </div>
+          </div>
+
+          <p class="panel-description">{{ city.description }}</p>
+
+          <!-- Jobs (seulement si ville actuelle) -->
+          @if (isCurrentCity(city.city_id) && getCurrentCityJobs().length > 0) {
+            <div class="panel-section">
+              <h3>💼 Jobs disponibles</h3>
+              <div class="jobs-list">
+                @for (job of getCurrentCityJobs(); track job.job_id) {
+                  <div class="job-item">
+                    <span class="job-emoji">{{ job.job_emoji }}</span>
+                    <span class="job-name">{{ job.job_name }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Routes depuis cette ville -->
+          @if (!isCurrentCity(city.city_id)) {
+            @if (getRouteToCity(city.city_id); as route) {
+              <div class="panel-section">
+                <h3>🛣️ Trajet depuis votre position</h3>
+                <div class="route-detail">
+                  <div class="route-detail__row">
+                    <span class="route-detail__label">Durée</span>
+                    <span class="route-detail__value">{{ formatDuration(route.duration) }}</span>
+                  </div>
+                  <div class="route-detail__row">
+                    <span class="route-detail__label">Coût</span>
+                    @if (route.visited) {
+                      <span class="route-detail__value route-detail__value--free">Gratuit <span class="tag-visited">déjà visitée</span></span>
+                    } @else {
+                      <span class="route-detail__value">{{ route.cost }} MC</span>
+                    }
+                  </div>
+                </div>
+
+                <button
+                  class="btn-travel"
+                  [disabled]="isTraveling() || !canAffordTravel(city.city_id)"
+                  (click)="startTravel(city.city_id)">
+                  @if (isTraveling()) {
+                    🚂 En voyage…
+                  } @else if (!canAffordTravel(city.city_id)) {
+                    ❌ Fonds insuffisants
+                  } @else if (route.visited) {
+                    🎒 Partir vers {{ city.name }} (Gratuit)
+                  } @else {
+                    🚂 Partir vers {{ city.name }} ({{ route.cost }} MC)
+                  }
+                </button>
+              </div>
+            } @else {
+              <div class="panel-section">
+                <p class="panel-unreachable">⛔ Pas de route directe depuis votre ville actuelle.</p>
+              </div>
+            }
+          }
+
+        </div>
+      }
+    </aside>
+  }
+
 </div>

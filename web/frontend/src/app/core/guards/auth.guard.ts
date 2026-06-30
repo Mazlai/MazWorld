@@ -15,3 +15,11 @@ export const guestGuard: CanActivateFn = () => {
   if (!auth.isAuthenticated()) return true;
   return inject(Router).createUrlTree(['/dashboard']);
 };
+
+export const adminGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  if (!auth.isAuthenticated()) return inject(Router).createUrlTree(['/']);
+  const roles = auth.currentUser()?.roles ?? [];
+  if (roles.includes('ROLE_ADMIN')) return true;
+  return inject(Router).createUrlTree(['/dashboard']);
+};

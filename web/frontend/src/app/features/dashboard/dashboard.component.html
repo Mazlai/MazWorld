@@ -1,22 +1,33 @@
-@if (auth.currentUser(); as user) {
-  <div class="dashboard-page container">
+<div class="dashboard-page container">
 
+  <!-- Header profil -->
+  @if (profile(); as p) {
     <header class="dashboard-header">
-      <app-avatar [src]="auth.userAvatar()" [alt]="user.username" size="lg" />
+      <app-avatar [src]="auth.userAvatar()" [alt]="p.username" size="lg" />
       <div class="dashboard-header__info">
-        <span class="dashboard-header__name">{{ user.username }}</span>
-        <div class="dashboard-header__roles">
-          @for (role of user.roles; track role) {
-            <app-badge variant="info">{{ role }}</app-badge>
-          }
-        </div>
+        <span class="dashboard-header__name">{{ p.username }}</span>
+        @if (rank() !== null) {
+          <span class="dashboard-header__rank">Rang #{{ rank() }}</span>
+        }
       </div>
     </header>
 
     <section class="dashboard-stats">
-      <app-stat-card icon="🏙️" label="Ville actuelle" [value]="user.current_city" />
-      <app-stat-card icon="🪙" label="MazCoins" [value]="user.coins" variant="gold" />
+      <app-stat-card icon="🪙" label="MazCoins" [value]="p.coins.toLocaleString('fr-FR')" variant="gold" />
+      <app-stat-card icon="🏙️" label="Ville actuelle" [value]="p.current_city_name" />
+      <app-stat-card icon="🗺️" label="Villes visitées" [value]="p.visited_cities_count" />
+      <app-stat-card icon="🎒" label="Items en inventaire" [value]="p.inventory_count" />
     </section>
+  } @else if (isLoading()) {
+    <div class="dashboard-loading">
+      <div class="loading"></div>
+      <p>Chargement du tableau de bord…</p>
+    </div>
+  } @else {
+    <div class="dashboard-loading">
+      <span>⚠️</span>
+      <p>Impossible de charger les données.</p>
+    </div>
+  }
 
-  </div>
-}
+</div>
