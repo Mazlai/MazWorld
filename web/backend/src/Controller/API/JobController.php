@@ -3,12 +3,11 @@
 namespace App\Controller\API;
 
 use Doctrine\DBAL\Connection;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/jobs', name: 'api_jobs_')]
-class JobController extends AbstractController
+class JobController extends AbstractApiController
 {
     public function __construct(
         private Connection $connection
@@ -59,7 +58,7 @@ class JobController extends AbstractController
         ', ['jobId' => $jobId]);
 
         if (!$job) {
-            return $this->json(['error' => 'Job not found'], 404);
+            return $this->notFoundResponse('Job not found');
         }
 
         return $this->json($job);

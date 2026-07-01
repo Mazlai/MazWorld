@@ -77,7 +77,7 @@ class ServersController extends AbstractApiController
 
             return new JsonResponse($result);
         } catch (\Throwable $e) {
-            return $this->errorResponse('Failed to fetch servers: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 
