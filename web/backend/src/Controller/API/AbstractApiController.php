@@ -43,4 +43,14 @@ abstract class AbstractApiController extends AbstractController
     {
         return $this->errorResponse($message, Response::HTTP_NOT_FOUND);
     }
+
+    protected function serverErrorResponse(\Throwable $e): JsonResponse
+    {
+        return new JsonResponse(['error' => 'Une erreur est survenue'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    protected function failureResponse(string $message, int $statusCode = Response::HTTP_BAD_REQUEST, array $extra = []): JsonResponse
+    {
+        return new JsonResponse(['success' => false, 'message' => $message] + $extra, $statusCode);
+    }
 }
