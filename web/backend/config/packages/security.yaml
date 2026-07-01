@@ -41,7 +41,7 @@ security:
         - { path: ^/api/records, roles: ROLE_USER }
         - { path: ^/api/servers, roles: ROLE_USER }
         - { path: ^/api/bot/status, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: ROLE_USER }
 
 when@test:
     security:
