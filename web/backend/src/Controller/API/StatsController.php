@@ -4,15 +4,13 @@ namespace App\Controller\API;
 
 use App\Entity\ShopItem;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/stats', name: 'api_stats_')]
 #[IsGranted('ROLE_ADMIN')]
-class StatsController extends AbstractController
+class StatsController extends AbstractApiController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager
@@ -27,7 +25,7 @@ class StatsController extends AbstractController
                 'economy' => $this->getEconomyStatsData(),
             ]);
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 
@@ -37,7 +35,7 @@ class StatsController extends AbstractController
         try {
             return new JsonResponse($this->getGlobalStatsData());
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 

@@ -4,7 +4,6 @@ namespace App\Controller\API;
 
 use App\Repository\ShopItemRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/inventory', name: 'api_inventory_')]
@@ -21,7 +20,7 @@ class InventoryController extends AbstractApiController
             $user = $this->getCurrentUser();
 
             if (!$user) {
-                return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+                return $this->unauthorizedResponse();
             }
 
             $equippedBackground = $user->getEquippedBackground();
@@ -72,7 +71,7 @@ class InventoryController extends AbstractApiController
                 'user_coins'       => $user->getCoins(),
             ]);
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 }
