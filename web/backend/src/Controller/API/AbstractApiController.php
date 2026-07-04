@@ -3,12 +3,22 @@
 namespace App\Controller\API;
 
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractApiController extends AbstractController
 {
+    protected LoggerInterface $logger;
+
+    #[Required]
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
     protected function getCurrentUser(): ?User
     {
         $user = $this->getUser();
@@ -46,6 +56,11 @@ abstract class AbstractApiController extends AbstractController
 
     protected function serverErrorResponse(\Throwable $e): JsonResponse
     {
+        $this->logger->error($e->getMessage(), [
+            'exception' => $e,
+            'user' => $this->getCurrentUser()?->getUserId(),
+        ]);
+
         return new JsonResponse(['error' => 'Une erreur est survenue'], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
