@@ -1,0 +1,10 @@
+framework:
+    rate_limiter:
+        auth_callback:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 minute'
+        auth_refresh:
+            policy: 'sliding_window'
+            limit: 20
+            interval: '1 minute'

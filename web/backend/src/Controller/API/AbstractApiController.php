@@ -6,6 +6,7 @@ use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use DateTimeInterface;
 
 abstract class AbstractApiController extends AbstractController
 {
@@ -42,5 +43,17 @@ abstract class AbstractApiController extends AbstractController
     protected function notFoundResponse(string $message = 'Resource not found'): JsonResponse
     {
         return $this->errorResponse($message, Response::HTTP_NOT_FOUND);
+    }
+
+    protected function tooManyRequestsResponse(?DateTimeInterface $retryAfter = null): JsonResponse
+    {
+        $response = $this->errorResponse('Too many requests', Response::HTTP_TOO_MANY_REQUESTS);
+
+        if ($retryAfter !== null) {
+            $seconds = max(0, $retryAfter->getTimestamp() - time());
+            $response->headers->set('Retry-After', (string) $seconds);
+        }
+
+        return $response;
     }
 }
