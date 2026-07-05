@@ -5,9 +5,11 @@ namespace App\Controller\API;
 use App\Service\Discord\DiscordOAuthService;
 use App\Service\User\UserService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/auth', name: 'api_auth_')]
@@ -16,7 +18,11 @@ class AuthController extends AbstractApiController
     public function __construct(
         private readonly DiscordOAuthService $discordOAuth,
         private readonly UserService $userService,
-        private readonly JWTTokenManagerInterface $jwtManager
+        private readonly JWTTokenManagerInterface $jwtManager,
+        #[Autowire(service: 'limiter.auth_callback')]
+        private readonly RateLimiterFactory $callbackLimiter,
+        #[Autowire(service: 'limiter.auth_refresh')]
+        private readonly RateLimiterFactory $refreshLimiter,
     ) {}
 
     #[Route('/discord/login', name: 'discord_login', methods: ['GET'])]
@@ -33,6 +39,11 @@ class AuthController extends AbstractApiController
     #[Route('/discord/callback', name: 'discord_callback', methods: ['POST'])]
     public function discordCallback(Request $request): JsonResponse
     {
+        $limit = $this->callbackLimiter->create($request->getClientIp())->consume();
+        if (!$limit->isAccepted()) {
+            return $this->tooManyRequestsResponse($limit->getRetryAfter());
+        }
+
         $data = json_decode($request->getContent(), true);
         $code = $data['code'] ?? null;
 
@@ -66,12 +77,17 @@ class AuthController extends AbstractApiController
     }
 
     #[Route('/refresh', name: 'refresh', methods: ['POST'])]
-    public function refresh(): JsonResponse
+    public function refresh(Request $request): JsonResponse
     {
         $user = $this->getCurrentUser();
 
         if (!$user) {
             return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $limit = $this->refreshLimiter->create($user->getUserId())->consume();
+        if (!$limit->isAccepted()) {
+            return $this->tooManyRequestsResponse($limit->getRetryAfter());
         }
 
         try {
