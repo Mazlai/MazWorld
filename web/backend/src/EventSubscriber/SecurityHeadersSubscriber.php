@@ -27,7 +27,7 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         $response->headers->set(
             'Content-Security-Policy',
-            "default-src 'self'; img-src 'self' cdn.discordapp.com; script-src 'self'; style-src 'self' 'unsafe-inline'"
+            "default-src 'self'; img-src 'self' cdn.discordapp.com; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
         );
     }
 }
