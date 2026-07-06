@@ -6,6 +6,7 @@ use App\Entity\City;
 use App\Entity\User;
 use App\Entity\VisitedCity;
 use App\Repository\UserRepository;
+use App\Service\Crypto\TokenEncryptorService;
 use App\Service\Discord\DTO\DiscordTokenDTO;
 use App\Service\Discord\DTO\DiscordUserDTO;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,7 +15,8 @@ class UserService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly UserRepository $userRepository
+        private readonly UserRepository $userRepository,
+        private readonly TokenEncryptorService $tokenEncryptor
     ) {}
 
     public function findOrCreateFromDiscord(DiscordUserDTO $discordUser, DiscordTokenDTO $tokens): User
@@ -60,13 +62,28 @@ class UserService
     {
         $user->setUsername($discordUser->username);
         $user->setDiscordAvatar($discordUser->avatar);
-        $user->setDiscordEmail($discordUser->email);
+        if ($discordUser->email !== null) {
+            $user->setDiscordEmail($this->tokenEncryptor->encrypt($discordUser->email));
+        }
+    }
+
+    public function serializeUser(User $user): array
+    {
+        $data = $user->toArray();
+        if ($data['discord_email'] !== null) {
+            try {
+                $data['discord_email'] = $this->tokenEncryptor->decrypt($data['discord_email']);
+            } catch (\Throwable) {
+                $data['discord_email'] = null;
+            }
+        }
+        return $data;
     }
 
     public function updateUserTokens(User $user, DiscordTokenDTO $tokens): void
     {
-        $user->setOauthAccessToken($tokens->accessToken);
-        $user->setOauthRefreshToken($tokens->refreshToken);
+        $user->setOauthAccessToken($this->tokenEncryptor->encrypt($tokens->accessToken));
+        $user->setOauthRefreshToken($this->tokenEncryptor->encrypt($tokens->refreshToken));
         $user->setOauthTokenExpiresAt($tokens->getExpiresAt());
     }
 
