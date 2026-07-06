@@ -68,7 +68,7 @@ class ShopController extends AbstractApiController
                 'user_coins' => $user?->getCoins() ?? 0,
             ]);
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 
@@ -79,24 +79,24 @@ class ShopController extends AbstractApiController
             $user = $this->getCurrentUser();
 
             if (!$user) {
-                return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+                return $this->unauthorizedResponse();
             }
 
             $data = json_decode($request->getContent(), true);
             $itemId = $data['item_id'] ?? null;
 
             if (!$itemId) {
-                return new JsonResponse(['success' => false, 'message' => 'Item ID requis'], Response::HTTP_BAD_REQUEST);
+                return $this->failureResponse('Item ID requis');
             }
 
             $item = $this->shopItemRepository->find($itemId);
 
             if (!$item) {
-                return new JsonResponse(['success' => false, 'message' => "Cet item n'existe pas"], Response::HTTP_NOT_FOUND);
+                return $this->failureResponse("Cet item n'existe pas", Response::HTTP_NOT_FOUND);
             }
 
             if (!$item->isAvailable()) {
-                return new JsonResponse(['success' => false, 'message' => "Cet item n'est plus disponible"], Response::HTTP_BAD_REQUEST);
+                return $this->failureResponse("Cet item n'est plus disponible");
             }
 
             $this->entityManager->beginTransaction();
@@ -108,16 +108,13 @@ class ShopController extends AbstractApiController
                 foreach ($user->getInventory() as $inventoryItem) {
                     if ($inventoryItem->getItemId() === $itemId) {
                         $this->entityManager->rollback();
-                        return new JsonResponse(['success' => false, 'message' => 'Vous possédez déjà cet item'], Response::HTTP_CONFLICT);
+                        return $this->failureResponse('Vous possédez déjà cet item', Response::HTTP_CONFLICT);
                     }
                 }
 
                 if ($user->getCoins() < $item->getPrice()) {
                     $this->entityManager->rollback();
-                    return new JsonResponse([
-                        'success' => false,
-                        'message' => sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()),
-                    ], Response::HTTP_PAYMENT_REQUIRED);
+                    return $this->failureResponse(sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()), Response::HTTP_PAYMENT_REQUIRED);
                 }
 
                 $user->setCoins($user->getCoins() - $item->getPrice());
@@ -142,7 +139,7 @@ class ShopController extends AbstractApiController
                 throw $e;
             }
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 
@@ -154,7 +151,7 @@ class ShopController extends AbstractApiController
             $item = $this->shopItemRepository->find($itemId);
 
             if (!$item) {
-                return new JsonResponse(['error' => 'Item not found'], Response::HTTP_NOT_FOUND);
+                return $this->notFoundResponse('Item not found');
             }
 
             $itemData = $item->toArray();
@@ -173,7 +170,7 @@ class ShopController extends AbstractApiController
 
             return new JsonResponse(['item' => $itemData]);
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 }

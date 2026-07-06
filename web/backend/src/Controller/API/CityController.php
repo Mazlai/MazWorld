@@ -3,13 +3,11 @@
 namespace App\Controller\API;
 
 use App\Repository\CityRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/cities', name: 'api_cities_')]
-class CityController extends AbstractController
+class CityController extends AbstractApiController
 {
     public function __construct(
         private CityRepository $cityRepository
@@ -41,7 +39,7 @@ class CityController extends AbstractController
         $city = $this->cityRepository->findOneWithDetails($cityId);
 
         if (!$city) {
-            return $this->json(['error' => 'City not found'], Response::HTTP_NOT_FOUND);
+            return $this->notFoundResponse('City not found');
         }
 
         $jobs = array_map(function ($job) {
@@ -87,7 +85,7 @@ class CityController extends AbstractController
         $city = $this->cityRepository->find($cityId);
 
         if (!$city) {
-            return $this->json(['error' => 'City not found'], Response::HTTP_NOT_FOUND);
+            return $this->notFoundResponse('City not found');
         }
 
         $jobs = array_map(function ($job) {
@@ -111,7 +109,7 @@ class CityController extends AbstractController
         $city = $this->cityRepository->find($cityId);
 
         if (!$city) {
-            return $this->json(['error' => 'City not found'], Response::HTTP_NOT_FOUND);
+            return $this->notFoundResponse('City not found');
         }
 
         $routes = array_map(function ($route) {

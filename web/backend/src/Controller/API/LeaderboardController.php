@@ -7,7 +7,6 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/leaderboard', name: 'api_leaderboard_')]
@@ -67,7 +66,7 @@ class LeaderboardController extends AbstractApiController
                 'user_rank' => $userRank,
             ]);
         } catch (\Throwable $e) {
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 
@@ -76,7 +75,7 @@ class LeaderboardController extends AbstractApiController
     {
         $currentUser = $this->getCurrentUser();
         if (!$currentUser) {
-            return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+            return $this->unauthorizedResponse();
         }
 
         return new JsonResponse(['rank' => $this->getUserRank($currentUser)]);

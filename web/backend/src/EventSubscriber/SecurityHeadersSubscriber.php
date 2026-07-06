@@ -20,6 +20,11 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         }
 
         $response = $event->getResponse();
+        $request = $event->getRequest();
+
+        if (str_starts_with($request->getPathInfo(), '/api/')) {
+            $response->headers->set('Cache-Control', 'no-store');
+        }
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');

@@ -44,15 +44,11 @@ class CommandsController extends AbstractApiController
             if ($timeSince < self::DAILY_COOLDOWN) {
                 $remaining = self::DAILY_COOLDOWN - $timeSince;
 
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => sprintf(
-                        '⏱️ Vous avez déjà réclamé votre récompense. Revenez dans %dh %dm.',
-                        floor($remaining / 3600),
-                        floor(($remaining % 3600) / 60)
-                    ),
-                    'next_daily' => $lastDaily + self::DAILY_COOLDOWN,
-                ], Response::HTTP_TOO_MANY_REQUESTS);
+                return $this->failureResponse(
+                    sprintf('⏱️ Vous avez déjà réclamé votre récompense. Revenez dans %dh %dm.', floor($remaining / 3600), floor(($remaining % 3600) / 60)),
+                    Response::HTTP_TOO_MANY_REQUESTS,
+                    ['next_daily' => $lastDaily + self::DAILY_COOLDOWN]
+                );
             }
         }
 
@@ -77,10 +73,7 @@ class CommandsController extends AbstractApiController
         }
 
         if ($user->getTravelingTo() !== null && $user->getArrivalTime() !== null && time() < $user->getArrivalTime()) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => '🚂 Vous êtes en voyage ! Vous ne pouvez pas travailler pendant un déplacement.',
-            ], Response::HTTP_CONFLICT);
+            return $this->failureResponse('🚂 Vous êtes en voyage ! Vous ne pouvez pas travailler pendant un déplacement.', Response::HTTP_CONFLICT);
         }
 
         $now = time();
@@ -92,31 +85,24 @@ class CommandsController extends AbstractApiController
             if ($timeSince < self::WORK_COOLDOWN) {
                 $remaining = self::WORK_COOLDOWN - $timeSince;
 
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => sprintf(
-                        '⏱️ Vous êtes fatigué ! Reposez-vous encore %dh %dm avant de retravailler.',
-                        floor($remaining / 3600),
-                        floor(($remaining % 3600) / 60)
-                    ),
-                    'next_work' => $lastWork + self::WORK_COOLDOWN,
-                ], Response::HTTP_TOO_MANY_REQUESTS);
+                return $this->failureResponse(
+                    sprintf('⏱️ Vous êtes fatigué ! Reposez-vous encore %dh %dm avant de retravailler.', floor($remaining / 3600), floor(($remaining % 3600) / 60)),
+                    Response::HTTP_TOO_MANY_REQUESTS,
+                    ['next_work' => $lastWork + self::WORK_COOLDOWN]
+                );
             }
         }
 
         $currentCity = $user->getCurrentCity();
 
         if (!$currentCity) {
-            return new JsonResponse(['success' => false, 'message' => "❌ Vous n'êtes dans aucune ville."], Response::HTTP_BAD_REQUEST);
+            return $this->failureResponse("❌ Vous n'êtes dans aucune ville.");
         }
 
         $jobs = $this->cityJobRepository->findBy(['city' => $currentCity]);
 
         if (empty($jobs)) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => "❌ Aucun travail n'est disponible à {$currentCity->getEmoji()} {$currentCity->getName()}.",
-            ], Response::HTTP_NOT_FOUND);
+            return $this->failureResponse("❌ Aucun travail n'est disponible à {$currentCity->getEmoji()} {$currentCity->getName()}.", Response::HTTP_NOT_FOUND);
         }
 
         /** @var CityJob $randomJob */
@@ -151,10 +137,7 @@ class CommandsController extends AbstractApiController
         }
 
         if ($user->getTravelingTo() !== null && $user->getArrivalTime() !== null && time() < $user->getArrivalTime()) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => '🚂 Vous êtes en voyage ! Vous ne pouvez pas jouer pendant un déplacement.',
-            ], Response::HTTP_CONFLICT);
+            return $this->failureResponse('🚂 Vous êtes en voyage ! Vous ne pouvez pas jouer pendant un déplacement.', Response::HTTP_CONFLICT);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -162,22 +145,16 @@ class CommandsController extends AbstractApiController
         $amount = (int)($data['amount'] ?? 0);
 
         if (!in_array($choice, ['pile', 'face'])) {
-            return new JsonResponse(['success' => false, 'message' => '❌ Choix invalide. Choisissez "pile" ou "face".'], Response::HTTP_BAD_REQUEST);
+            return $this->failureResponse('❌ Choix invalide. Choisissez "pile" ou "face".');
         }
 
         if ($amount < self::COINFLIP_MIN || $amount > self::COINFLIP_MAX) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => sprintf('❌ La mise doit être entre %d€ et %d€.', self::COINFLIP_MIN, self::COINFLIP_MAX),
-            ], Response::HTTP_BAD_REQUEST);
+            return $this->failureResponse(sprintf('❌ La mise doit être entre %d€ et %d€.', self::COINFLIP_MIN, self::COINFLIP_MAX));
         }
 
         $maxBet = (int)min(floor($user->getCoins() / 2), self::COINFLIP_MAX);
         if ($amount > $maxBet) {
-            return new JsonResponse([
-                'success' => false,
-                'message' => "⚠️ Mise trop élevée ! Vous pouvez parier jusqu'à {$maxBet}€ (50% de votre solde ou 500€ max).",
-            ], Response::HTTP_BAD_REQUEST);
+            return $this->failureResponse("⚠️ Mise trop élevée ! Vous pouvez parier jusqu'à {$maxBet}€ (50% de votre solde ou 500€ max).");
         }
 
         $this->entityManager->beginTransaction();
@@ -187,10 +164,7 @@ class CommandsController extends AbstractApiController
 
             if ($user->getCoins() < $amount) {
                 $this->entityManager->rollback();
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => "❌ Vous n'avez pas assez d'argent. Solde actuel : {$user->getCoins()}€",
-                ], Response::HTTP_PAYMENT_REQUIRED);
+                return $this->failureResponse("❌ Vous n'avez pas assez d'argent. Solde actuel : {$user->getCoins()}€", Response::HTTP_PAYMENT_REQUIRED);
             }
 
             $result = random_int(0, 1) === 0 ? 'pile' : 'face';
@@ -212,7 +186,7 @@ class CommandsController extends AbstractApiController
             ]);
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
-            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->serverErrorResponse($e);
         }
     }
 }
