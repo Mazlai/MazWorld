@@ -3,12 +3,11 @@
 namespace App\Controller\API;
 
 use Doctrine\DBAL\Connection;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/routes', name: 'api_routes_')]
-class RouteController extends AbstractController
+class RouteController extends AbstractApiController
 {
     public function __construct(
         private Connection $connection
@@ -60,7 +59,7 @@ class RouteController extends AbstractController
         ', ['routeId' => $routeId]);
 
         if (!$route) {
-            return $this->json(['error' => 'Route not found'], 404);
+            return $this->notFoundResponse('Route not found');
         }
 
         return $this->json($route);

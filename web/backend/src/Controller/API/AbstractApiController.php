@@ -3,13 +3,23 @@
 namespace App\Controller\API;
 
 use App\Entity\User;
+use DateTimeInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use DateTimeInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractApiController extends AbstractController
 {
+    protected LoggerInterface $logger;
+
+    #[Required]
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
     protected function getCurrentUser(): ?User
     {
         $user = $this->getUser();
@@ -43,6 +53,21 @@ abstract class AbstractApiController extends AbstractController
     protected function notFoundResponse(string $message = 'Resource not found'): JsonResponse
     {
         return $this->errorResponse($message, Response::HTTP_NOT_FOUND);
+    }
+
+    protected function serverErrorResponse(\Throwable $e): JsonResponse
+    {
+        $this->logger->error($e->getMessage(), [
+            'exception' => $e,
+            'user' => $this->getCurrentUser()?->getUserId(),
+        ]);
+
+        return new JsonResponse(['error' => 'Une erreur est survenue'], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    protected function failureResponse(string $message, int $statusCode = Response::HTTP_BAD_REQUEST, array $extra = []): JsonResponse
+    {
+        return new JsonResponse(['success' => false, 'message' => $message] + $extra, $statusCode);
     }
 
     protected function tooManyRequestsResponse(?DateTimeInterface $retryAfter = null): JsonResponse

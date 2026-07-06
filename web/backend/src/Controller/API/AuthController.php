@@ -2,6 +2,7 @@
 
 namespace App\Controller\API;
 
+use App\Service\Crypto\TokenEncryptorService;
 use App\Service\Discord\DiscordOAuthService;
 use App\Service\User\UserService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -25,6 +26,7 @@ class AuthController extends AbstractApiController
         #[Autowire(service: 'limiter.auth_refresh')]
         private readonly RateLimiterFactory $refreshLimiter,
         private readonly CacheItemPoolInterface $cache,
+        private readonly TokenEncryptorService $tokenEncryptor,
     ) {}
 
     #[Route('/discord/login', name: 'discord_login', methods: ['GET'])]
@@ -75,28 +77,25 @@ class AuthController extends AbstractApiController
 
             return new JsonResponse([
                 'token' => $jwt,
-                'user' => $user->toArray(),
+                'user' => $this->userService->serializeUser($user),
                 'guilds' => array_map(fn($guild) => [
                     'id' => $guild->id,
                     'name' => $guild->name,
                     'icon' => $guild->getIconUrl(),
                 ], array_slice($guilds, 0, 10)),
             ]);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'error' => 'Authentication failed',
-                'message' => $e->getMessage(),
-            ], Response::HTTP_UNAUTHORIZED);
+        } catch (\Exception) {
+            return $this->unauthorizedResponse('Authentication failed');
         }
     }
 
     #[Route('/refresh', name: 'refresh', methods: ['POST'])]
-    public function refresh(Request $request): JsonResponse
+    public function refresh(): JsonResponse
     {
         $user = $this->getCurrentUser();
 
         if (!$user) {
-            return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+            return $this->unauthorizedResponse();
         }
 
         $limit = $this->refreshLimiter->create($user->getUserId())->consume();
@@ -106,7 +105,7 @@ class AuthController extends AbstractApiController
 
         try {
             if ($user->isAccessTokenExpired() && $user->getOauthRefreshToken()) {
-                $newTokens = $this->discordOAuth->refreshTokens($user->getOauthRefreshToken());
+                $newTokens = $this->discordOAuth->refreshTokens($this->tokenEncryptor->decrypt($user->getOauthRefreshToken()));
                 $this->userService->updateUserTokens($user, $newTokens);
 
                 $discordUser = $this->discordOAuth->getDiscordUser($newTokens->accessToken);
@@ -116,13 +115,10 @@ class AuthController extends AbstractApiController
 
             return new JsonResponse([
                 'token' => $this->jwtManager->create($user),
-                'user' => $user->toArray(),
+                'user' => $this->userService->serializeUser($user),
             ]);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'error' => 'Token refresh failed',
-                'message' => $e->getMessage(),
-            ], Response::HTTP_UNAUTHORIZED);
+        } catch (\Exception) {
+            return $this->unauthorizedResponse('Token refresh failed');
         }
     }
 
@@ -132,7 +128,7 @@ class AuthController extends AbstractApiController
         $user = $this->getCurrentUser();
 
         if ($user && $user->getOauthAccessToken()) {
-            $this->discordOAuth->revokeToken($user->getOauthAccessToken());
+            $this->discordOAuth->revokeToken($this->tokenEncryptor->decrypt($user->getOauthAccessToken()));
         }
 
         return new JsonResponse(['message' => 'Logged out successfully']);
@@ -144,10 +140,10 @@ class AuthController extends AbstractApiController
         $user = $this->getCurrentUser();
 
         if (!$user) {
-            return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+            return $this->unauthorizedResponse();
         }
 
-        return new JsonResponse(['user' => $user->toArray()]);
+        return new JsonResponse(['user' => $this->userService->serializeUser($user)]);
     }
 
     #[Route('/verify', name: 'verify', methods: ['GET'])]
@@ -157,7 +153,7 @@ class AuthController extends AbstractApiController
 
         return new JsonResponse([
             'valid' => $user !== null,
-            'user' => $user?->toArray(),
+            'user' => $user !== null ? $this->userService->serializeUser($user) : null,
         ]);
     }
 }
