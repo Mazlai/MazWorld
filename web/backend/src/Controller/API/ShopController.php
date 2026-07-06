@@ -108,16 +108,13 @@ class ShopController extends AbstractApiController
                 foreach ($user->getInventory() as $inventoryItem) {
                     if ($inventoryItem->getItemId() === $itemId) {
                         $this->entityManager->rollback();
-                        return new JsonResponse(['success' => false, 'message' => 'Vous possédez déjà cet item'], Response::HTTP_CONFLICT);
+                        return $this->failureResponse('Vous possédez déjà cet item', Response::HTTP_CONFLICT);
                     }
                 }
 
                 if ($user->getCoins() < $item->getPrice()) {
                     $this->entityManager->rollback();
-                    return new JsonResponse([
-                        'success' => false,
-                        'message' => sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()),
-                    ], Response::HTTP_PAYMENT_REQUIRED);
+                    return $this->failureResponse(sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()), Response::HTTP_PAYMENT_REQUIRED);
                 }
 
                 $user->setCoins($user->getCoins() - $item->getPrice());
