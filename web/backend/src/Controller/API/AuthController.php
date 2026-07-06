@@ -127,8 +127,14 @@ class AuthController extends AbstractApiController
     {
         $user = $this->getCurrentUser();
 
-        if ($user && $user->getOauthAccessToken()) {
-            $this->discordOAuth->revokeToken($this->tokenEncryptor->decrypt($user->getOauthAccessToken()));
+        if ($user) {
+            if ($user->getOauthAccessToken()) {
+                $this->discordOAuth->revokeToken($this->tokenEncryptor->decrypt($user->getOauthAccessToken()));
+            }
+
+            $item = $this->cache->getItem('jwt_blacklist_' . $user->getUserId());
+            $item->set(time())->expiresAfter(3600);
+            $this->cache->save($item);
         }
 
         return new JsonResponse(['message' => 'Logged out successfully']);
