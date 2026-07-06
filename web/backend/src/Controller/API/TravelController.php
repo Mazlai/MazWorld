@@ -156,29 +156,45 @@ class TravelController extends AbstractApiController
 
         $travelCost = $alreadyVisited ? 0 : $route->getCost();
 
-        if ($travelCost > 0 && $user->getCoins() < $travelCost) {
+        $this->entityManager->beginTransaction();
+        try {
+            $this->entityManager->lock($user, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($user);
+
+            if ($user->getTravelingTo() && $user->getArrivalTime() && time() < $user->getArrivalTime()) {
+                $this->entityManager->rollback();
+                return new JsonResponse(['success' => false, 'message' => '🚂 Vous êtes déjà en voyage !'], Response::HTTP_CONFLICT);
+            }
+
+            if ($travelCost > 0 && $user->getCoins() < $travelCost) {
+                $this->entityManager->rollback();
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "❌ Vous n'avez pas assez d'argent. ({$user->getCoins()}€ / {$travelCost}€)",
+                ], Response::HTTP_PAYMENT_REQUIRED);
+            }
+
+            if ($travelCost > 0) {
+                $user->setCoins($user->getCoins() - $travelCost);
+            }
+
+            $arrivalTime = time() + $route->getDuration();
+            $user->setTravelingTo($destination);
+            $user->setArrivalTime($arrivalTime);
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+
             return new JsonResponse([
-                'success' => false,
-                'message' => "❌ Vous n'avez pas assez d'argent. ({$user->getCoins()}€ / {$travelCost}€)",
-            ], Response::HTTP_PAYMENT_REQUIRED);
+                'success' => true,
+                'message' => "Voyage commencé !",
+                'arrival_time' => $arrivalTime,
+                'travel_cost' => $travelCost,
+                'coins' => $user->getCoins(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->entityManager->rollback();
+            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        if ($travelCost > 0) {
-            $user->setCoins($user->getCoins() - $travelCost);
-        }
-
-        $arrivalTime = time() + $route->getDuration();
-        $user->setTravelingTo($destination);
-        $user->setArrivalTime($arrivalTime);
-        $this->entityManager->flush();
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => "Voyage commencé !",
-            'arrival_time' => $arrivalTime,
-            'travel_cost' => $travelCost,
-            'coins' => $user->getCoins(),
-        ]);
     }
 
     private function completeTravel(\App\Entity\User $user): void
