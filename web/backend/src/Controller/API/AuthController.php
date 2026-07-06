@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Annotation\Route;
+use Psr\Cache\CacheItemPoolInterface;
 
 #[Route('/api/auth', name: 'api_auth_')]
 class AuthController extends AbstractApiController
@@ -23,12 +24,17 @@ class AuthController extends AbstractApiController
         private readonly RateLimiterFactory $callbackLimiter,
         #[Autowire(service: 'limiter.auth_refresh')]
         private readonly RateLimiterFactory $refreshLimiter,
+        private readonly CacheItemPoolInterface $cache,
     ) {}
 
     #[Route('/discord/login', name: 'discord_login', methods: ['GET'])]
     public function discordLogin(): JsonResponse
     {
         $state = bin2hex(random_bytes(16));
+
+        $item = $this->cache->getItem('oauth_state_' . $state);
+        $item->set(true)->expiresAfter(300);
+        $this->cache->save($item);
 
         return new JsonResponse([
             'authorization_url' => $this->discordOAuth->getAuthorizationUrl($state),
@@ -46,9 +52,17 @@ class AuthController extends AbstractApiController
 
         $data = json_decode($request->getContent(), true);
         $code = $data['code'] ?? null;
+        $state = $data['state'] ?? null;
+        $cacheKey = 'oauth_state_' . $state;
+
+        if (!$state || !$this->cache->getItem($cacheKey)->isHit()) {
+            return $this->errorResponse('Invalid OAuth state', Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->cache->deleteItem($cacheKey);
 
         if (!$code) {
-            return new JsonResponse(['error' => 'Missing authorization code'], Response::HTTP_BAD_REQUEST);
+            return $this->errorResponse('Missing authorization code', Response::HTTP_BAD_REQUEST);
         }
 
         try {
