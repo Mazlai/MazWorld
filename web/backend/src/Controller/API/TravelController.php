@@ -120,27 +120,30 @@ class TravelController extends AbstractApiController
         }
 
         if ($user->getTravelingTo() && $user->getArrivalTime() && time() < $user->getArrivalTime()) {
-            return $this->failureResponse('🚂 Vous êtes déjà en voyage !', Response::HTTP_CONFLICT);
+            return new JsonResponse(['success' => false, 'message' => '🚂 Vous êtes déjà en voyage !'], Response::HTTP_CONFLICT);
         }
 
         $data = json_decode($request->getContent(), true);
         $destinationId = $data['destination_id'] ?? null;
 
         if (!$destinationId) {
-            return $this->failureResponse('destination_id requis');
+            return new JsonResponse(['success' => false, 'message' => 'destination_id requis'], Response::HTTP_BAD_REQUEST);
         }
 
         $destination = $this->cityRepository->find($destinationId);
 
         if (!$destination) {
-            return $this->failureResponse("Cette ville n'existe pas.", Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['success' => false, 'message' => "Cette ville n'existe pas."], Response::HTTP_NOT_FOUND);
         }
 
         $currentCity = $user->getCurrentCity();
         $route = $this->routeRepository->findOneBy(['city_from' => $currentCity, 'city_to' => $destination]);
 
         if (!$route) {
-            return $this->failureResponse("Aucune route vers {$destination->getName()} depuis {$currentCity->getName()}.", Response::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'success' => false,
+                'message' => "Aucune route vers {$destination->getName()} depuis {$currentCity->getName()}.",
+            ], Response::HTTP_NOT_FOUND);
         }
 
         $alreadyVisited = false;
@@ -153,26 +156,45 @@ class TravelController extends AbstractApiController
 
         $travelCost = $alreadyVisited ? 0 : $route->getCost();
 
-        if ($travelCost > 0 && $user->getCoins() < $travelCost) {
-            return $this->failureResponse("❌ Vous n'avez pas assez d'argent. ({$user->getCoins()}€ / {$travelCost}€)", Response::HTTP_PAYMENT_REQUIRED);
+        $this->entityManager->beginTransaction();
+        try {
+            $this->entityManager->lock($user, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($user);
+
+            if ($user->getTravelingTo() && $user->getArrivalTime() && time() < $user->getArrivalTime()) {
+                $this->entityManager->rollback();
+                return new JsonResponse(['success' => false, 'message' => '🚂 Vous êtes déjà en voyage !'], Response::HTTP_CONFLICT);
+            }
+
+            if ($travelCost > 0 && $user->getCoins() < $travelCost) {
+                $this->entityManager->rollback();
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "❌ Vous n'avez pas assez d'argent. ({$user->getCoins()}€ / {$travelCost}€)",
+                ], Response::HTTP_PAYMENT_REQUIRED);
+            }
+
+            if ($travelCost > 0) {
+                $user->setCoins($user->getCoins() - $travelCost);
+            }
+
+            $arrivalTime = time() + $route->getDuration();
+            $user->setTravelingTo($destination);
+            $user->setArrivalTime($arrivalTime);
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => "Voyage commencé !",
+                'arrival_time' => $arrivalTime,
+                'travel_cost' => $travelCost,
+                'coins' => $user->getCoins(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->entityManager->rollback();
+            return $this->serverErrorResponse($e);
         }
-
-        if ($travelCost > 0) {
-            $user->setCoins($user->getCoins() - $travelCost);
-        }
-
-        $arrivalTime = time() + $route->getDuration();
-        $user->setTravelingTo($destination);
-        $user->setArrivalTime($arrivalTime);
-        $this->entityManager->flush();
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => "Voyage commencé !",
-            'arrival_time' => $arrivalTime,
-            'travel_cost' => $travelCost,
-            'coins' => $user->getCoins(),
-        ]);
     }
 
     private function completeTravel(\App\Entity\User $user): void

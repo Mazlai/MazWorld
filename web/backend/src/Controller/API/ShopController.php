@@ -99,22 +99,27 @@ class ShopController extends AbstractApiController
                 return $this->failureResponse("Cet item n'est plus disponible");
             }
 
-            foreach ($user->getInventory() as $inventoryItem) {
-                if ($inventoryItem->getItemId() === $itemId) {
-                    return $this->failureResponse('Vous possédez déjà cet item', Response::HTTP_CONFLICT);
-                }
-            }
-
-            if ($user->getCoins() < $item->getPrice()) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()),
-                ], Response::HTTP_PAYMENT_REQUIRED);
-            }
-
             $this->entityManager->beginTransaction();
 
             try {
+                $this->entityManager->lock($user, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+                $this->entityManager->refresh($user);
+
+                foreach ($user->getInventory() as $inventoryItem) {
+                    if ($inventoryItem->getItemId() === $itemId) {
+                        $this->entityManager->rollback();
+                        return new JsonResponse(['success' => false, 'message' => 'Vous possédez déjà cet item'], Response::HTTP_CONFLICT);
+                    }
+                }
+
+                if ($user->getCoins() < $item->getPrice()) {
+                    $this->entityManager->rollback();
+                    return new JsonResponse([
+                        'success' => false,
+                        'message' => sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()),
+                    ], Response::HTTP_PAYMENT_REQUIRED);
+                }
+
                 $user->setCoins($user->getCoins() - $item->getPrice());
 
                 $inventoryEntry = new UserInventory();
