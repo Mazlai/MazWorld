@@ -22,6 +22,10 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\Service\Crypto\TokenEncryptorService:
+        arguments:
+            $encryptionKey: '%env(APP_ENCRYPTION_KEY)%'
+
     App\Service\Discord\DiscordApiClient:
         arguments:
             $clientId: '%env(DISCORD_CLIENT_ID)%'
