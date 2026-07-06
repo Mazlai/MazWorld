@@ -180,28 +180,39 @@ class CommandsController extends AbstractApiController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($user->getCoins() < $amount) {
+        $this->entityManager->beginTransaction();
+        try {
+            $this->entityManager->lock($user, \Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($user);
+
+            if ($user->getCoins() < $amount) {
+                $this->entityManager->rollback();
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => "❌ Vous n'avez pas assez d'argent. Solde actuel : {$user->getCoins()}€",
+                ], Response::HTTP_PAYMENT_REQUIRED);
+            }
+
+            $result = random_int(0, 1) === 0 ? 'pile' : 'face';
+            $won = $result === $choice;
+
+            $user->setCoins($won ? $user->getCoins() + $amount : $user->getCoins() - $amount);
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+
             return new JsonResponse([
-                'success' => false,
-                'message' => "❌ Vous n'avez pas assez d'argent. Solde actuel : {$user->getCoins()}€",
-            ], Response::HTTP_PAYMENT_REQUIRED);
+                'success' => true,
+                'won' => $won,
+                'result' => $result,
+                'amount' => $amount,
+                'message' => $won
+                    ? "🎉 La pièce est tombée sur {$result} ! Vous gagnez {$amount}€ !"
+                    : "😢 La pièce est tombée sur {$result}. Vous perdez {$amount}€.",
+                'coins' => $user->getCoins(),
+            ]);
+        } catch (\Throwable $e) {
+            $this->entityManager->rollback();
+            return new JsonResponse(['error' => 'Internal error', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $result = random_int(0, 1) === 0 ? 'pile' : 'face';
-        $won = $result === $choice;
-
-        $user->setCoins($won ? $user->getCoins() + $amount : $user->getCoins() - $amount);
-        $this->entityManager->flush();
-
-        return new JsonResponse([
-            'success' => true,
-            'won' => $won,
-            'result' => $result,
-            'amount' => $amount,
-            'message' => $won
-                ? "🎉 La pièce est tombée sur {$result} ! Vous gagnez {$amount}€ !"
-                : "😢 La pièce est tombée sur {$result}. Vous perdez {$amount}€.",
-            'coins' => $user->getCoins(),
-        ]);
     }
 }
