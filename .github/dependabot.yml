@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: "composer"
+    directory: "/web/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependabot"
+      - "dependencies"
+    assignees:
+      - "Mazlai"
+
+  - package-ecosystem: "npm"
+    directory: "/web/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependabot"
+      - "dependencies"
+    assignees:
+      - "Mazlai"
+
+  - package-ecosystem: "npm"
+    directory: "/bot"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependabot"
+      - "dependencies"
+    assignees:
+      - "Mazlai"
