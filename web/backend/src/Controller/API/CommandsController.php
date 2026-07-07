@@ -55,6 +55,7 @@ class CommandsController extends AbstractApiController
         $user->setCoins($user->getCoins() + self::DAILY_REWARD);
         $user->setLastDaily($now);
         $this->entityManager->flush();
+        $this->logCoinTransaction($user, 'daily', self::DAILY_REWARD, $user->getCoins());
 
         return new JsonResponse([
             'success' => true,
@@ -114,6 +115,7 @@ class CommandsController extends AbstractApiController
         $user->setCoins($user->getCoins() + $reward);
         $user->setLastWork($now);
         $this->entityManager->flush();
+        $this->logCoinTransaction($user, 'work', $reward, $user->getCoins());
 
         return new JsonResponse([
             'success' => true,
@@ -170,9 +172,11 @@ class CommandsController extends AbstractApiController
             $result = random_int(0, 1) === 0 ? 'pile' : 'face';
             $won = $result === $choice;
 
-            $user->setCoins($won ? $user->getCoins() + $amount : $user->getCoins() - $amount);
+            $delta = $won ? $amount : -$amount;
+            $user->setCoins($user->getCoins() + $delta);
             $this->entityManager->flush();
             $this->entityManager->commit();
+            $this->logCoinTransaction($user, 'coinflip', $delta, $user->getCoins());
 
             return new JsonResponse([
                 'success' => true,
