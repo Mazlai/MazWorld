@@ -5,6 +5,7 @@ namespace App\Controller\API;
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -12,11 +13,30 @@ use Symfony\Contracts\Service\Attribute\Required;
 abstract class AbstractApiController extends AbstractController
 {
     protected LoggerInterface $logger;
+    protected LoggerInterface $securityLogger;
 
     #[Required]
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
+    }
+
+    #[Required]
+    public function setSecurityLogger(
+        #[Autowire(service: 'monolog.logger.security')]
+        LoggerInterface $securityLogger
+    ): void {
+        $this->securityLogger = $securityLogger;
+    }
+
+    protected function logCoinTransaction(User $user, string $type, int $delta, int $balanceAfter): void
+    {
+        $this->securityLogger->info('Coin transaction', [
+            'user_id' => $user->getUserId(),
+            'type' => $type,
+            'delta' => $delta,
+            'balance_after' => $balanceAfter,
+        ]);
     }
 
     protected function getCurrentUser(): ?User

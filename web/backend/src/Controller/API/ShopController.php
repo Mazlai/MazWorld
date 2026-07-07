@@ -117,7 +117,8 @@ class ShopController extends AbstractApiController
                     return $this->failureResponse(sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()), Response::HTTP_PAYMENT_REQUIRED);
                 }
 
-                $user->setCoins($user->getCoins() - $item->getPrice());
+                $price = $item->getPrice();
+                $user->setCoins($user->getCoins() - $price);
 
                 $inventoryEntry = new UserInventory();
                 $inventoryEntry->setUser($user);
@@ -127,6 +128,7 @@ class ShopController extends AbstractApiController
                 $this->entityManager->persist($inventoryEntry);
                 $this->entityManager->flush();
                 $this->entityManager->commit();
+                $this->logCoinTransaction($user, 'shop_purchase', -$price, $user->getCoins());
 
                 return new JsonResponse([
                     'success' => true,

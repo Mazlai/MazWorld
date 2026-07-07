@@ -178,6 +178,10 @@ class TravelController extends AbstractApiController
             $this->entityManager->flush();
             $this->entityManager->commit();
 
+            if ($travelCost > 0) {
+                $this->logCoinTransaction($user, 'travel', -$travelCost, $user->getCoins());
+            }
+
             return new JsonResponse([
                 'success' => true,
                 'message' => "Voyage commencé !",

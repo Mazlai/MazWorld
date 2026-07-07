@@ -8,6 +8,7 @@ use App\Entity\UserInventory;
 use App\Entity\VisitedCity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,8 @@ class BotAuthenticator extends AbstractAuthenticator
         private readonly EntityManagerInterface $entityManager,
         #[Autowire(env: 'BOT_API_SECRET')]
         private readonly string $botApiSecret,
+        #[Autowire(service: 'monolog.logger.security')]
+        private readonly LoggerInterface $securityLogger,
     ) {}
 
     public function supports(Request $request): ?bool
@@ -71,6 +74,11 @@ class BotAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
+        $this->securityLogger->warning('Bot authentication failure', [
+            'ip' => $request->getClientIp(),
+            'reason' => $exception->getMessageKey(),
+        ]);
+
         return new JsonResponse([
             'success' => false,
             'message' => $exception->getMessage(),
