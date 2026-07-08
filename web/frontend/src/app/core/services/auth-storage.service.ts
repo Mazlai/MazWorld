@@ -1,8 +1,7 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type { User } from '../models/user.model';
 
-const TOKEN_KEY = 'mw_token';
 const USER_KEY = 'mw_user';
 const STATE_KEY = 'mw_oauth_state';
 const PROCESSED_CODE_KEY = 'mw_processed_code';
@@ -11,6 +10,7 @@ const REDIRECT_URL_KEY = 'mw_redirect_url';
 @Injectable({ providedIn: 'root' })
 export class AuthStorageService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly _token = signal<string | null>(null);
 
   private get<T = string>(key: string): T | null {
     if (!this.isBrowser) return null;
@@ -28,9 +28,9 @@ export class AuthStorageService {
     if (this.isBrowser) sessionStorage.removeItem(key);
   }
 
-  getToken(): string | null { return this.get(TOKEN_KEY); }
-  saveToken(token: string): void { this.set(TOKEN_KEY, token); }
-  clearToken(): void { this.remove(TOKEN_KEY); }
+  getToken(): string | null { return this._token(); }
+  saveToken(token: string): void { this._token.set(token); }
+  clearToken(): void { this._token.set(null); }
 
   getUser(): User | null { return this.get<User>(USER_KEY); }
   saveUser(user: User): void { this.set(USER_KEY, user); }
@@ -49,7 +49,8 @@ export class AuthStorageService {
   clearRedirectUrl(): void { this.remove(REDIRECT_URL_KEY); }
 
   clearAll(): void {
-    [TOKEN_KEY, USER_KEY, STATE_KEY, PROCESSED_CODE_KEY, REDIRECT_URL_KEY]
+    this._token.set(null);
+    [USER_KEY, STATE_KEY, PROCESSED_CODE_KEY, REDIRECT_URL_KEY]
       .forEach(k => this.remove(k));
   }
 }
