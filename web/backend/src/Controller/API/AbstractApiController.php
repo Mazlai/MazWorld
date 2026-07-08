@@ -3,6 +3,7 @@
 namespace App\Controller\API;
 
 use App\Entity\User;
+use DateTimeInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -87,5 +88,17 @@ abstract class AbstractApiController extends AbstractController
     protected function failureResponse(string $message, int $statusCode = Response::HTTP_BAD_REQUEST, array $extra = []): JsonResponse
     {
         return new JsonResponse(['success' => false, 'message' => $message] + $extra, $statusCode);
+    }
+
+    protected function tooManyRequestsResponse(?DateTimeInterface $retryAfter = null): JsonResponse
+    {
+        $response = $this->errorResponse('Too many requests', Response::HTTP_TOO_MANY_REQUESTS);
+
+        if ($retryAfter !== null) {
+            $seconds = max(0, $retryAfter->getTimestamp() - time());
+            $response->headers->set('Retry-After', (string) $seconds);
+        }
+
+        return $response;
     }
 }

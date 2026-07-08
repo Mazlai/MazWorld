@@ -46,7 +46,7 @@ class BotAuthenticator extends AbstractAuthenticator
         $discordUserId = $request->headers->get('X-Discord-User-Id');
         $discordUsername = $request->headers->get('X-Discord-Username', 'Unknown');
 
-        if (!$secret || $secret !== $this->botApiSecret) {
+        if (!$secret || !hash_equals($this->botApiSecret, $secret)) {
             throw new CustomUserMessageAuthenticationException('Invalid bot secret.');
         }
 

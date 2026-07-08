@@ -12,9 +12,10 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   if (PUBLIC_URLS.some(url => req.url.includes(url))) return next(req);
 
   const token = inject(AuthStorageService).getToken();
-  const authReq = token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
+  const authReq = req.clone({
+    withCredentials: true,
+    ...(token ? { setHeaders: { Authorization: `Bearer ${token}` } } : {}),
+  });
 
   return next(authReq).pipe(
     catchError((err: HttpErrorResponse) => throwError(() => err)),
