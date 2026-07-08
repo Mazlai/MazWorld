@@ -12,7 +12,7 @@ security:
             security: false
 
         auth:
-            pattern: ^/api/auth/discord
+            pattern: ^/api/auth/(discord|refresh)
             stateless: true
             security: false
 
@@ -31,7 +31,7 @@ security:
         - { path: ^/api/auth/discord, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/verify, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/me, roles: ROLE_USER }
-        - { path: ^/api/auth/refresh, roles: ROLE_USER }
+        - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/logout, roles: ROLE_USER }
         - { path: ^/api/profile, roles: ROLE_USER }
         - { path: ^/api/travel, roles: ROLE_USER }

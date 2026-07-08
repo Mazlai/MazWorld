@@ -35,29 +35,17 @@ export class AuthService {
   }
 
   private initializeAuth(): void {
-    const token = this.storage.getToken();
-    const storedUser = this.storage.getUser();
-
-    if (token && storedUser) {
-      this._currentUser.set(storedUser);
-      this._isLoading.set(false);
-
-      this.verifyToken().subscribe({
-        next: res => {
-          if (res.valid && res.user) {
-            this.setUser(res.user);
-          } else if (res.valid === false) {
-            this.clearAuth();
-          }
-        },
-        error: err => {
-          if (err.status === 401) this.clearAuth();
-        },
-      });
-    } else {
-      this.clearAuth();
-      this._isLoading.set(false);
-    }
+    this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/refresh`, {}, { withCredentials: true }).subscribe({
+      next: res => {
+        this.storage.saveToken(res.token);
+        this.setUser(res.user);
+        this._isLoading.set(false);
+      },
+      error: () => {
+        this.clearAuth();
+        this._isLoading.set(false);
+      },
+    });
   }
 
   loginWithDiscord(): Observable<LoginUrlResponse> {
@@ -95,9 +83,12 @@ export class AuthService {
     );
   }
 
-  refreshToken(): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${environment.apiUrl}/api/auth/refresh`, {}).pipe(
-      tap(res => this.storage.saveToken(res.token)),
+  refreshToken(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/refresh`, {}, { withCredentials: true }).pipe(
+      tap(res => {
+        this.storage.saveToken(res.token);
+        this.setUser(res.user);
+      }),
       catchError(err => {
         this.clearAuth();
         return throwError(() => err);
@@ -110,7 +101,7 @@ export class AuthService {
   }
 
   logout(): void {
-    this.http.post(`${environment.apiUrl}/api/auth/logout`, {}).pipe(
+    this.http.post(`${environment.apiUrl}/api/auth/logout`, {}, { withCredentials: true }).pipe(
       catchError(() => of(null)),
     ).subscribe(() => {
       this.clearAuth();
