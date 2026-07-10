@@ -18,7 +18,7 @@
   <!-- Error -->
   @else if (hasError()) {
     <div class="stats-state stats-state--error container">
-      <span>⚠️</span>
+      <span aria-hidden="true">⚠️</span>
       <p>Impossible de charger les statistiques.</p>
       <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
     </div>
@@ -28,7 +28,7 @@
     <!-- Statistiques globales -->
     @if (globalStats(); as g) {
       <section class="stats-section container">
-        <h2 class="section-title">🌍 Statistiques globales</h2>
+        <h2 class="section-title"><span aria-hidden="true">🌍</span> Statistiques globales</h2>
         <div class="stats-grid">
           <app-stat-card icon="👥" label="Joueurs" [value]="fmt(g.total_users)" />
           <app-stat-card icon="🏙️" label="Villes" [value]="fmt(g.total_cities)" />
@@ -42,7 +42,7 @@
     <!-- Économie -->
     @if (economyStats(); as e) {
       <section class="stats-section container">
-        <h2 class="section-title">💰 Économie</h2>
+        <h2 class="section-title"><span aria-hidden="true">💰</span> Économie</h2>
         <div class="stats-grid stats-grid--4">
           <app-stat-card icon="📈" label="Moyenne par joueur" [value]="fmt(e.average_coins_per_user) + ' 🪙'" />
           <app-stat-card icon="👑" label="Record de richesse" [value]="fmt(e.richest_user_coins) + ' 🪙'" variant="gold" />

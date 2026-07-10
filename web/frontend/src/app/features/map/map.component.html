@@ -11,7 +11,7 @@
 
   <!-- Loading -->
   @if (isLoading()) {
-    <div class="map-state">
+    <div class="map-state" role="status">
       <div class="loading"></div>
       <p>Chargement de la carte…</p>
     </div>
@@ -20,7 +20,7 @@
   <!-- Error -->
   @else if (hasError()) {
     <div class="map-state map-state--error">
-      <span>⚠️</span>
+      <span aria-hidden="true">⚠️</span>
       <p>Impossible de charger la carte.</p>
       <button class="btn btn-primary" (click)="load()">Réessayer</button>
     </div>
@@ -31,13 +31,13 @@
     @if (isTraveling()) {
       <div class="travel-banner container">
         <div class="travel-banner__inner">
-          <span class="travel-banner__icon">🚂</span>
+          <span class="travel-banner__icon" aria-hidden="true">🚂</span>
           <div class="travel-banner__text">
             <span>En route vers {{ travelingToEmoji() }} <strong>{{ travelingToName() }}</strong></span>
             <span class="travel-banner__countdown">Arrivée dans {{ formatCountdown(remainingSeconds()) }}</span>
           </div>
           <div class="travel-banner__coins">
-            <span>💰</span>
+            <span aria-hidden="true">💰</span>
             <span>{{ coins() }} MC</span>
           </div>
         </div>
@@ -88,6 +88,9 @@
           @for (city of cities(); track city.city_id) {
             <div
               class="city"
+              role="button"
+              tabindex="0"
+              [attr.aria-label]="city.name"
               [class.city--current]="isCurrentCity(city.city_id)"
               [class.city--destination]="isDestination(city.city_id)"
               [class.city--reachable]="getRouteToCity(city.city_id) !== null && !isCurrentCity(city.city_id)"
@@ -95,12 +98,14 @@
               [class.city--near-bottom]="getCityPosition(city).y > 75"
               [style.left.%]="getCityPosition(city).x"
               [style.top.%]="getCityPosition(city).y"
-              (click)="selectCity(city)">
+              (click)="selectCity(city, $event)"
+              (keydown.enter)="selectCity(city, $event)"
+              (keydown.space)="$event.preventDefault(); selectCity(city, $event)">
 
               <div class="city-pulse"></div>
 
               <div class="city-icon">
-                <span class="city-emoji">{{ city.emoji }}</span>
+                <span class="city-emoji" aria-hidden="true">{{ city.emoji }}</span>
               </div>
 
               @if (isCurrentCity(city.city_id)) {
@@ -121,13 +126,13 @@
     </section>
 
     <!-- Panneau de détails -->
-    <aside class="details-panel" [class.open]="selectedCity()">
+    <aside class="details-panel" #detailsPanel [class.open]="selectedCity()" (keydown.escape)="closePanel()">
       @if (selectedCity(); as city) {
         <div class="panel-content">
-          <button class="close-btn" (click)="closePanel()">✕</button>
+          <button class="close-btn" (click)="closePanel()" aria-label="Fermer le panneau">✕</button>
 
           <div class="panel-header">
-            <span class="panel-emoji">{{ city.emoji }}</span>
+            <span class="panel-emoji" aria-hidden="true">{{ city.emoji }}</span>
             <div>
               <h2>{{ city.name }}</h2>
               <span class="panel-theme">{{ city.theme }}</span>
@@ -146,7 +151,7 @@
               <div class="jobs-list">
                 @for (job of getCurrentCityJobs(); track job.job_id) {
                   <div class="job-item">
-                    <span class="job-emoji">{{ job.job_emoji }}</span>
+                    <span class="job-emoji" aria-hidden="true">{{ job.job_emoji }}</span>
                     <span class="job-name">{{ job.job_name }}</span>
                   </div>
                 }

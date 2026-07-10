@@ -72,6 +72,24 @@ body {
   overflow-x: hidden;
 }
 
+/* ===== SKIP LINK ===== */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10000;
+  transform: translateY(calc(-100% - 1rem));
+  padding: 0.5rem 1.25rem;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  text-decoration: none;
+
+  &:focus { transform: translateY(0); }
+}
+
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 12px;
@@ -373,7 +391,7 @@ input, textarea, select {
   }
 
   &::placeholder {
-    color: var(--color-text-darker);
+    color: var(--color-text-dim);
   }
 }
 

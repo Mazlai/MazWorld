@@ -17,7 +17,7 @@
 
   <!-- Loading -->
   @if (isLoading()) {
-    <div class="leaderboard-state container">
+    <div class="leaderboard-state container" role="status">
       <div class="loading"></div>
       <p>Chargement du classement…</p>
     </div>
@@ -26,7 +26,7 @@
   <!-- Error -->
   @else if (hasError()) {
     <div class="leaderboard-state leaderboard-state--error container">
-      <span>⚠️</span>
+      <span aria-hidden="true">⚠️</span>
       <p>Impossible de charger le classement.</p>
       <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
     </div>
@@ -35,41 +35,44 @@
   <!-- Empty -->
   @else if (entries().length === 0) {
     <div class="leaderboard-state container">
-      <span style="font-size:3rem">📊</span>
+      <span style="font-size:3rem" aria-hidden="true">📊</span>
       <p>Aucun joueur dans le classement pour le moment.</p>
     </div>
   }
 
   @else {
     <!-- Table -->
-    <div class="leaderboard-table container">
-      <div class="table-head">
-        <span class="col-rank">Rang</span>
-        <span class="col-player">Joueur</span>
-        <span class="col-coins">🪙 MazCoins</span>
-      </div>
-
-      @for (entry of entries(); track entry.discord_id) {
-        <div class="table-row" [class]="getRankClass(entry.rank)">
-          <span class="col-rank">
-            <span class="rank-badge">{{ getRankEmoji(entry.rank) }}</span>
-          </span>
-          <span class="col-player">
-            <img [src]="getAvatarUrl(entry)" [alt]="entry.username" class="player-avatar" width="40" height="40">
-            <span class="player-name">{{ entry.username }}</span>
-          </span>
-          <span class="col-coins">{{ entry.coins.toLocaleString() }}</span>
-        </div>
-      }
-    </div>
+    <table class="leaderboard-table container">
+      <thead>
+        <tr class="table-head">
+          <th scope="col" class="col-rank">Rang</th>
+          <th scope="col" class="col-player">Joueur</th>
+          <th scope="col" class="col-coins"><span aria-hidden="true">🪙</span> MazCoins</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of entries(); track entry.discord_id) {
+          <tr class="table-row" [class]="getRankClass(entry.rank)">
+            <td class="col-rank">
+              <span class="rank-badge">{{ getRankEmoji(entry.rank) }}</span>
+            </td>
+            <td class="col-player">
+              <img [src]="getAvatarUrl(entry)" [alt]="entry.username" class="player-avatar" width="40" height="40">
+              <span class="player-name">{{ entry.username }}</span>
+            </td>
+            <td class="col-coins">{{ entry.coins.toLocaleString() }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
 
     <!-- Pagination -->
     @if (totalPages() > 1) {
-      <div class="pagination container">
+      <nav class="pagination container" aria-label="Pagination">
         <button class="page-btn" [disabled]="!hasPrev()" (click)="prevPage()">← Précédent</button>
-        <span class="page-info">Page {{ currentPage() }} / {{ totalPages() }}</span>
+        <span class="page-info" aria-live="polite">Page {{ currentPage() }} / {{ totalPages() }}</span>
         <button class="page-btn" [disabled]="!hasNext()" (click)="nextPage()">Suivant →</button>
-      </div>
+      </nav>
     }
   }
 

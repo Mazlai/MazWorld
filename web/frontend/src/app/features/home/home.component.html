@@ -54,7 +54,7 @@
         @for (f of features; track f.icon; let i = $index) {
           <div class="feature-card">
             <span class="feature-card__num">{{ (i + 1).toString().padStart(2, '0') }}</span>
-            <span class="feature-card__icon">{{ f.icon }}</span>
+            <span class="feature-card__icon" aria-hidden="true">{{ f.icon }}</span>
             <h3>{{ f.title }}</h3>
             <p>{{ f.desc }}</p>
           </div>
@@ -76,7 +76,7 @@
       <div class="cities-grid">
         @for (city of cities; track city.id) {
           <div class="city-card city-card--{{ city.id }}">
-            <span class="city-card__emoji">{{ city.emoji }}</span>
+            <span class="city-card__emoji" aria-hidden="true">{{ city.emoji }}</span>
             <span class="city-card__name">{{ city.name }}</span>
             <span class="city-card__theme">{{ city.theme }}</span>
           </div>
@@ -107,7 +107,7 @@
           <div class="flow-step__top">
             <div class="flow-step__circle">
               <span class="flow-step__num">{{ i + 1 }}</span>
-              {{ step.emoji }}
+              <span aria-hidden="true">{{ step.emoji }}</span>
             </div>
             @if (!last) { <div class="flow-connector"></div> }
           </div>
