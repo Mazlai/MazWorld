@@ -316,14 +316,14 @@
 .item-price {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-text-darker);
+  color: var(--color-text-dim);
 
   &--affordable { color: var(--color-gold); }
 }
 
 .item-status {
   font-size: 0.8rem;
-  color: var(--color-text-darker);
+  color: var(--color-text-dim);
 
   &--equipped {
     color: var(--color-accent);
@@ -480,6 +480,6 @@
 
 .pagination-info {
   font-size: 0.8rem;
-  color: var(--color-text-darker);
+  color: var(--color-text-dim);
   margin-left: 0.25rem;
 }
