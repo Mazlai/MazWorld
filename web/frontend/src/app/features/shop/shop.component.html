@@ -16,15 +16,15 @@
 
   <!-- Notification -->
   @if (notification(); as notif) {
-    <div class="notification container" [class.notification--success]="notif.type === 'success'" [class.notification--error]="notif.type === 'error'">
-      <span>{{ notif.type === 'success' ? '✅' : '❌' }}</span>
+    <div class="notification container" role="alert" aria-live="assertive" [class.notification--success]="notif.type === 'success'" [class.notification--error]="notif.type === 'error'">
+      <span aria-hidden="true">{{ notif.type === 'success' ? '✅' : '❌' }}</span>
       <span>{{ notif.message }}</span>
     </div>
   }
 
   <!-- Loading -->
   @if (isLoading()) {
-    <div class="shop-state">
+    <div class="shop-state" role="status">
       <div class="loading"></div>
       <p>Chargement de la boutique…</p>
     </div>

@@ -4,7 +4,7 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
   selector: 'app-empty-state',
   standalone: true,
   template: `
-    <div class="empty-state">
+    <div class="empty-state" aria-live="polite">
       @if (icon()) {
         <span class="empty-state__icon" aria-hidden="true">{{ icon() }}</span>
       }

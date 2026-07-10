@@ -74,11 +74,15 @@
 
 /* ===== TABLE ===== */
 .leaderboard-table {
+  display: block;
+  width: 100%;
   background: linear-gradient(135deg, rgba(26, 26, 37, 0.7), rgba(20, 20, 30, 0.5));
   border: 1px solid rgba(255, 107, 53, 0.1);
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: var(--spacing-lg);
+
+  thead, tbody { display: block; }
 }
 
 .table-head {
