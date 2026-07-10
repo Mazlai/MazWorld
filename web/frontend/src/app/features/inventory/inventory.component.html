@@ -8,7 +8,7 @@
       <p class="subtitle">Gérez vos backgrounds et badges équipés</p>
     </div>
     <div class="inventory-header__balance">
-      <span>💰</span>
+      <span aria-hidden="true">💰</span>
       <span class="balance-value">{{ userCoins() }}</span>
       <span class="balance-unit">MC</span>
     </div>
@@ -33,7 +33,7 @@
   <!-- Error -->
   @else if (hasError()) {
     <div class="inventory-state inventory-state--error">
-      <span>⚠️</span>
+      <span aria-hidden="true">⚠️</span>
       <p>Impossible de charger l'inventaire.</p>
       <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
     </div>
@@ -41,7 +41,7 @@
 
   @else if (items().length === 0) {
     <div class="inventory-state container">
-      <span style="font-size:3rem">🎒</span>
+      <span style="font-size:3rem" aria-hidden="true">🎒</span>
       <p>Votre inventaire est vide.</p>
       <a class="btn-primary" href="/shop">Visiter la boutique</a>
     </div>
@@ -62,7 +62,7 @@
     @if (activeTab() === 'background') {
       @if (backgrounds().length === 0) {
         <div class="inventory-state container">
-          <span style="font-size:2.5rem">🖼️</span>
+          <span style="font-size:2.5rem" aria-hidden="true">🖼️</span>
           <p>Aucun background dans l'inventaire.</p>
         </div>
       } @else {
@@ -71,7 +71,7 @@
             <div class="item-card" [class.item-card--equipped]="item.equipped">
 
               <div class="item-card__header item-card__header--bg">
-                <span class="item-emoji">{{ getEmoji(item) }}</span>
+                <span class="item-emoji" aria-hidden="true">{{ getEmoji(item) }}</span>
                 @if (item.equipped) {
                   <span class="item-tag item-tag--equipped">⭐ Équipé</span>
                 }
@@ -108,9 +108,9 @@
           @for (slot of slots; track slot) {
             <div class="badge-slot-card" [class.badge-slot-card--filled]="getBadgeInSlot(slot)">
               @if (getBadgeInSlot(slot); as badge) {
-                <span class="slot-emoji">{{ getEmoji(badge) }}</span>
+                <span class="slot-emoji" aria-hidden="true">{{ getEmoji(badge) }}</span>
                 <span class="slot-name">{{ badge.name }}</span>
-                <button class="slot-unequip" (click)="unequipBadge(slot)" title="Déséquiper">✕</button>
+                <button class="slot-unequip" (click)="unequipBadge(slot)" aria-label="Déséquiper">✕</button>
               } @else {
                 <span class="slot-empty">{{ slot + 1 }}</span>
                 <span class="slot-label">Vide</span>
@@ -123,7 +123,7 @@
       <!-- Liste badges possédés -->
       @if (badges().length === 0) {
         <div class="inventory-state container">
-          <span style="font-size:2.5rem">🏅</span>
+          <span style="font-size:2.5rem" aria-hidden="true">🏅</span>
           <p>Aucun badge dans l'inventaire.</p>
         </div>
       } @else {
@@ -133,7 +133,7 @@
             <div class="item-card" [class.item-card--equipped]="item.equipped">
 
               <div class="item-card__header item-card__header--badge">
-                <span class="item-emoji">{{ getEmoji(item) }}</span>
+                <span class="item-emoji" aria-hidden="true">{{ getEmoji(item) }}</span>
                 @if (item.equipped) {
                   <span class="item-tag item-tag--equipped">⭐ Slot {{ (item.slot ?? 0) + 1 }}</span>
                 }

@@ -9,7 +9,7 @@
 
   <!-- Tip banner -->
   <div class="commands-tip container">
-    <span class="commands-tip__icon">💡</span>
+    <span class="commands-tip__icon" aria-hidden="true">💡</span>
     <span>Tapez <strong>/</strong> dans Discord pour accéder aux commandes. Elles sont disponibles sur tout serveur où le bot est présent.</span>
   </div>
 
@@ -18,7 +18,7 @@
     <section class="cmd-category container">
 
       <div class="cmd-category__header">
-        <span class="cmd-category__icon">{{ cat.emoji }}</span>
+        <span class="cmd-category__icon" aria-hidden="true">{{ cat.emoji }}</span>
         <span class="cmd-category__title">{{ cat.label }}</span>
         <span class="cmd-category__count">{{ commandsFor(cat.id).length }} commande{{ commandsFor(cat.id).length > 1 ? 's' : '' }}</span>
       </div>
@@ -28,7 +28,7 @@
           <div class="cmd-card">
 
             <div class="cmd-card__top">
-              <span class="cmd-card__emoji">{{ cmd.emoji }}</span>
+              <span class="cmd-card__emoji" aria-hidden="true">{{ cmd.emoji }}</span>
               <span class="cmd-card__name">/{{ cmd.name }}</span>
             </div>
 
