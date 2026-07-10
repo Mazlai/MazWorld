@@ -33,13 +33,13 @@
 
         <!-- User dropdown -->
         <div class="user-menu">
-          <button class="user-menu__trigger" (click)="toggleUserMenu()">
+          <button class="user-menu__trigger" #userMenuTrigger (click)="toggleUserMenu()" (keydown)="onUserMenuKeydown($event)">
             <app-avatar [src]="auth.userAvatar()" [alt]="auth.displayName() ?? 'Avatar'" size="sm" />
             <span class="user-menu__name">{{ auth.displayName() }}</span>
             <span class="user-menu__chevron" [class.open]="isUserMenuOpen()" aria-hidden="true">▼</span>
           </button>
 
-          <div class="user-menu__dropdown" [class.open]="isUserMenuOpen()" role="menu">
+          <div class="user-menu__dropdown" #userMenuDropdown [class.open]="isUserMenuOpen()" role="menu" (keydown)="onMenuKeydown($event)">
             <a routerLink="/profile"   class="user-menu__item" role="menuitem" (click)="closeUserMenu()">
               <span aria-hidden="true">👤</span> Mon profil
             </a>
