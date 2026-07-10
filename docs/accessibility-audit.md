@@ -58,6 +58,15 @@ Par ailleurs, le RGAA ajoute 56 critères propres à la méthodologie française
 | `empty-state` | 4.1.3 AA | Améliorer | Contenu dynamique non annoncé | `aria-live="polite"` |
 | Leaderboard — tableau | 1.3.1 A | Améliorer | Structure div/span sans sémantique tabulaire | `<table>` avec `<th scope="col">` |
 
+### À vérifier (hors périmètre des SUs actuels)
+
+| Critère | Description | Statut |
+|---|---|---|
+| 1.4.3 AA | Contraste texte ≥ 4.5:1 (normal) / 3:1 (grand) | Non audité formellement — à vérifier avec un outil dédié (ex : Chrome DevTools > Accessibilité) |
+| 1.4.11 AA | Contraste composants UI (boutons, indicateur de focus) ≥ 3:1 | Non audité formellement |
+| 1.4.4 AA | Zoom 200 % sans perte de contenu | À tester manuellement |
+| 2.4.7 A | Indicateur de focus visible | `outline: none` remplacé par `box-shadow` — conformité à confirmer visuellement |
+
 ---
 
 ## Points conformes

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ChangeDetectionStrategy, viewChild, ElementRef } from '@angular/core';
 import { forkJoin, interval, Subscription } from 'rxjs';
 import { TravelService } from '../../core/services/travel.service';
 import type { City, RouteData, TravelRoute, TravelMapData, TravelStatus, VisualRoute } from '../../core/models/travel.model';
@@ -27,6 +27,9 @@ export class MapComponent implements OnInit, OnDestroy {
   readonly allRoutes = signal<RouteData[]>([]);
   private travelMapData: TravelMapData | null = null;
   private travelStatus: TravelStatus | null = null;
+
+  private readonly panelRef = viewChild<ElementRef<HTMLElement>>('detailsPanel');
+  private lastFocusedCity: HTMLElement | null = null;
 
   readonly visualRoutes = computed<VisualRoute[]>(() => {
     return this.allRoutes()
@@ -136,12 +139,18 @@ export class MapComponent implements OnInit, OnDestroy {
     return colors[theme ?? ''] ?? 'rgba(255, 107, 53, 0.4)';
   }
 
-  selectCity(city: City): void {
+  selectCity(city: City, event?: Event): void {
+    this.lastFocusedCity = (event?.target as HTMLElement) ?? null;
     this.selectedCity.set(city);
+    setTimeout(() => {
+      const closeBtn = this.panelRef()?.nativeElement.querySelector<HTMLElement>('.close-btn');
+      closeBtn?.focus();
+    });
   }
 
   closePanel(): void {
     this.selectedCity.set(null);
+    setTimeout(() => this.lastFocusedCity?.focus());
   }
 
   startTravel(cityId: string): void {

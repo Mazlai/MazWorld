@@ -88,6 +88,9 @@
           @for (city of cities(); track city.city_id) {
             <div
               class="city"
+              role="button"
+              tabindex="0"
+              [attr.aria-label]="city.name"
               [class.city--current]="isCurrentCity(city.city_id)"
               [class.city--destination]="isDestination(city.city_id)"
               [class.city--reachable]="getRouteToCity(city.city_id) !== null && !isCurrentCity(city.city_id)"
@@ -95,7 +98,9 @@
               [class.city--near-bottom]="getCityPosition(city).y > 75"
               [style.left.%]="getCityPosition(city).x"
               [style.top.%]="getCityPosition(city).y"
-              (click)="selectCity(city)">
+              (click)="selectCity(city, $event)"
+              (keydown.enter)="selectCity(city, $event)"
+              (keydown.space)="$event.preventDefault(); selectCity(city, $event)">
 
               <div class="city-pulse"></div>
 
@@ -121,7 +126,7 @@
     </section>
 
     <!-- Panneau de détails -->
-    <aside class="details-panel" [class.open]="selectedCity()">
+    <aside class="details-panel" #detailsPanel [class.open]="selectedCity()" (keydown.escape)="closePanel()">
       @if (selectedCity(); as city) {
         <div class="panel-content">
           <button class="close-btn" (click)="closePanel()" aria-label="Fermer le panneau">✕</button>

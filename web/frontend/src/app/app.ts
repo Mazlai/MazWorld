@@ -7,8 +7,11 @@ import { HeaderComponent } from './shared/components/header/header.component';
   standalone: true,
   imports: [RouterOutlet, HeaderComponent],
   template: `
+    <a class="skip-link" href="#main-content">Aller au contenu principal</a>
     <app-header />
-    <router-outlet />
+    <main id="main-content">
+      <router-outlet />
+    </main>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
