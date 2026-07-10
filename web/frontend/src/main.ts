@@ -11,17 +11,22 @@ bootstrapApplication(App, appConfig)
       const { default: axe } = await import('axe-core');
       const router = appRef.injector.get(Router);
 
-      const runAxe = () => setTimeout(() => {
-        axe.run().then(({ violations }) => {
-          if (!violations.length) return;
-          console.group(`%c♿ axe — ${violations.length} violation(s)`, 'color:#f87171;font-weight:bold');
-          violations.forEach(v => {
-            console.warn(`[${v.impact?.toUpperCase()}] ${v.description}`);
-            v.nodes.forEach(n => console.warn('  ↳', n.html));
+      let axeTimer: ReturnType<typeof setTimeout> | null = null;
+      const runAxe = () => {
+        if (axeTimer) clearTimeout(axeTimer);
+        axeTimer = setTimeout(() => {
+          axeTimer = null;
+          axe.run().then(({ violations }) => {
+            if (!violations.length) return;
+            console.group(`%c♿ axe — ${violations.length} violation(s)`, 'color:#f87171;font-weight:bold');
+            violations.forEach(v => {
+              console.warn(`[${v.impact?.toUpperCase()}] ${v.description}`);
+              v.nodes.forEach(n => console.warn('  ↳', n.html));
+            });
+            console.groupEnd();
           });
-          console.groupEnd();
-        });
-      }, 500);
+        }, 500);
+      };
 
       router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(runAxe);
       runAxe();

@@ -70,7 +70,8 @@
         class="mobile-toggle"
         [class.open]="isMobileMenuOpen()"
         (click)="toggleMobileMenu()"
-        aria-label="Ouvrir le menu"
+        [attr.aria-label]="isMobileMenuOpen() ? 'Fermer le menu' : 'Ouvrir le menu'"
+        [attr.aria-expanded]="isMobileMenuOpen()"
       >
         <span></span><span></span><span></span>
       </button>

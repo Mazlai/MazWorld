@@ -10,7 +10,7 @@
   <!-- Bot status bar -->
   @if (botStatus(); as status) {
     <div class="bot-statusbar container">
-      <div class="bot-statusbar__dot" [class.bot-statusbar__dot--online]="status.online" [class.bot-statusbar__dot--offline]="!status.online"></div>
+      <div class="bot-statusbar__dot" [class.bot-statusbar__dot--online]="status.online" [class.bot-statusbar__dot--offline]="!status.online" aria-hidden="true"></div>
       <span class="bot-statusbar__label">
         Bot
         @if (status.username) { <strong>{{ status.username }}</strong> }
@@ -30,13 +30,13 @@
     </div>
   } @else if (hasError()) {
     <div class="servers-state servers-state--error container">
-      <span class="servers-state__icon">⚠️</span>
+      <span class="servers-state__icon" aria-hidden="true">⚠️</span>
       <p>Impossible de récupérer vos serveurs. Vérifiez que vous êtes bien connecté via Discord.</p>
       <button class="btn-primary" (click)="load()">Réessayer</button>
     </div>
   } @else if (servers().length === 0) {
     <div class="servers-state container">
-      <span class="servers-state__icon">🔍</span>
+      <span class="servers-state__icon" aria-hidden="true">🔍</span>
       <p>Aucun serveur trouvé.</p>
     </div>
   } @else {
@@ -45,7 +45,7 @@
     @if (presentCount() > 0) {
       <section class="servers-section container">
         <div class="servers-section__label">
-          <span class="servers-section__icon">✅</span>
+          <span class="servers-section__icon" aria-hidden="true">✅</span>
           <span class="section-label">Bot présent</span>
         </div>
         <div class="servers-grid">
@@ -78,7 +78,7 @@
       <div class="servers-divider container"></div>
       <section class="servers-section container">
         <div class="servers-section__label">
-          <span class="servers-section__icon">➕</span>
+          <span class="servers-section__icon" aria-hidden="true">➕</span>
           <span class="section-label">Ajouter le bot</span>
         </div>
         <div class="servers-grid">

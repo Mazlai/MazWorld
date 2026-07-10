@@ -14,7 +14,7 @@
     </div>
   } @else if (hasError()) {
     <div class="records-state records-state--error container">
-      <span class="records-state__icon">⚠️</span>
+      <span class="records-state__icon" aria-hidden="true">⚠️</span>
       <p>Impossible de charger vos records.</p>
       <button class="btn-primary" (click)="load()">Réessayer</button>
     </div>
@@ -24,7 +24,7 @@
     <section class="records-section container">
       <div class="rec-block">
         <div class="rec-block__label">
-          <span class="rec-icon">🪙</span>
+          <span class="rec-icon" aria-hidden="true">🪙</span>
           <span class="section-label">MazCoins</span>
         </div>
 
@@ -57,7 +57,7 @@
     <section class="records-section container">
       <div class="rec-block">
         <div class="rec-block__label">
-          <span class="rec-icon">🗺️</span>
+          <span class="rec-icon" aria-hidden="true">🗺️</span>
           <span class="section-label">Exploration</span>
         </div>
 
@@ -78,7 +78,7 @@
           @for (city of r.exploration.cities; track city.city_id) {
             <div class="city-rec" [class.city-rec--visited]="city.visited" [class.city-rec--locked]="!city.visited">
               <div class="city-rec__inner">
-                <span class="city-rec__emoji">{{ city.visited ? (city.emoji ?? '🏙️') : '🔒' }}</span>
+                <span class="city-rec__emoji" aria-hidden="true">{{ city.visited ? (city.emoji ?? '🏙️') : '🔒' }}</span>
                 <span class="city-rec__name">{{ city.visited ? city.name : '???' }}</span>
                 @if (city.visited && city.first_visit) {
                   <span class="city-rec__date">{{ city.first_visit | date:'d MMM yy' }}</span>
@@ -101,25 +101,25 @@
     <section class="records-section container">
       <div class="rec-block">
         <div class="rec-block__label">
-          <span class="rec-icon">🛒</span>
+          <span class="rec-icon" aria-hidden="true">🛒</span>
           <span class="section-label">Collection</span>
         </div>
 
         <div class="collection-stats">
           <div class="collection-stat">
             <span class="collection-stat__value">{{ r.collection.inventory_count }}</span>
-            <span class="collection-stat__icon">📦</span>
+            <span class="collection-stat__icon" aria-hidden="true">📦</span>
             <span class="collection-stat__label">Items possédés</span>
           </div>
           <div class="collection-stat collection-stat--gold">
             <span class="collection-stat__value">{{ r.collection.badges_count }}</span>
-            <span class="collection-stat__icon">🏅</span>
+            <span class="collection-stat__icon" aria-hidden="true">🏅</span>
             <span class="collection-stat__label">Badges équipés</span>
           </div>
           @if (r.collection.recent_item) {
             <div class="collection-stat collection-stat--accent">
               <span class="collection-stat__value collection-stat__value--sm">{{ r.collection.recent_item }}</span>
-              <span class="collection-stat__icon">✨</span>
+              <span class="collection-stat__icon" aria-hidden="true">✨</span>
               <span class="collection-stat__label">Dernier achat</span>
             </div>
           }
@@ -137,7 +137,7 @@
     <section class="records-section container">
       <div class="rec-block">
         <div class="rec-block__label">
-          <span class="rec-icon">📅</span>
+          <span class="rec-icon" aria-hidden="true">📅</span>
           <span class="section-label">Activité</span>
         </div>
 

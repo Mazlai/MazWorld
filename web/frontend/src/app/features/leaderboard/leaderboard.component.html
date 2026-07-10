@@ -26,7 +26,7 @@
   <!-- Error -->
   @else if (hasError()) {
     <div class="leaderboard-state leaderboard-state--error container">
-      <span>⚠️</span>
+      <span aria-hidden="true">⚠️</span>
       <p>Impossible de charger le classement.</p>
       <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
     </div>
@@ -35,7 +35,7 @@
   <!-- Empty -->
   @else if (entries().length === 0) {
     <div class="leaderboard-state container">
-      <span style="font-size:3rem">📊</span>
+      <span style="font-size:3rem" aria-hidden="true">📊</span>
       <p>Aucun joueur dans le classement pour le moment.</p>
     </div>
   }
@@ -46,7 +46,7 @@
       <div class="table-head">
         <span class="col-rank">Rang</span>
         <span class="col-player">Joueur</span>
-        <span class="col-coins">🪙 MazCoins</span>
+        <span class="col-coins"><span aria-hidden="true">🪙</span> MazCoins</span>
       </div>
 
       @for (entry of entries(); track entry.discord_id) {
@@ -65,11 +65,11 @@
 
     <!-- Pagination -->
     @if (totalPages() > 1) {
-      <div class="pagination container">
+      <nav class="pagination container" aria-label="Pagination">
         <button class="page-btn" [disabled]="!hasPrev()" (click)="prevPage()">← Précédent</button>
-        <span class="page-info">Page {{ currentPage() }} / {{ totalPages() }}</span>
+        <span class="page-info" aria-live="polite">Page {{ currentPage() }} / {{ totalPages() }}</span>
         <button class="page-btn" [disabled]="!hasNext()" (click)="nextPage()">Suivant →</button>
-      </div>
+      </nav>
     }
   }
 
