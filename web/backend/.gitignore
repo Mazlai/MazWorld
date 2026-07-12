@@ -17,4 +17,6 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+/coverage-reports/*
+!/coverage-reports/07-final
 ###< phpunit/phpunit ###
