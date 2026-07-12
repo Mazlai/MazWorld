@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Tests\Entity;
+
+use App\Entity\UserEquippedBadge;
+use PHPUnit\Framework\TestCase;
+
+use PHPUnit\Framework\Attributes\Group;
+#[Group('unit')]
+class UserEquippedBadgeTest extends TestCase
+{
+    private UserEquippedBadge $badge;
+
+    protected function setUp(): void
+    {
+        $this->badge = new UserEquippedBadge();
+    }
+
+    // ===== setSlotNumber() =====
+
+    public function testSetSlotNumberAcceptsMinBoundary(): void
+    {
+        $result = $this->badge->setSlotNumber(0);
+        $this->assertSame(0, $this->badge->getSlotNumber());
+        $this->assertSame($this->badge, $result);
+    }
+
+    public function testSetSlotNumberAcceptsMaxBoundary(): void
+    {
+        $this->badge->setSlotNumber(5);
+        $this->assertSame(5, $this->badge->getSlotNumber());
+    }
+
+    public function testSetSlotNumberThrowsWhenBelowZero(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->badge->setSlotNumber(-1);
+    }
+
+    public function testSetSlotNumberThrowsWhenAboveFive(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->badge->setSlotNumber(6);
+    }
+}
