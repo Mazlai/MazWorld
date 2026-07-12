@@ -148,8 +148,8 @@ Cette suite de tests répond à l'exigence de couverture majoritaire (> 50 %) re
 
 ---
 
-## Frontend (React)
+## Frontend (Angular)
 
 > Section à compléter lors de l'implémentation des tests frontend.
 
-Les tests frontend cibleront les composants React (tests unitaires via Vitest/Testing Library) et les flux utilisateur critiques (tests end-to-end via Playwright ou Cypress).
+Les tests frontend cibleront les composants et services Angular (tests unitaires via Jest ou Jasmine/Karma + Angular TestBed) et les flux utilisateur critiques (tests end-to-end via Playwright ou Cypress).
