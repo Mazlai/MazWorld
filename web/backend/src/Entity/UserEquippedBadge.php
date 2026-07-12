@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserEquippedBadgeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: UserEquippedBadgeRepository::class)]
 #[ORM\Table(name: 'user_equipped_badges')]
@@ -29,6 +30,7 @@ class UserEquippedBadge
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -40,9 +42,10 @@ class UserEquippedBadge
     public function setSlotNumber(int $slot_number): self
     {
         if ($slot_number < 0 || $slot_number > 5) {
-            throw new \InvalidArgumentException('Slot number must be between 0 and 5');
+            throw new InvalidArgumentException('Slot number must be between 0 and 5');
         }
         $this->slot_number = $slot_number;
+
         return $this;
     }
 
@@ -54,6 +57,7 @@ class UserEquippedBadge
     public function setBadgeId(string $badge_id): self
     {
         $this->badge_id = $badge_id;
+
         return $this;
     }
 }

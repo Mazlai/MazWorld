@@ -4,9 +4,9 @@ namespace App\Tests\Repository;
 
 use App\Entity\City;
 use App\Repository\CityRepository;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('integration')]
 class CityRepositoryTest extends KernelTestCase
 {
@@ -89,8 +89,8 @@ class CityRepositoryTest extends KernelTestCase
         $cities = $this->repository->findAllWithJobs();
 
         // Ordre alphabétique attendu : Crystalport, Goldenfields, Ironhaven, NeonHub, Shadowpeak, Willowbrook
-        $this->assertSame('crystalport',  $cities[0]->getCityId());
-        $this->assertSame('willowbrook',  $cities[5]->getCityId());
+        $this->assertSame('crystalport', $cities[0]->getCityId());
+        $this->assertSame('willowbrook', $cities[5]->getCityId());
     }
 
     public function testFindAllWithJobsEagerLoadsJobs(): void

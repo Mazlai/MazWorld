@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 #[Group('unit')]
 class UserServiceTest extends TestCase
@@ -137,7 +138,7 @@ class UserServiceTest extends TestCase
         $user->method('toArray')->willReturn(['discord_email' => 'corrupted_blob', 'user_id' => '1']);
 
         $this->encryptor->method('decrypt')
-            ->willThrowException(new \RuntimeException('Decryption failed'));
+            ->willThrowException(new RuntimeException('Decryption failed'));
 
         $result = $this->service->serializeUser($user);
 
@@ -220,7 +221,7 @@ class UserServiceTest extends TestCase
         $cityRepo->method('findOneBy')->willReturn(null);
         $this->em->method('getRepository')->willReturn($cityRepo);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $this->service->findOrCreateFromDiscord($this->makeDiscordUser(), $this->makeTokens());
     }

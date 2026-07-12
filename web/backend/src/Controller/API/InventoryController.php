@@ -5,13 +5,15 @@ namespace App\Controller\API;
 use App\Repository\ShopItemRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/inventory', name: 'api_inventory_')]
 class InventoryController extends AbstractApiController
 {
     public function __construct(
         private readonly ShopItemRepository $shopItemRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function getInventory(): JsonResponse
@@ -42,12 +44,12 @@ class InventoryController extends AbstractApiController
                 $slot = null;
                 $equipped = false;
 
-                if ($inventoryItem->getItemType() === 'background') {
+                if ('background' === $inventoryItem->getItemType()) {
                     $equipped = $inventoryItem->getItemId() === $equippedBackground;
-                } elseif ($inventoryItem->getItemType() === 'badge') {
+                } elseif ('badge' === $inventoryItem->getItemType()) {
                     $slot = array_search($inventoryItem->getItemId(), $equippedBadgeSlots);
-                    $equipped = $slot !== false;
-                    $slot = $equipped ? (int)$slot : null;
+                    $equipped = false !== $slot;
+                    $slot = $equipped ? (int) $slot : null;
                 }
 
                 $items[] = [
@@ -62,7 +64,7 @@ class InventoryController extends AbstractApiController
                 ];
             }
 
-            usort($items, fn($a, $b) => $b['equipped'] <=> $a['equipped'] ?: strcmp($a['item_type'], $b['item_type']));
+            usort($items, fn ($a, $b) => $b['equipped'] <=> $a['equipped'] ?: strcmp($a['item_type'], $b['item_type']));
 
             return new JsonResponse([
                 'items'            => $items,
@@ -70,7 +72,7 @@ class InventoryController extends AbstractApiController
                 'equipped_badges'  => $equippedBadgeSlots,
                 'user_coins'       => $user->getCoins(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }

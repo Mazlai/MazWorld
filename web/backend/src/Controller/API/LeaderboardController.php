@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/leaderboard', name: 'api_leaderboard_')]
 class LeaderboardController extends AbstractApiController
@@ -15,17 +16,18 @@ class LeaderboardController extends AbstractApiController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function getLeaderboard(Request $request): JsonResponse
     {
         try {
-            $page = max(1, (int)$request->query->get('page', 1));
-            $limit = min(50, max(1, (int)$request->query->get('limit', 20)));
+            $page = max(1, (int) $request->query->get('page', 1));
+            $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
             $offset = ($page - 1) * $limit;
 
-            $total = (int)$this->entityManager
+            $total = (int) $this->entityManager
                 ->createQuery('SELECT COUNT(u.user_id) FROM App\Entity\User u')
                 ->getSingleScalarResult();
 
@@ -65,7 +67,7 @@ class LeaderboardController extends AbstractApiController
                 'limit' => $limit,
                 'user_rank' => $userRank,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }
@@ -83,7 +85,7 @@ class LeaderboardController extends AbstractApiController
 
     private function getUserRank(User $user): int
     {
-        return ((int)$this->entityManager
+        return ((int) $this->entityManager
             ->createQueryBuilder()
             ->select('COUNT(u.user_id)')
             ->from(User::class, 'u')

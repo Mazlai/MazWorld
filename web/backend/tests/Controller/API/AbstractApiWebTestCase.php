@@ -37,7 +37,7 @@ abstract class AbstractApiWebTestCase extends WebTestCase
         array $roles = ['ROLE_USER'],
         string $cityId = 'willowbrook',
     ): User {
-        if ($userId === '') {
+        if ('' === $userId) {
             $userId = uniqid('u');
         }
 
@@ -68,6 +68,7 @@ abstract class AbstractApiWebTestCase extends WebTestCase
             ->setItemType($type);
         $user->addInventory($inv);
         $this->em->flush();
+
         return $inv;
     }
 
@@ -78,6 +79,7 @@ abstract class AbstractApiWebTestCase extends WebTestCase
             ->setSlotNumber($slot);
         $user->addEquippedBadge($badge);
         $this->em->flush();
+
         return $badge;
     }
 
@@ -94,6 +96,7 @@ abstract class AbstractApiWebTestCase extends WebTestCase
     {
         /** @var JWTTokenManagerInterface $jwtManager */
         $jwtManager = static::getContainer()->get(JWTTokenManagerInterface::class);
+
         return $jwtManager->create($user);
     }
 
@@ -101,7 +104,7 @@ abstract class AbstractApiWebTestCase extends WebTestCase
     {
         $this->client->setServerParameter(
             'HTTP_AUTHORIZATION',
-            'Bearer ' . $this->getJwt($user),
+            'Bearer '.$this->getJwt($user),
         );
     }
 
@@ -118,8 +121,10 @@ abstract class AbstractApiWebTestCase extends WebTestCase
     protected function post(string $url, array $body = []): void
     {
         $this->client->request(
-            'POST', $url,
-            [], [],
+            'POST',
+            $url,
+            [],
+            [],
             ['CONTENT_TYPE' => 'application/json'],
             json_encode($body),
         );
@@ -133,6 +138,7 @@ abstract class AbstractApiWebTestCase extends WebTestCase
     protected function json(): array
     {
         $content = $this->client->getResponse()->getContent();
+
         return json_decode($content, true) ?? [];
     }
 }

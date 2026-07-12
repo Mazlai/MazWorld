@@ -15,6 +15,7 @@ export class LeaderboardService {
     limit: number = 20
   ): Observable<LeaderboardResponse> {
     const params = new HttpParams()
+      .set('category', category)
       .set('page', page)
       .set('limit', limit);
     return this.http.get<LeaderboardResponse>(`${this.base}/api/leaderboard`, { params });

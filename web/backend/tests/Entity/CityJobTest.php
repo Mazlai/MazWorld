@@ -4,9 +4,9 @@ namespace App\Tests\Entity;
 
 use App\Entity\City;
 use App\Entity\CityJob;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class CityJobTest extends TestCase
 {

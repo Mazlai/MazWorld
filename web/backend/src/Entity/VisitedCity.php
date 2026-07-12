@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\VisitedCityRepository;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VisitedCityRepository::class)]
@@ -20,11 +22,11 @@ class VisitedCity
     private City $city;
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $first_visit;
+    private DateTimeInterface $first_visit;
 
     public function __construct()
     {
-        $this->first_visit = new \DateTime();
+        $this->first_visit = new DateTime();
     }
 
     public function getUser(): User
@@ -35,6 +37,7 @@ class VisitedCity
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -46,17 +49,19 @@ class VisitedCity
     public function setCity(City $city): self
     {
         $this->city = $city;
+
         return $this;
     }
 
-    public function getFirstVisit(): \DateTimeInterface
+    public function getFirstVisit(): DateTimeInterface
     {
         return $this->first_visit;
     }
 
-    public function setFirstVisit(\DateTimeInterface $first_visit): self
+    public function setFirstVisit(DateTimeInterface $first_visit): self
     {
         $this->first_visit = $first_visit;
+
         return $this;
     }
 }

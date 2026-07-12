@@ -3,6 +3,7 @@
 namespace App\Tests\Service\Discord;
 
 use App\Service\Discord\DiscordApiClient;
+use Exception;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -34,6 +35,7 @@ class DiscordApiClientTest extends TestCase
         $response->method('getStatusCode')->willReturn($statusCode);
         $response->method('toArray')->willReturn($data);
         $response->method('getContent')->willReturn($content);
+
         return $response;
     }
 
@@ -118,7 +120,7 @@ class DiscordApiClientTest extends TestCase
 
     public function testIsBotInGuildReturnsFalseOnException(): void
     {
-        $this->httpClient->method('request')->willThrowException(new \Exception('Network error'));
+        $this->httpClient->method('request')->willThrowException(new Exception('Network error'));
 
         $this->assertFalse($this->client->isBotInGuild('guild_123'));
     }
@@ -147,7 +149,7 @@ class DiscordApiClientTest extends TestCase
 
     public function testGetBotInfoReturnsNullOnException(): void
     {
-        $this->httpClient->method('request')->willThrowException(new \Exception('Timeout'));
+        $this->httpClient->method('request')->willThrowException(new Exception('Timeout'));
 
         $this->assertNull($this->client->getBotInfo());
     }
@@ -163,7 +165,7 @@ class DiscordApiClientTest extends TestCase
 
     public function testRevokeTokenReturnsFalseOnException(): void
     {
-        $this->httpClient->method('request')->willThrowException(new \Exception('Timeout'));
+        $this->httpClient->method('request')->willThrowException(new Exception('Timeout'));
 
         $this->assertFalse($this->client->revokeToken('some_token'));
     }

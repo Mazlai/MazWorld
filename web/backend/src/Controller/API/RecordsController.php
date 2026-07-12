@@ -4,16 +4,19 @@ namespace App\Controller\API;
 
 use App\Entity\ShopItem;
 use App\Entity\UserInventory;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/records', name: 'api_records_')]
 class RecordsController extends AbstractApiController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'me', methods: ['GET'])]
     public function getMyRecords(): JsonResponse
@@ -28,12 +31,12 @@ class RecordsController extends AbstractApiController
             $em = $this->entityManager;
 
             // ===== COINS =====
-            $totalUsers = (int)$em->createQuery('SELECT COUNT(u) FROM App\Entity\User u')->getSingleScalarResult();
-            $rank = (int)$em->createQuery('SELECT COUNT(u) FROM App\Entity\User u WHERE u.coins > :coins')
+            $totalUsers = (int) $em->createQuery('SELECT COUNT(u) FROM App\Entity\User u')->getSingleScalarResult();
+            $rank = (int) $em->createQuery('SELECT COUNT(u) FROM App\Entity\User u WHERE u.coins > :coins')
                 ->setParameter('coins', $user->getCoins())
                 ->getSingleScalarResult() + 1;
             $percentile = $totalUsers > 1
-                ? (int)round((($totalUsers - $rank) / ($totalUsers - 1)) * 100)
+                ? (int) round((($totalUsers - $rank) / ($totalUsers - 1)) * 100)
                 : 100;
 
             // ===== EXPLORATION =====
@@ -63,10 +66,10 @@ class RecordsController extends AbstractApiController
                     $visitedCities[] = $entry;
                 }
             }
-            usort($visitedCities, fn($a, $b) => $a['first_visit'] <=> $b['first_visit']);
+            usort($visitedCities, fn ($a, $b) => $a['first_visit'] <=> $b['first_visit']);
 
             // ===== COLLECTION =====
-            $inventoryCount = (int)$em->createQuery('SELECT COUNT(i) FROM App\Entity\UserInventory i WHERE i.user = :user')
+            $inventoryCount = (int) $em->createQuery('SELECT COUNT(i) FROM App\Entity\UserInventory i WHERE i.user = :user')
                 ->setParameter('user', $user)
                 ->getSingleScalarResult();
 
@@ -84,13 +87,14 @@ class RecordsController extends AbstractApiController
                     $shopItem = $em->getRepository(ShopItem::class)->findOneBy(['item_id' => $latestInventory->getItemId()]);
                     $recentItem = $shopItem?->getName();
                 }
-            } catch (\Throwable) {}
+            } catch (Throwable) {
+            }
 
             // ===== ACTIVITY =====
             $joinedAt = $user->getCreatedAt()->format('c');
             $lastActivity = ($user->getUpdatedAt() ?? $user->getCreatedAt())->format('c');
-            $joinedDate = new \DateTime($joinedAt);
-            $daysActive = (int)$joinedDate->diff(new \DateTime())->days;
+            $joinedDate = new DateTime($joinedAt);
+            $daysActive = (int) $joinedDate->diff(new DateTime())->days;
 
             return new JsonResponse([
                 'coins' => [
@@ -115,7 +119,7 @@ class RecordsController extends AbstractApiController
                     'days_active'   => $daysActive,
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }

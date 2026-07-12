@@ -7,9 +7,11 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\BotAuthenticator;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
@@ -17,14 +19,13 @@ use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationExc
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class BotAuthenticatorTest extends TestCase
 {
     private const BOT_SECRET = 'super_secret_bot_key';
 
     private BotAuthenticator $authenticator;
-    private UserRepository   $userRepository;
+    private UserRepository $userRepository;
     /** @var EntityManagerInterface&MockObject */
     private $entityManager;
 
@@ -147,7 +148,7 @@ class BotAuthenticatorTest extends TestCase
 
         $passport = $this->authenticator->authenticate($request);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $passport->getBadge(UserBadge::class)->getUser();
     }
 

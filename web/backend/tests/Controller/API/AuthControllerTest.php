@@ -2,10 +2,10 @@
 
 namespace App\Tests\Controller\API;
 
+use PHPUnit\Framework\Attributes\Group;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\BrowserKit\Cookie;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('integration')]
 class AuthControllerTest extends AbstractApiWebTestCase
 {
@@ -50,8 +50,8 @@ class AuthControllerTest extends AbstractApiWebTestCase
     {
         /** @var CacheItemPoolInterface $cache */
         $cache = static::getContainer()->get(CacheItemPoolInterface::class);
-        $state = 'teststate_' . uniqid();
-        $item = $cache->getItem('oauth_state_' . $state);
+        $state = 'teststate_'.uniqid();
+        $item = $cache->getItem('oauth_state_'.$state);
         $item->set(true)->expiresAfter(300);
         $cache->save($item);
 
@@ -86,7 +86,7 @@ class AuthControllerTest extends AbstractApiWebTestCase
 
         /** @var CacheItemPoolInterface $cache */
         $cache = static::getContainer()->get(CacheItemPoolInterface::class);
-        $cacheKey = 'refresh_token_' . hash('sha256', $rawToken);
+        $cacheKey = 'refresh_token_'.hash('sha256', $rawToken);
         $item = $cache->getItem($cacheKey);
         $item->set($user->getUserId())->expiresAfter(604800);
         $cache->save($item);
@@ -122,7 +122,7 @@ class AuthControllerTest extends AbstractApiWebTestCase
 
         /** @var CacheItemPoolInterface $cache */
         $cache = static::getContainer()->get(CacheItemPoolInterface::class);
-        $item = $cache->getItem('jwt_blacklist_' . $user->getUserId());
+        $item = $cache->getItem('jwt_blacklist_'.$user->getUserId());
         $this->assertTrue($item->isHit(), 'Le cache de blacklist JWT doit être créé après le logout.');
     }
 

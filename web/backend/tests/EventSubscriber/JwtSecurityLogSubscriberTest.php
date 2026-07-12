@@ -43,7 +43,7 @@ class JwtSecurityLogSubscriberTest extends TestCase
 
         $this->logger->expects($this->once())
             ->method('warning')
-            ->with('Invalid JWT token', $this->callback(fn($ctx) => isset($ctx['ip'], $ctx['path'])));
+            ->with('Invalid JWT token', $this->callback(fn ($ctx) => isset($ctx['ip'], $ctx['path'])));
 
         $this->subscriber->onJWTInvalid($event);
     }
@@ -56,7 +56,7 @@ class JwtSecurityLogSubscriberTest extends TestCase
 
         $this->logger->expects($this->once())
             ->method('info')
-            ->with('Expired JWT token', $this->callback(fn($ctx) => isset($ctx['ip'], $ctx['path'])));
+            ->with('Expired JWT token', $this->callback(fn ($ctx) => isset($ctx['ip'], $ctx['path'])));
 
         $this->subscriber->onJWTExpired($event);
     }

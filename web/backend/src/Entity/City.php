@@ -65,6 +65,7 @@ class City
     public function setCityId(string $city_id): self
     {
         $this->city_id = $city_id;
+
         return $this;
     }
 
@@ -76,6 +77,7 @@ class City
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -87,6 +89,7 @@ class City
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -98,6 +101,7 @@ class City
     public function setEmoji(?string $emoji): self
     {
         $this->emoji = $emoji;
+
         return $this;
     }
 
@@ -109,6 +113,7 @@ class City
     public function setTheme(?string $theme): self
     {
         $this->theme = $theme;
+
         return $this;
     }
 
@@ -120,6 +125,7 @@ class City
     public function setPositionX(int $position_x): self
     {
         $this->position_x = $position_x;
+
         return $this;
     }
 
@@ -131,6 +137,7 @@ class City
     public function setPositionY(int $position_y): self
     {
         $this->position_y = $position_y;
+
         return $this;
     }
 
@@ -157,12 +164,14 @@ class City
             $this->jobs->add($job);
             $job->setCity($this);
         }
+
         return $this;
     }
 
     public function removeJob(CityJob $job): self
     {
         $this->jobs->removeElement($job);
+
         return $this;
     }
 

@@ -49,6 +49,7 @@ class CityJob
     public function setCity(City $city): self
     {
         $this->city = $city;
+
         return $this;
     }
 
@@ -60,6 +61,7 @@ class CityJob
     public function setJobName(string $job_name): self
     {
         $this->job_name = $job_name;
+
         return $this;
     }
 
@@ -71,6 +73,7 @@ class CityJob
     public function setJobEmoji(string $job_emoji): self
     {
         $this->job_emoji = $job_emoji;
+
         return $this;
     }
 
@@ -82,6 +85,7 @@ class CityJob
     public function setTask1(string $task_1): self
     {
         $this->task_1 = $task_1;
+
         return $this;
     }
 
@@ -93,6 +97,7 @@ class CityJob
     public function setTask2(string $task_2): self
     {
         $this->task_2 = $task_2;
+
         return $this;
     }
 
@@ -104,6 +109,7 @@ class CityJob
     public function setTask3(string $task_3): self
     {
         $this->task_3 = $task_3;
+
         return $this;
     }
 

@@ -4,6 +4,8 @@ namespace App\Tests\Entity;
 
 use App\Entity\User;
 use App\Entity\UserInventory;
+use DateTime;
+use DateTimeInterface;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +17,7 @@ class UserInventoryTest extends TestCase
     public function testConstructorInitializesPurchasedAtToNow(): void
     {
         $inv = new UserInventory();
-        $this->assertInstanceOf(\DateTimeInterface::class, $inv->getPurchasedAt());
+        $this->assertInstanceOf(DateTimeInterface::class, $inv->getPurchasedAt());
         $this->assertEqualsWithDelta(time(), $inv->getPurchasedAt()->getTimestamp(), 2);
     }
 
@@ -56,7 +58,7 @@ class UserInventoryTest extends TestCase
 
     public function testSetAndGetPurchasedAt(): void
     {
-        $date = new \DateTime('2024-01-15 12:00:00');
+        $date = new DateTime('2024-01-15 12:00:00');
         $inv  = (new UserInventory())->setPurchasedAt($date);
         $this->assertSame($date, $inv->getPurchasedAt());
     }

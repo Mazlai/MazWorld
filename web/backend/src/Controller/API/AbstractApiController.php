@@ -5,11 +5,13 @@ namespace App\Controller\API;
 use App\Entity\User;
 use DateTimeInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Service\Attribute\Required;
+use Throwable;
 
 abstract class AbstractApiController extends AbstractController
 {
@@ -43,6 +45,7 @@ abstract class AbstractApiController extends AbstractController
     protected function getCurrentUser(): ?User
     {
         $user = $this->getUser();
+
         return $user instanceof User ? $user : null;
     }
 
@@ -50,8 +53,9 @@ abstract class AbstractApiController extends AbstractController
     {
         $user = $this->getCurrentUser();
         if (!$user) {
-            throw new \RuntimeException('User not authenticated');
+            throw new RuntimeException('User not authenticated');
         }
+
         return $user;
     }
 
@@ -75,7 +79,7 @@ abstract class AbstractApiController extends AbstractController
         return $this->errorResponse($message, Response::HTTP_NOT_FOUND);
     }
 
-    protected function serverErrorResponse(\Throwable $e): JsonResponse
+    protected function serverErrorResponse(Throwable $e): JsonResponse
     {
         $this->logger->error($e->getMessage(), [
             'exception' => $e,
@@ -94,7 +98,7 @@ abstract class AbstractApiController extends AbstractController
     {
         $response = $this->errorResponse('Too many requests', Response::HTTP_TOO_MANY_REQUESTS);
 
-        if ($retryAfter !== null) {
+        if (null !== $retryAfter) {
             $seconds = max(0, $retryAfter->getTimestamp() - time());
             $response->headers->set('Retry-After', (string) $seconds);
         }

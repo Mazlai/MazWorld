@@ -4,6 +4,8 @@ namespace App\Tests\EventSubscriber;
 
 use App\Entity\User;
 use App\EventSubscriber\ApiRateLimitSubscriber;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,11 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
-use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class ApiRateLimitSubscriberTest extends TestCase
 {
@@ -34,6 +34,7 @@ class ApiRateLimitSubscriberTest extends TestCase
             'limit' => $limit,
             'interval' => '1 minute',
         ], $storage ?? new InMemoryStorage());
+
         return new ApiRateLimitSubscriber($this->security, $factory);
     }
 
@@ -41,6 +42,7 @@ class ApiRateLimitSubscriberTest extends TestCase
     {
         $kernel      = $this->createMock(HttpKernelInterface::class);
         $requestType = $isMainRequest ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST;
+
         return new RequestEvent($kernel, Request::create($path), $requestType);
     }
 

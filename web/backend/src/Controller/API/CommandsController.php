@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/commands', name: 'api_commands_')]
 class CommandsController extends AbstractApiController
@@ -24,7 +25,8 @@ class CommandsController extends AbstractApiController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly CityJobRepository $cityJobRepository
-    ) {}
+    ) {
+    }
 
     #[Route('/daily', name: 'daily', methods: ['POST'])]
     public function daily(): JsonResponse
@@ -59,7 +61,7 @@ class CommandsController extends AbstractApiController
 
         return new JsonResponse([
             'success' => true,
-            'message' => '🎁 Vous avez reçu votre récompense quotidienne de ' . self::DAILY_REWARD . '€ !',
+            'message' => '🎁 Vous avez reçu votre récompense quotidienne de '.self::DAILY_REWARD.'€ !',
             'coins' => $user->getCoins(),
         ]);
     }
@@ -73,7 +75,7 @@ class CommandsController extends AbstractApiController
             return $this->unauthorizedResponse();
         }
 
-        if ($user->getTravelingTo() !== null && $user->getArrivalTime() !== null && time() < $user->getArrivalTime()) {
+        if (null !== $user->getTravelingTo() && null !== $user->getArrivalTime() && time() < $user->getArrivalTime()) {
             return $this->failureResponse('🚂 Vous êtes en voyage ! Vous ne pouvez pas travailler pendant un déplacement.', Response::HTTP_CONFLICT);
         }
 
@@ -138,13 +140,13 @@ class CommandsController extends AbstractApiController
             return $this->unauthorizedResponse();
         }
 
-        if ($user->getTravelingTo() !== null && $user->getArrivalTime() !== null && time() < $user->getArrivalTime()) {
+        if (null !== $user->getTravelingTo() && null !== $user->getArrivalTime() && time() < $user->getArrivalTime()) {
             return $this->failureResponse('🚂 Vous êtes en voyage ! Vous ne pouvez pas jouer pendant un déplacement.', Response::HTTP_CONFLICT);
         }
 
         $data = json_decode($request->getContent(), true);
         $choice = $data['choice'] ?? null;
-        $amount = (int)($data['amount'] ?? 0);
+        $amount = (int) ($data['amount'] ?? 0);
 
         if (!in_array($choice, ['pile', 'face'])) {
             return $this->failureResponse('❌ Choix invalide. Choisissez "pile" ou "face".');
@@ -154,7 +156,7 @@ class CommandsController extends AbstractApiController
             return $this->failureResponse(sprintf('❌ La mise doit être entre %d€ et %d€.', self::COINFLIP_MIN, self::COINFLIP_MAX));
         }
 
-        $maxBet = (int)min(floor($user->getCoins() / 2), self::COINFLIP_MAX);
+        $maxBet = (int) min(floor($user->getCoins() / 2), self::COINFLIP_MAX);
         if ($amount > $maxBet) {
             return $this->failureResponse("⚠️ Mise trop élevée ! Vous pouvez parier jusqu'à {$maxBet}€ (50% de votre solde ou 500€ max).");
         }
@@ -166,10 +168,11 @@ class CommandsController extends AbstractApiController
 
             if ($user->getCoins() < $amount) {
                 $this->entityManager->rollback();
+
                 return $this->failureResponse("❌ Vous n'avez pas assez d'argent. Solde actuel : {$user->getCoins()}€", Response::HTTP_PAYMENT_REQUIRED);
             }
 
-            $result = random_int(0, 1) === 0 ? 'pile' : 'face';
+            $result = 0 === random_int(0, 1) ? 'pile' : 'face';
             $won = $result === $choice;
 
             $delta = $won ? $amount : -$amount;
@@ -188,8 +191,9 @@ class CommandsController extends AbstractApiController
                     : "😢 La pièce est tombée sur {$result}. Vous perdez {$amount}€.",
                 'coins' => $user->getCoins(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->entityManager->rollback();
+
             return $this->serverErrorResponse($e);
         }
     }

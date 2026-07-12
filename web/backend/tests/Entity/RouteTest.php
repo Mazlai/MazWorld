@@ -4,9 +4,9 @@ namespace App\Tests\Entity;
 
 use App\Entity\City;
 use App\Entity\Route;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class RouteTest extends TestCase
 {

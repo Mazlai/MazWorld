@@ -41,6 +41,7 @@ class ShopItem
     public function setItemId(string $item_id): self
     {
         $this->item_id = $item_id;
+
         return $this;
     }
 
@@ -52,6 +53,7 @@ class ShopItem
     public function setItemType(string $item_type): self
     {
         $this->item_type = $item_type;
+
         return $this;
     }
 
@@ -63,6 +65,7 @@ class ShopItem
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -74,6 +77,7 @@ class ShopItem
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -85,6 +89,7 @@ class ShopItem
     public function setPrice(int $price): self
     {
         $this->price = $price;
+
         return $this;
     }
 
@@ -96,6 +101,7 @@ class ShopItem
     public function setEmoji(?string $emoji): self
     {
         $this->emoji = $emoji;
+
         return $this;
     }
 
@@ -107,6 +113,7 @@ class ShopItem
     public function setAvailable(bool $available): self
     {
         $this->available = $available;
+
         return $this;
     }
 

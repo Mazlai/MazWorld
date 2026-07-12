@@ -73,7 +73,9 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "lint": "php-cs-fixer fix --dry-run --diff --ansi",
+        "lint:fix": "php-cs-fixer fix --ansi"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -86,6 +88,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.6",
+        "friendsofphp/php-cs-fixer": "^3.66",
         "phpunit/phpunit": "^11.5",
         "symfony/browser-kit": "7.0.*",
         "symfony/css-selector": "7.0.*",

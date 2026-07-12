@@ -3,9 +3,9 @@
 namespace App\Tests\Repository;
 
 use App\Repository\ShopItemRepository;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('integration')]
 class ShopItemRepositoryTest extends KernelTestCase
 {
@@ -40,10 +40,10 @@ class ShopItemRepositoryTest extends KernelTestCase
         $items = $this->repository->findAllAvailable();
         // ORDER BY item_type ASC : 'background' < 'badge' → backgrounds en premier
         // 5 backgrounds (index 0-4), 5 badges (index 5-9)
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->assertSame('background', $items[$i]->getItemType());
         }
-        for ($i = 5; $i < 10; $i++) {
+        for ($i = 5; $i < 10; ++$i) {
             $this->assertSame('badge', $items[$i]->getItemType());
         }
     }
@@ -79,7 +79,7 @@ class ShopItemRepositoryTest extends KernelTestCase
     public function testFindByTypeBackgroundOrderedByPriceAsc(): void
     {
         $items  = $this->repository->findByType('background');
-        $prices = array_map(fn($i) => $i->getPrice(), $items);
+        $prices = array_map(fn ($i) => $i->getPrice(), $items);
         $sorted = $prices;
         sort($sorted);
 
@@ -105,7 +105,7 @@ class ShopItemRepositoryTest extends KernelTestCase
     public function testFindByTypeBadgeOrderedByPriceAsc(): void
     {
         $items  = $this->repository->findByType('badge');
-        $prices = array_map(fn($i) => $i->getPrice(), $items);
+        $prices = array_map(fn ($i) => $i->getPrice(), $items);
         $sorted = $prices;
         sort($sorted);
 
@@ -139,8 +139,8 @@ class ShopItemRepositoryTest extends KernelTestCase
 
     public function testFindBackgroundsMatchesFindByTypeBackground(): void
     {
-        $fromMethod   = array_map(fn($i) => $i->getItemId(), $this->repository->findBackgrounds());
-        $fromFindType = array_map(fn($i) => $i->getItemId(), $this->repository->findByType('background'));
+        $fromMethod   = array_map(fn ($i) => $i->getItemId(), $this->repository->findBackgrounds());
+        $fromFindType = array_map(fn ($i) => $i->getItemId(), $this->repository->findByType('background'));
 
         $this->assertSame($fromFindType, $fromMethod);
     }
@@ -165,8 +165,8 @@ class ShopItemRepositoryTest extends KernelTestCase
 
     public function testFindBadgesMatchesFindByTypeBadge(): void
     {
-        $fromMethod   = array_map(fn($i) => $i->getItemId(), $this->repository->findBadges());
-        $fromFindType = array_map(fn($i) => $i->getItemId(), $this->repository->findByType('badge'));
+        $fromMethod   = array_map(fn ($i) => $i->getItemId(), $this->repository->findBadges());
+        $fromFindType = array_map(fn ($i) => $i->getItemId(), $this->repository->findByType('badge'));
 
         $this->assertSame($fromFindType, $fromMethod);
     }

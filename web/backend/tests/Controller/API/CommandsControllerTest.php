@@ -3,8 +3,8 @@
 namespace App\Tests\Controller\API;
 
 use App\Entity\City;
-
 use PHPUnit\Framework\Attributes\Group;
+
 #[Group('integration')]
 class CommandsControllerTest extends AbstractApiWebTestCase
 {

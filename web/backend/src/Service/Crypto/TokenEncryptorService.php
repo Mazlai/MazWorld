@@ -15,7 +15,7 @@ class TokenEncryptorService
     public function __construct(string $encryptionKey)
     {
         $decoded = base64_decode($encryptionKey, true);
-        if ($decoded === false || strlen($decoded) !== 32) {
+        if (false === $decoded || 32 !== strlen($decoded)) {
             throw new RuntimeException('APP_ENCRYPTION_KEY must be a base64-encoded 32-byte key.');
         }
         $this->key = $decoded;
@@ -27,17 +27,17 @@ class TokenEncryptorService
         $tag = '';
         $ciphertext = openssl_encrypt($plaintext, self::ALGO, $this->key, OPENSSL_RAW_DATA, $iv, $tag, '', self::TAG_LENGTH);
 
-        if ($ciphertext === false) {
+        if (false === $ciphertext) {
             throw new RuntimeException('Encryption failed.');
         }
 
-        return base64_encode($iv . $ciphertext . $tag);
+        return base64_encode($iv.$ciphertext.$tag);
     }
 
     public function decrypt(string $encoded): string
     {
         $raw = base64_decode($encoded, true);
-        if ($raw === false || strlen($raw) < self::IV_LENGTH + self::TAG_LENGTH + 1) {
+        if (false === $raw || strlen($raw) < self::IV_LENGTH + self::TAG_LENGTH + 1) {
             throw new RuntimeException('Invalid encrypted token format.');
         }
 
@@ -47,7 +47,7 @@ class TokenEncryptorService
 
         $plaintext = openssl_decrypt($ciphertext, self::ALGO, $this->key, OPENSSL_RAW_DATA, $iv, $tag);
 
-        if ($plaintext === false) {
+        if (false === $plaintext) {
             throw new RuntimeException('Decryption failed — token may be corrupted or key mismatch.');
         }
 

@@ -9,6 +9,7 @@ use App\Entity\VisitedCity;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +34,8 @@ class BotAuthenticator extends AbstractAuthenticator
         private readonly string $botApiSecret,
         #[Autowire(service: 'monolog.logger.security')]
         private readonly LoggerInterface $securityLogger,
-    ) {}
+    ) {
+    }
 
     public function supports(Request $request): ?bool
     {
@@ -90,7 +92,7 @@ class BotAuthenticator extends AbstractAuthenticator
         $defaultCity = $this->entityManager->find(City::class, self::DEFAULT_CITY_ID);
 
         if (!$defaultCity) {
-            throw new \RuntimeException('Default city not found: ' . self::DEFAULT_CITY_ID);
+            throw new RuntimeException('Default city not found: '.self::DEFAULT_CITY_ID);
         }
 
         $user = new User();

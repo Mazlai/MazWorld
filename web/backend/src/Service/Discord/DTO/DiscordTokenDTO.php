@@ -10,7 +10,8 @@ readonly class DiscordTokenDTO
         public int $expiresIn,
         public string $tokenType,
         public string $scope
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {

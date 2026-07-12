@@ -20,3 +20,7 @@
 /coverage-reports/*
 !/coverage-reports/07-final
 ###< phpunit/phpunit ###
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###

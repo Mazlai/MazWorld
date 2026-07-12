@@ -12,7 +12,8 @@ readonly class DiscordUserDTO
         public ?string $avatar,
         public bool $verified,
         public ?string $globalName
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {

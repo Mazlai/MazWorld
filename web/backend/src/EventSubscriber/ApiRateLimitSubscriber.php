@@ -18,7 +18,8 @@ class ApiRateLimitSubscriber implements EventSubscriberInterface
         private readonly Security $security,
         #[Autowire(service: 'limiter.api_global')]
         private readonly RateLimiterFactory $limiter,
-    ) {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
