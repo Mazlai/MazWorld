@@ -181,8 +181,9 @@ class ProfileController extends AbstractApiController
 
             foreach ($user->getEquippedBadges() as $equippedBadge) {
                 if ($equippedBadge->getSlotNumber() === $slot) {
-                    $this->entityManager->remove($equippedBadge);
-                    break;
+                    $equippedBadge->setBadgeId($badgeId);
+                    $this->entityManager->flush();
+                    return new JsonResponse(['success' => true, 'message' => 'Badge équipé avec succès']);
                 }
             }
 
