@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\API;
 
 use PHPUnit\Framework\Attributes\Group;
+
 #[Group('integration')]
 class RouteControllerTest extends AbstractApiWebTestCase
 {
@@ -46,7 +47,7 @@ class RouteControllerTest extends AbstractApiWebTestCase
         $routeId = $this->em->getConnection()->fetchOne('SELECT route_id FROM routes LIMIT 1');
         $this->assertNotFalse($routeId, 'Au moins une route doit exister en base de test.');
 
-        $this->get('/api/routes/' . $routeId);
+        $this->get('/api/routes/'.$routeId);
 
         $this->assertSame(200, $this->statusCode());
         $data = $this->json();

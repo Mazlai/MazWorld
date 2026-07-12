@@ -14,7 +14,8 @@ class JwtSecurityLogSubscriber implements EventSubscriberInterface
     public function __construct(
         #[Autowire(service: 'monolog.logger.security')]
         private readonly LoggerInterface $securityLogger,
-    ) {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {

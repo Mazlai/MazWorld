@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -72,13 +74,13 @@ class User implements UserInterface
     // ===== TIMESTAMPS =====
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $created_at;
+    private DateTimeInterface $created_at;
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $updated_at;
+    private DateTimeInterface $updated_at;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTimeInterface $last_login_at = null;
+    private ?DateTimeInterface $last_login_at = null;
 
     // ===== RELATIONS =====
 
@@ -96,14 +98,14 @@ class User implements UserInterface
         $this->inventory = new ArrayCollection();
         $this->equipped_badges = new ArrayCollection();
         $this->visited_cities = new ArrayCollection();
-        $this->created_at = new \DateTime();
-        $this->updated_at = new \DateTime();
+        $this->created_at = new DateTime();
+        $this->updated_at = new DateTime();
     }
 
     #[ORM\PreUpdate]
     public function updateTimestamp(): void
     {
-        $this->updated_at = new \DateTime();
+        $this->updated_at = new DateTime();
     }
 
     // ===== GETTERS & SETTERS =====
@@ -116,6 +118,7 @@ class User implements UserInterface
     public function setUserId(string $user_id): self
     {
         $this->user_id = $user_id;
+
         return $this;
     }
 
@@ -127,6 +130,7 @@ class User implements UserInterface
     public function setUsername(string $username): self
     {
         $this->username = $username;
+
         return $this;
     }
 
@@ -138,6 +142,7 @@ class User implements UserInterface
     public function setDiscordAvatar(?string $discord_avatar): self
     {
         $this->discord_avatar = $discord_avatar;
+
         return $this;
     }
 
@@ -149,6 +154,7 @@ class User implements UserInterface
     public function setDiscordEmail(?string $discord_email): self
     {
         $this->discord_email = $discord_email;
+
         return $this;
     }
 
@@ -160,6 +166,7 @@ class User implements UserInterface
     public function setCoins(int $coins): self
     {
         $this->coins = $coins;
+
         return $this;
     }
 
@@ -171,6 +178,7 @@ class User implements UserInterface
     public function setEquippedBackground(string $equipped_background): self
     {
         $this->equipped_background = $equipped_background;
+
         return $this;
     }
 
@@ -182,6 +190,7 @@ class User implements UserInterface
     public function setLastDaily(int $last_daily): self
     {
         $this->last_daily = $last_daily;
+
         return $this;
     }
 
@@ -193,6 +202,7 @@ class User implements UserInterface
     public function setLastWork(int $last_work): self
     {
         $this->last_work = $last_work;
+
         return $this;
     }
 
@@ -204,6 +214,7 @@ class User implements UserInterface
     public function setCurrentCity(City $current_city): self
     {
         $this->current_city = $current_city;
+
         return $this;
     }
 
@@ -215,6 +226,7 @@ class User implements UserInterface
     public function setTravelingTo(?City $traveling_to): self
     {
         $this->traveling_to = $traveling_to;
+
         return $this;
     }
 
@@ -226,6 +238,7 @@ class User implements UserInterface
     public function setArrivalTime(?int $arrival_time): self
     {
         $this->arrival_time = $arrival_time;
+
         return $this;
     }
 
@@ -237,6 +250,7 @@ class User implements UserInterface
     public function setOauthAccessToken(?string $oauth_access_token): self
     {
         $this->oauth_access_token = $oauth_access_token;
+
         return $this;
     }
 
@@ -248,6 +262,7 @@ class User implements UserInterface
     public function setOauthRefreshToken(?string $oauth_refresh_token): self
     {
         $this->oauth_refresh_token = $oauth_refresh_token;
+
         return $this;
     }
 
@@ -259,27 +274,29 @@ class User implements UserInterface
     public function setOauthTokenExpiresAt(?int $oauth_token_expires_at): self
     {
         $this->oauth_token_expires_at = $oauth_token_expires_at;
+
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): DateTimeInterface
     {
         return $this->created_at;
     }
 
-    public function getUpdatedAt(): \DateTimeInterface
+    public function getUpdatedAt(): DateTimeInterface
     {
         return $this->updated_at;
     }
 
-    public function getLastLoginAt(): ?\DateTimeInterface
+    public function getLastLoginAt(): ?DateTimeInterface
     {
         return $this->last_login_at;
     }
 
-    public function setLastLoginAt(?\DateTimeInterface $last_login_at): self
+    public function setLastLoginAt(?DateTimeInterface $last_login_at): self
     {
         $this->last_login_at = $last_login_at;
+
         return $this;
     }
 
@@ -296,12 +313,14 @@ class User implements UserInterface
             $this->inventory->add($inventory);
             $inventory->setUser($this);
         }
+
         return $this;
     }
 
     public function removeInventory(UserInventory $inventory): self
     {
         $this->inventory->removeElement($inventory);
+
         return $this;
     }
 
@@ -316,12 +335,14 @@ class User implements UserInterface
             $this->equipped_badges->add($badge);
             $badge->setUser($this);
         }
+
         return $this;
     }
 
     public function removeEquippedBadge(UserEquippedBadge $badge): self
     {
         $this->equipped_badges->removeElement($badge);
+
         return $this;
     }
 
@@ -336,12 +357,14 @@ class User implements UserInterface
             $this->visited_cities->add($visitedCity);
             $visitedCity->setUser($this);
         }
+
         return $this;
     }
 
     public function removeVisitedCity(VisitedCity $visitedCity): self
     {
         $this->visited_cities->removeElement($visitedCity);
+
         return $this;
     }
 
@@ -351,16 +374,20 @@ class User implements UserInterface
     {
         $roles = $this->roles ?? [];
         $roles[] = 'ROLE_USER';
+
         return array_unique($roles);
     }
 
     public function setRoles(?array $roles): self
     {
         $this->roles = $roles;
+
         return $this;
     }
 
-    public function eraseCredentials(): void {}
+    public function eraseCredentials(): void
+    {
+    }
 
     public function getUserIdentifier(): string
     {
@@ -373,16 +400,19 @@ class User implements UserInterface
     {
         if ($this->discord_avatar) {
             $extension = str_starts_with($this->discord_avatar, 'a_') ? 'gif' : 'png';
+
             return "https://cdn.discordapp.com/avatars/{$this->user_id}/{$this->discord_avatar}.{$extension}?size={$size}";
         }
 
-        $defaultAvatar = (int)$this->user_id % 5;
+        $defaultAvatar = (int) $this->user_id % 5;
+
         return "https://cdn.discordapp.com/embed/avatars/{$defaultAvatar}.png";
     }
 
     public function recordLogin(): self
     {
-        $this->last_login_at = new \DateTime();
+        $this->last_login_at = new DateTime();
+
         return $this;
     }
 
@@ -391,6 +421,7 @@ class User implements UserInterface
         if (!$this->oauth_token_expires_at) {
             return true;
         }
+
         return time() >= $this->oauth_token_expires_at;
     }
 

@@ -5,16 +5,17 @@ namespace App\Tests\Security;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\UserProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class UserProviderTest extends TestCase
 {
     private UserRepository $userRepository;
-    private UserProvider   $provider;
+    private UserProvider $provider;
 
     protected function setUp(): void
     {
@@ -80,6 +81,6 @@ class UserProviderTest extends TestCase
 
     public function testSupportsClassReturnsFalseForOtherClass(): void
     {
-        $this->assertFalse($this->provider->supportsClass(\stdClass::class));
+        $this->assertFalse($this->provider->supportsClass(stdClass::class));
     }
 }

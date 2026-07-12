@@ -7,9 +7,11 @@ use App\Entity\User;
 use App\Entity\UserEquippedBadge;
 use App\Entity\UserInventory;
 use App\Entity\VisitedCity;
-use PHPUnit\Framework\TestCase;
-
+use DateTime;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
+
 #[Group('unit')]
 class UserTest extends TestCase
 {
@@ -26,7 +28,7 @@ class UserTest extends TestCase
 
     public function testRecordLoginUpdatesLastLoginAt(): void
     {
-        $before = new \DateTime();
+        $before = new DateTime();
         $this->user->recordLogin();
 
         $this->assertNotNull($this->user->getLastLoginAt());
@@ -183,12 +185,12 @@ class UserTest extends TestCase
 
     public function testUpdateTimestampRefreshesUpdatedAt(): void
     {
-        $ref = new \ReflectionProperty(User::class, 'updated_at');
+        $ref = new ReflectionProperty(User::class, 'updated_at');
         $ref->setAccessible(true);
-        $ref->setValue($this->user, new \DateTime('2020-01-01'));
+        $ref->setValue($this->user, new DateTime('2020-01-01'));
 
         $this->user->updateTimestamp();
 
-        $this->assertGreaterThan(new \DateTime('2020-01-01'), $this->user->getUpdatedAt());
+        $this->assertGreaterThan(new DateTime('2020-01-01'), $this->user->getUpdatedAt());
     }
 }

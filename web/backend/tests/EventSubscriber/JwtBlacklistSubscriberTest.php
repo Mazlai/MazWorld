@@ -29,6 +29,7 @@ class JwtBlacklistSubscriberTest extends TestCase
     {
         $event = $this->createMock(JWTAuthenticatedEvent::class);
         $event->method('getPayload')->willReturn($payload);
+
         return $event;
     }
 
@@ -37,6 +38,7 @@ class JwtBlacklistSubscriberTest extends TestCase
         $item = $this->createMock(CacheItemInterface::class);
         $item->method('isHit')->willReturn($isHit);
         $item->method('get')->willReturn($value);
+
         return $item;
     }
 

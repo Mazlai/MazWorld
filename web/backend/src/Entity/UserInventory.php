@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserInventoryRepository;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserInventoryRepository::class)]
@@ -26,11 +28,11 @@ class UserInventory
     private string $item_id;
 
     #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $purchased_at;
+    private DateTimeInterface $purchased_at;
 
     public function __construct()
     {
-        $this->purchased_at = new \DateTime();
+        $this->purchased_at = new DateTime();
     }
 
     public function getId(): ?int
@@ -46,6 +48,7 @@ class UserInventory
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -57,6 +60,7 @@ class UserInventory
     public function setItemType(string $item_type): self
     {
         $this->item_type = $item_type;
+
         return $this;
     }
 
@@ -68,17 +72,19 @@ class UserInventory
     public function setItemId(string $item_id): self
     {
         $this->item_id = $item_id;
+
         return $this;
     }
 
-    public function getPurchasedAt(): \DateTimeInterface
+    public function getPurchasedAt(): DateTimeInterface
     {
         return $this->purchased_at;
     }
 
-    public function setPurchasedAt(\DateTimeInterface $purchased_at): self
+    public function setPurchasedAt(DateTimeInterface $purchased_at): self
     {
         $this->purchased_at = $purchased_at;
+
         return $this;
     }
 }

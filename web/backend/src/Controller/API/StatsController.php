@@ -3,10 +3,12 @@
 namespace App\Controller\API;
 
 use App\Entity\ShopItem;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Throwable;
 
 #[Route('/api/stats', name: 'api_stats_')]
 #[IsGranted('ROLE_ADMIN')]
@@ -14,7 +16,8 @@ class StatsController extends AbstractApiController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'all', methods: ['GET'])]
     public function getAllStats(): JsonResponse
@@ -24,7 +27,7 @@ class StatsController extends AbstractApiController
                 'global' => $this->getGlobalStatsData(),
                 'economy' => $this->getEconomyStatsData(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }
@@ -34,7 +37,7 @@ class StatsController extends AbstractApiController
     {
         try {
             return new JsonResponse($this->getGlobalStatsData());
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }
@@ -43,16 +46,16 @@ class StatsController extends AbstractApiController
     {
         $em = $this->entityManager;
 
-        $totalUsers = (int)$em->createQuery('SELECT COUNT(u) FROM App\Entity\User u')->getSingleScalarResult();
-        $totalCities = (int)$em->createQuery('SELECT COUNT(c) FROM App\Entity\City c')->getSingleScalarResult();
-        $totalCoins = (int)$em->createQuery('SELECT COALESCE(SUM(u.coins), 0) FROM App\Entity\User u')->getSingleScalarResult();
+        $totalUsers = (int) $em->createQuery('SELECT COUNT(u) FROM App\Entity\User u')->getSingleScalarResult();
+        $totalCities = (int) $em->createQuery('SELECT COUNT(c) FROM App\Entity\City c')->getSingleScalarResult();
+        $totalCoins = (int) $em->createQuery('SELECT COALESCE(SUM(u.coins), 0) FROM App\Entity\User u')->getSingleScalarResult();
 
-        $today = new \DateTime('-24 hours');
-        $activeToday = (int)$em->createQuery('SELECT COUNT(u) FROM App\Entity\User u WHERE u.updated_at >= :today')
+        $today = new DateTime('-24 hours');
+        $activeToday = (int) $em->createQuery('SELECT COUNT(u) FROM App\Entity\User u WHERE u.updated_at >= :today')
             ->setParameter('today', $today)->getSingleScalarResult();
 
-        $weekAgo = new \DateTime('-7 days');
-        $activeWeek = (int)$em->createQuery('SELECT COUNT(u) FROM App\Entity\User u WHERE u.updated_at >= :weekAgo')
+        $weekAgo = new DateTime('-7 days');
+        $activeWeek = (int) $em->createQuery('SELECT COUNT(u) FROM App\Entity\User u WHERE u.updated_at >= :weekAgo')
             ->setParameter('weekAgo', $weekAgo)->getSingleScalarResult();
 
         return [
@@ -68,9 +71,9 @@ class StatsController extends AbstractApiController
     {
         $em = $this->entityManager;
 
-        $avgCoins = (float)$em->createQuery('SELECT COALESCE(AVG(u.coins), 0) FROM App\Entity\User u')->getSingleScalarResult();
-        $richestCoins = (int)$em->createQuery('SELECT COALESCE(MAX(u.coins), 0) FROM App\Entity\User u')->getSingleScalarResult();
-        $totalPurchases = (int)$em->createQuery('SELECT COUNT(i) FROM App\Entity\UserInventory i')->getSingleScalarResult();
+        $avgCoins = (float) $em->createQuery('SELECT COALESCE(AVG(u.coins), 0) FROM App\Entity\User u')->getSingleScalarResult();
+        $richestCoins = (int) $em->createQuery('SELECT COALESCE(MAX(u.coins), 0) FROM App\Entity\User u')->getSingleScalarResult();
+        $totalPurchases = (int) $em->createQuery('SELECT COUNT(i) FROM App\Entity\UserInventory i')->getSingleScalarResult();
 
         $mostPopularItem = 'N/A';
         try {
@@ -87,10 +90,11 @@ class StatsController extends AbstractApiController
                     $mostPopularItem = $shopItem->getName();
                 }
             }
-        } catch (\Throwable) {}
+        } catch (Throwable) {
+        }
 
         return [
-            'average_coins_per_user' => (int)round($avgCoins),
+            'average_coins_per_user' => (int) round($avgCoins),
             'richest_user_coins' => $richestCoins,
             'total_shop_purchases' => $totalPurchases,
             'most_popular_item' => $mostPopularItem,

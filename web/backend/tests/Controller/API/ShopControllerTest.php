@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\API;
 
 use PHPUnit\Framework\Attributes\Group;
+
 #[Group('integration')]
 class ShopControllerTest extends AbstractApiWebTestCase
 {
@@ -29,7 +30,7 @@ class ShopControllerTest extends AbstractApiWebTestCase
 
         $ownedItem = null;
         foreach ($data['items'] as $item) {
-            if ($item['item_id'] === 'bg_blue') {
+            if ('bg_blue' === $item['item_id']) {
                 $ownedItem = $item;
                 break;
             }

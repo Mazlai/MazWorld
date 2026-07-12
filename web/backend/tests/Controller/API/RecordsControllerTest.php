@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\API;
 
 use PHPUnit\Framework\Attributes\Group;
+
 #[Group('integration')]
 class RecordsControllerTest extends AbstractApiWebTestCase
 {

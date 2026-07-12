@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api', name: 'api_servers_')]
 class ServersController extends AbstractApiController
@@ -15,7 +16,8 @@ class ServersController extends AbstractApiController
         private readonly DiscordApiClient $discord,
         private readonly EntityManagerInterface $entityManager,
         private readonly string $discordClientId
-    ) {}
+    ) {
+    }
 
     #[Route('/servers', name: 'list', methods: ['GET'])]
     public function listServers(): JsonResponse
@@ -44,7 +46,7 @@ class ServersController extends AbstractApiController
                 $user->setOauthTokenExpiresAt(time() + $newTokens->expiresIn);
                 $this->entityManager->flush();
                 $accessToken = $newTokens->accessToken;
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return $this->errorResponse('OAuth token expired. Please log in again.', Response::HTTP_UNAUTHORIZED);
             }
         }
@@ -52,8 +54,9 @@ class ServersController extends AbstractApiController
         try {
             $guilds = $this->discord->getCurrentUserGuilds($accessToken);
 
-            $adminGuilds = array_filter($guilds, fn($guild) =>
-                $guild->owner
+            $adminGuilds = array_filter(
+                $guilds,
+                fn ($guild) => $guild->owner
                 || ($guild->permissions & 0x8)   // ADMINISTRATOR
                 || ($guild->permissions & 0x20)  // MANAGE_GUILD
             );
@@ -73,10 +76,10 @@ class ServersController extends AbstractApiController
                 ];
             }, $adminGuilds);
 
-            usort($result, fn($a, $b) => $b['bot_present'] <=> $a['bot_present']);
+            usort($result, fn ($a, $b) => $b['bot_present'] <=> $a['bot_present']);
 
             return new JsonResponse($result);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }
@@ -86,7 +89,7 @@ class ServersController extends AbstractApiController
     {
         $info = $this->discord->getBotInfo();
 
-        if ($info === null) {
+        if (null === $info) {
             return new JsonResponse(['online' => false, 'username' => null, 'bot_id' => null]);
         }
 
@@ -102,6 +105,6 @@ class ServersController extends AbstractApiController
             'guild_id'    => $guildId,
         ];
 
-        return 'https://discord.com/oauth2/authorize?' . http_build_query($params);
+        return 'https://discord.com/oauth2/authorize?'.http_build_query($params);
     }
 }

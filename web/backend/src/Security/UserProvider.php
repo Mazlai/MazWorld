@@ -12,7 +12,8 @@ class UserProvider implements UserProviderInterface
 {
     public function __construct(
         private UserRepository $userRepository
-    ) {}
+    ) {
+    }
 
     public function refreshUser(UserInterface $user): UserInterface
     {

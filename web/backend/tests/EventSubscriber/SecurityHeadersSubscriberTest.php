@@ -3,6 +3,7 @@
 namespace App\Tests\EventSubscriber;
 
 use App\EventSubscriber\SecurityHeadersSubscriber;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,7 +11,6 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class SecurityHeadersSubscriberTest extends TestCase
 {

@@ -10,6 +10,8 @@ use App\Service\Crypto\TokenEncryptorService;
 use App\Service\Discord\DTO\DiscordTokenDTO;
 use App\Service\Discord\DTO\DiscordUserDTO;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
+use Throwable;
 
 class UserService
 {
@@ -17,7 +19,8 @@ class UserService
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
         private readonly TokenEncryptorService $tokenEncryptor
-    ) {}
+    ) {
+    }
 
     public function findOrCreateFromDiscord(DiscordUserDTO $discordUser, DiscordTokenDTO $tokens): User
     {
@@ -44,7 +47,7 @@ class UserService
 
         $defaultCity = $this->getDefaultCity();
         if (!$defaultCity) {
-            throw new \RuntimeException('Aucune ville par défaut trouvée. Veuillez exécuter les fixtures.');
+            throw new RuntimeException('Aucune ville par défaut trouvée. Veuillez exécuter les fixtures.');
         }
         $user->setCurrentCity($defaultCity);
 
@@ -62,7 +65,7 @@ class UserService
     {
         $user->setUsername($discordUser->username);
         $user->setDiscordAvatar($discordUser->avatar);
-        if ($discordUser->email !== null) {
+        if (null !== $discordUser->email) {
             $user->setDiscordEmail($this->tokenEncryptor->encrypt($discordUser->email));
         }
     }
@@ -70,13 +73,14 @@ class UserService
     public function serializeUser(User $user): array
     {
         $data = $user->toArray();
-        if ($data['discord_email'] !== null) {
+        if (null !== $data['discord_email']) {
             try {
                 $data['discord_email'] = $this->tokenEncryptor->decrypt($data['discord_email']);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $data['discord_email'] = null;
             }
         }
+
         return $data;
     }
 
@@ -96,6 +100,7 @@ class UserService
     private function getDefaultCity(): ?City
     {
         $repo = $this->entityManager->getRepository(City::class);
+
         return $repo->find('willowbrook') ?? $repo->findOneBy([]);
     }
 }

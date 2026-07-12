@@ -4,10 +4,15 @@ namespace App\Tests\Controller\API;
 
 use App\Controller\API\AbstractApiController;
 use App\Entity\User;
+use DateTime;
+use DateTimeInterface;
+use LogicException;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
  * Sous-classe concrète exposant les méthodes protégées pour les tests.
@@ -16,14 +21,45 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ConcreteController extends AbstractApiController
 {
-    public function callErrorResponse(string $msg, int $code = 400)       { return $this->errorResponse($msg, $code); }
-    public function callSuccessResponse(array $data, int $code = 200)     { return $this->successResponse($data, $code); }
-    public function callUnauthorizedResponse(string $msg = 'Not authenticated') { return $this->unauthorizedResponse($msg); }
-    public function callNotFoundResponse(string $msg = 'Resource not found')    { return $this->notFoundResponse($msg); }
-    public function callFailureResponse(string $msg, int $code = 400, array $extra = []) { return $this->failureResponse($msg, $code, $extra); }
-    public function callTooManyRequestsResponse(?\DateTimeInterface $retryAfter = null) { return $this->tooManyRequestsResponse($retryAfter); }
-    public function callServerErrorResponse(\Throwable $e) { return $this->serverErrorResponse($e); }
-    protected function getCurrentUser(): ?User { return null; }
+    public function callErrorResponse(string $msg, int $code = 400)
+    {
+        return $this->errorResponse($msg, $code);
+    }
+
+    public function callSuccessResponse(array $data, int $code = 200)
+    {
+        return $this->successResponse($data, $code);
+    }
+
+    public function callUnauthorizedResponse(string $msg = 'Not authenticated')
+    {
+        return $this->unauthorizedResponse($msg);
+    }
+
+    public function callNotFoundResponse(string $msg = 'Resource not found')
+    {
+        return $this->notFoundResponse($msg);
+    }
+
+    public function callFailureResponse(string $msg, int $code = 400, array $extra = [])
+    {
+        return $this->failureResponse($msg, $code, $extra);
+    }
+
+    public function callTooManyRequestsResponse(?DateTimeInterface $retryAfter = null)
+    {
+        return $this->tooManyRequestsResponse($retryAfter);
+    }
+
+    public function callServerErrorResponse(Throwable $e)
+    {
+        return $this->serverErrorResponse($e);
+    }
+
+    protected function getCurrentUser(): ?User
+    {
+        return null;
+    }
 }
 
 #[Group('unit')]
@@ -109,7 +145,7 @@ class AbstractApiControllerTest extends TestCase
 
     public function testTooManyRequestsResponseAddsRetryAfterHeader(): void
     {
-        $retryAfter = new \DateTime('+60 seconds');
+        $retryAfter = new DateTime('+60 seconds');
         $response   = $this->controller->callTooManyRequestsResponse($retryAfter);
 
         $header = (int) $response->headers->get('Retry-After');
@@ -121,14 +157,14 @@ class AbstractApiControllerTest extends TestCase
 
     public function testServerErrorResponseReturns500(): void
     {
-        $response = $this->controller->callServerErrorResponse(new \RuntimeException('DB crashed'));
+        $response = $this->controller->callServerErrorResponse(new RuntimeException('DB crashed'));
 
         $this->assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
     }
 
     public function testServerErrorResponseReturnsGenericMessage(): void
     {
-        $response = $this->controller->callServerErrorResponse(new \LogicException('Internal failure'));
+        $response = $this->controller->callServerErrorResponse(new LogicException('Internal failure'));
 
         $data = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('error', $data);

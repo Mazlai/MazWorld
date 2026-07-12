@@ -5,6 +5,8 @@ namespace App\Service\Discord;
 use App\Service\Discord\DTO\DiscordGuildDTO;
 use App\Service\Discord\DTO\DiscordTokenDTO;
 use App\Service\Discord\DTO\DiscordUserDTO;
+use Exception;
+use RuntimeException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DiscordApiClient
@@ -18,7 +20,8 @@ class DiscordApiClient
         private readonly string $clientSecret,
         private readonly string $redirectUri,
         private readonly string $botToken = ''
-    ) {}
+    ) {
+    }
 
     public function getAuthorizationUrl(string $state, array $scopes = ['identify', 'email', 'guilds']): string
     {
@@ -31,12 +34,12 @@ class DiscordApiClient
             'prompt' => 'consent',
         ];
 
-        return self::OAUTH_URL . '/authorize?' . http_build_query($params);
+        return self::OAUTH_URL.'/authorize?'.http_build_query($params);
     }
 
     public function exchangeCodeForTokens(string $code): DiscordTokenDTO
     {
-        $response = $this->httpClient->request('POST', self::OAUTH_URL . '/token', [
+        $response = $this->httpClient->request('POST', self::OAUTH_URL.'/token', [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => [
                 'client_id' => $this->clientId,
@@ -54,7 +57,7 @@ class DiscordApiClient
 
     public function refreshTokens(string $refreshToken): DiscordTokenDTO
     {
-        $response = $this->httpClient->request('POST', self::OAUTH_URL . '/token', [
+        $response = $this->httpClient->request('POST', self::OAUTH_URL.'/token', [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => [
                 'client_id' => $this->clientId,
@@ -71,8 +74,8 @@ class DiscordApiClient
 
     public function getCurrentUser(string $accessToken): DiscordUserDTO
     {
-        $response = $this->httpClient->request('GET', self::API_URL . '/users/@me', [
-            'headers' => ['Authorization' => 'Bearer ' . $accessToken],
+        $response = $this->httpClient->request('GET', self::API_URL.'/users/@me', [
+            'headers' => ['Authorization' => 'Bearer '.$accessToken],
         ]);
 
         $this->assertSuccess($response, 'Failed to fetch Discord user');
@@ -82,16 +85,16 @@ class DiscordApiClient
 
     public function getCurrentUserGuilds(string $accessToken, bool $withCounts = true): array
     {
-        $url = self::API_URL . '/users/@me/guilds';
+        $url = self::API_URL.'/users/@me/guilds';
         if ($withCounts) {
             $url .= '?with_counts=true';
         }
 
         $response = $this->httpClient->request('GET', $url, [
-            'headers' => ['Authorization' => 'Bearer ' . $accessToken],
+            'headers' => ['Authorization' => 'Bearer '.$accessToken],
         ]);
 
-        if ($response->getStatusCode() !== 200) {
+        if (200 !== $response->getStatusCode()) {
             return [];
         }
 
@@ -101,12 +104,12 @@ class DiscordApiClient
     public function isBotInGuild(string $guildId): bool
     {
         try {
-            $response = $this->httpClient->request('GET', self::API_URL . '/guilds/' . $guildId, [
-                'headers' => ['Authorization' => 'Bot ' . $this->botToken],
+            $response = $this->httpClient->request('GET', self::API_URL.'/guilds/'.$guildId, [
+                'headers' => ['Authorization' => 'Bot '.$this->botToken],
             ]);
 
-            return $response->getStatusCode() === 200;
-        } catch (\Exception) {
+            return 200 === $response->getStatusCode();
+        } catch (Exception) {
             return false;
         }
     }
@@ -114,21 +117,22 @@ class DiscordApiClient
     public function getBotInfo(): ?array
     {
         try {
-            $response = $this->httpClient->request('GET', self::API_URL . '/users/@me', [
-                'headers' => ['Authorization' => 'Bot ' . $this->botToken],
+            $response = $this->httpClient->request('GET', self::API_URL.'/users/@me', [
+                'headers' => ['Authorization' => 'Bot '.$this->botToken],
             ]);
 
-            if ($response->getStatusCode() !== 200) {
+            if (200 !== $response->getStatusCode()) {
                 return null;
             }
 
             $data = $response->toArray();
+
             return [
                 'online'   => true,
                 'username' => $data['username'] ?? null,
                 'bot_id'   => $data['id'] ?? null,
             ];
-        } catch (\Exception) {
+        } catch (Exception) {
             return null;
         }
     }
@@ -136,7 +140,7 @@ class DiscordApiClient
     public function revokeToken(string $token): bool
     {
         try {
-            $response = $this->httpClient->request('POST', self::OAUTH_URL . '/token/revoke', [
+            $response = $this->httpClient->request('POST', self::OAUTH_URL.'/token/revoke', [
                 'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
                 'body' => [
                     'client_id' => $this->clientId,
@@ -145,16 +149,16 @@ class DiscordApiClient
                 ],
             ]);
 
-            return $response->getStatusCode() === 200;
-        } catch (\Exception) {
+            return 200 === $response->getStatusCode();
+        } catch (Exception) {
             return false;
         }
     }
 
     private function assertSuccess($response, string $errorMessage): void
     {
-        if ($response->getStatusCode() !== 200) {
-            throw new \RuntimeException($errorMessage . ': ' . $response->getContent(false));
+        if (200 !== $response->getStatusCode()) {
+            throw new RuntimeException($errorMessage.': '.$response->getContent(false));
         }
     }
 }

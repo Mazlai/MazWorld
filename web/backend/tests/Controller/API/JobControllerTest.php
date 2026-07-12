@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\API;
 
 use PHPUnit\Framework\Attributes\Group;
+
 #[Group('integration')]
 class JobControllerTest extends AbstractApiWebTestCase
 {
@@ -44,7 +45,7 @@ class JobControllerTest extends AbstractApiWebTestCase
         $jobId = $this->em->getConnection()->fetchOne('SELECT job_id FROM city_jobs LIMIT 1');
         $this->assertNotFalse($jobId, 'Au moins un job doit exister en base de test.');
 
-        $this->get('/api/jobs/' . $jobId);
+        $this->get('/api/jobs/'.$jobId);
 
         $this->assertSame(200, $this->statusCode());
         $job = $this->json();

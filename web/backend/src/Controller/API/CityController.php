@@ -11,7 +11,8 @@ class CityController extends AbstractApiController
 {
     public function __construct(
         private CityRepository $cityRepository
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(): JsonResponse

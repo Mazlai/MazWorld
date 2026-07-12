@@ -3,10 +3,10 @@
 namespace App\Tests\Service\Crypto;
 
 use App\Service\Crypto\TokenEncryptorService;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class TokenEncryptorServiceTest extends TestCase
 {

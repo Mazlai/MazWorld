@@ -3,9 +3,9 @@
 namespace App\Tests\Service\Discord\DTO;
 
 use App\Service\Discord\DTO\DiscordGuildDTO;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class DiscordGuildDTOTest extends TestCase
 {

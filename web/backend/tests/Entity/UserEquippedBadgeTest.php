@@ -3,9 +3,10 @@
 namespace App\Tests\Entity;
 
 use App\Entity\UserEquippedBadge;
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class UserEquippedBadgeTest extends TestCase
 {
@@ -33,13 +34,13 @@ class UserEquippedBadgeTest extends TestCase
 
     public function testSetSlotNumberThrowsWhenBelowZero(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->badge->setSlotNumber(-1);
     }
 
     public function testSetSlotNumberThrowsWhenAboveFive(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->badge->setSlotNumber(6);
     }
 }

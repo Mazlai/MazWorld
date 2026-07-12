@@ -5,6 +5,8 @@ namespace App\Tests\Entity;
 use App\Entity\City;
 use App\Entity\User;
 use App\Entity\VisitedCity;
+use DateTime;
+use DateTimeInterface;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +18,7 @@ class VisitedCityTest extends TestCase
     public function testConstructorInitializesFirstVisitToNow(): void
     {
         $vc = new VisitedCity();
-        $this->assertInstanceOf(\DateTimeInterface::class, $vc->getFirstVisit());
+        $this->assertInstanceOf(DateTimeInterface::class, $vc->getFirstVisit());
         $this->assertEqualsWithDelta(time(), $vc->getFirstVisit()->getTimestamp(), 2);
     }
 
@@ -44,7 +46,7 @@ class VisitedCityTest extends TestCase
 
     public function testSetAndGetFirstVisit(): void
     {
-        $date = new \DateTime('2023-06-01 08:00:00');
+        $date = new DateTime('2023-06-01 08:00:00');
         $vc   = (new VisitedCity())->setFirstVisit($date);
 
         $this->assertSame($date, $vc->getFirstVisit());

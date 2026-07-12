@@ -46,12 +46,12 @@ class AppFixtures extends Fixture
                 'jobs'        => [
                     ['🔨', 'Forgeron',   'Fondre le minerai',     'Forger les lames',      'Polir les pièces'],
                     ['⚙️', 'Mécanicien', 'Réparer les machines',  'Lubrifier les rouages', 'Tester les mécanismes'],
-                    ['🏗️', 'Ouvrier',    'Couler le béton',       'Monter les échafaudages','Finir les façades'],
+                    ['🏗️', 'Ouvrier',    'Couler le béton',       'Monter les échafaudages', 'Finir les façades'],
                 ],
             ],
             'crystalport' => [
                 'name'        => 'Crystalport',
-                'description' => "Un port animé où se croisent marchands et marins. Les eaux azurées reflètent les voiles colorées.",
+                'description' => 'Un port animé où se croisent marchands et marins. Les eaux azurées reflètent les voiles colorées.',
                 'emoji'       => '⚓',
                 'theme'       => 'maritime',
                 'position_x'  => 750,
@@ -77,14 +77,14 @@ class AppFixtures extends Fixture
             ],
             'goldenfields' => [
                 'name'        => 'Goldenfields',
-                'description' => "De vastes plaines dorées à perte de vue, grenier du royaume et terre de prospérité.",
+                'description' => 'De vastes plaines dorées à perte de vue, grenier du royaume et terre de prospérité.',
                 'emoji'       => '🌾',
                 'theme'       => 'plains',
                 'position_x'  => 650,
                 'position_y'  => 550,
                 'jobs'        => [
                     ['🐄', 'Éleveur',    'Nourrir le bétail',     'Traire les vaches',     'Soigner les animaux'],
-                    ['🌽', 'Agriculteur','Labourer les champs',   'Planter les graines',   'Moissonner les épis'],
+                    ['🌽', 'Agriculteur', 'Labourer les champs',   'Planter les graines',   'Moissonner les épis'],
                     ['🧑‍🍳', 'Cuisinier', 'Éplucher les légumes',  'Cuisiner les plats',    'Servir les convives'],
                 ],
             ],
@@ -96,9 +96,9 @@ class AppFixtures extends Fixture
                 'position_x'  => 900,
                 'position_y'  => 250,
                 'jobs'        => [
-                    ['💻', 'Développeur','Écrire du code',         'Corriger des bugs',     'Déployer en production'],
+                    ['💻', 'Développeur', 'Écrire du code',         'Corriger des bugs',     'Déployer en production'],
                     ['📡', 'Technicien', 'Câbler les serveurs',   'Tester la connexion',   'Surveiller le réseau'],
-                    ['🤖', 'Ingénieur',  'Concevoir les systèmes','Tester les prototypes', 'Rédiger la documentation'],
+                    ['🤖', 'Ingénieur',  'Concevoir les systèmes', 'Tester les prototypes', 'Rédiger la documentation'],
                 ],
             ],
         ];

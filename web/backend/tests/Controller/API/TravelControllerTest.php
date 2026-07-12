@@ -3,8 +3,8 @@
 namespace App\Tests\Controller\API;
 
 use App\Entity\City;
-
 use PHPUnit\Framework\Attributes\Group;
+
 #[Group('integration')]
 class TravelControllerTest extends AbstractApiWebTestCase
 {
@@ -99,7 +99,7 @@ class TravelControllerTest extends AbstractApiWebTestCase
 
         $ironhavenRoute = null;
         foreach ($routes as $r) {
-            if ($r['city_to'] === 'ironhaven') {
+            if ('ironhaven' === $r['city_to']) {
                 $ironhavenRoute = $r;
                 break;
             }
@@ -119,7 +119,7 @@ class TravelControllerTest extends AbstractApiWebTestCase
         $routes = $this->json()['routes'];
         $ironhavenRoute = null;
         foreach ($routes as $r) {
-            if ($r['city_to'] === 'ironhaven') {
+            if ('ironhaven' === $r['city_to']) {
                 $ironhavenRoute = $r;
                 break;
             }

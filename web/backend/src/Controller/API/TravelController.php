@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/travel', name: 'api_travel_')]
 class TravelController extends AbstractApiController
@@ -18,7 +19,8 @@ class TravelController extends AbstractApiController
         private readonly EntityManagerInterface $entityManager,
         private readonly CityRepository $cityRepository,
         private readonly RouteRepository $routeRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('/status', name: 'status', methods: ['GET'])]
     public function status(): JsonResponse
@@ -38,6 +40,7 @@ class TravelController extends AbstractApiController
 
         if (time() >= $arrivalTime) {
             $this->completeTravel($user);
+
             return new JsonResponse(['traveling' => false]);
         }
 
@@ -73,6 +76,7 @@ class TravelController extends AbstractApiController
         $routes = array_map(function ($route) use ($visitedIds) {
             $dest = $route->getCityTo();
             $visited = in_array($dest->getCityId(), $visitedIds, true);
+
             return [
                 'route_id' => $route->getRouteId(),
                 'city_to' => $dest->getCityId(),
@@ -160,11 +164,13 @@ class TravelController extends AbstractApiController
 
             if ($user->getTravelingTo() && $user->getArrivalTime() && time() < $user->getArrivalTime()) {
                 $this->entityManager->rollback();
+
                 return $this->failureResponse('🚂 Vous êtes déjà en voyage !', Response::HTTP_CONFLICT);
             }
 
             if ($travelCost > 0 && $user->getCoins() < $travelCost) {
                 $this->entityManager->rollback();
+
                 return $this->failureResponse("❌ Vous n'avez pas assez d'argent. ({$user->getCoins()}€ / {$travelCost}€)", Response::HTTP_PAYMENT_REQUIRED);
             }
 
@@ -184,13 +190,14 @@ class TravelController extends AbstractApiController
 
             return new JsonResponse([
                 'success' => true,
-                'message' => "Voyage commencé !",
+                'message' => 'Voyage commencé !',
                 'arrival_time' => $arrivalTime,
                 'travel_cost' => $travelCost,
                 'coins' => $user->getCoins(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->entityManager->rollback();
+
             return $this->serverErrorResponse($e);
         }
     }
@@ -198,7 +205,9 @@ class TravelController extends AbstractApiController
     private function completeTravel(\App\Entity\User $user): void
     {
         $destination = $user->getTravelingTo();
-        if (!$destination) return;
+        if (!$destination) {
+            return;
+        }
 
         $user->setCurrentCity($destination);
         $user->setTravelingTo(null);

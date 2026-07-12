@@ -12,7 +12,8 @@ readonly class DiscordGuildDTO
         public int $permissions,
         public ?int $approximate_member_count = null,
         public ?int $approximate_presence_count = null
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {
@@ -29,7 +30,7 @@ readonly class DiscordGuildDTO
 
     public static function fromArrayList(array $guilds): array
     {
-        return array_map(fn(array $guild) => self::fromArray($guild), $guilds);
+        return array_map(fn (array $guild) => self::fromArray($guild), $guilds);
     }
 
     public function getIconUrl(?int $size = 64): ?string
@@ -39,6 +40,7 @@ readonly class DiscordGuildDTO
         }
 
         $extension = str_starts_with($this->icon, 'a_') ? 'gif' : 'png';
+
         return "https://cdn.discordapp.com/icons/{$this->id}/{$this->icon}.{$extension}?size={$size}";
     }
 }

@@ -12,7 +12,8 @@ class DiscordOAuthService
         private readonly DiscordApiClient $apiClient,
         #[Autowire('%env(DISCORD_BOT_TOKEN)%')]
         private readonly ?string $botToken = null
-    ) {}
+    ) {
+    }
 
     public function getAuthorizationUrl(string $state): string
     {
@@ -44,6 +45,7 @@ class DiscordOAuthService
         if (!$this->botToken) {
             return false;
         }
+
         return $this->apiClient->isBotInGuild($guildId);
     }
 

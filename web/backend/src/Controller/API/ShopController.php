@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route('/api/shop', name: 'api_shop_')]
 class ShopController extends AbstractApiController
@@ -17,7 +18,8 @@ class ShopController extends AbstractApiController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ShopItemRepository $shopItemRepository
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function getShopItems(Request $request): JsonResponse
@@ -60,6 +62,7 @@ class ShopController extends AbstractApiController
                     'badge' => in_array($item->getItemId(), $equippedBadgeIds),
                     default => false,
                 };
+
                 return $itemData;
             }, $shopItems);
 
@@ -67,7 +70,7 @@ class ShopController extends AbstractApiController
                 'items' => $items,
                 'user_coins' => $user?->getCoins() ?? 0,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }
@@ -108,12 +111,14 @@ class ShopController extends AbstractApiController
                 foreach ($user->getInventory() as $inventoryItem) {
                     if ($inventoryItem->getItemId() === $itemId) {
                         $this->entityManager->rollback();
+
                         return $this->failureResponse('Vous possédez déjà cet item', Response::HTTP_CONFLICT);
                     }
                 }
 
                 if ($user->getCoins() < $item->getPrice()) {
                     $this->entityManager->rollback();
+
                     return $this->failureResponse(sprintf("Vous n'avez pas assez d'argent. (%d€ / %d€)", $user->getCoins(), $item->getPrice()), Response::HTTP_PAYMENT_REQUIRED);
                 }
 
@@ -136,11 +141,11 @@ class ShopController extends AbstractApiController
                     'new_balance' => $user->getCoins(),
                     'item' => array_merge($item->toArray(), ['owned' => true]),
                 ]);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->entityManager->rollback();
                 throw $e;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }
@@ -167,11 +172,11 @@ class ShopController extends AbstractApiController
                     }
                 }
                 $itemData['owned'] = $owned;
-                $itemData['equipped'] = ($item->getItemType() === 'background' && $item->getItemId() === $user->getEquippedBackground());
+                $itemData['equipped'] = ('background' === $item->getItemType() && $item->getItemId() === $user->getEquippedBackground());
             }
 
             return new JsonResponse(['item' => $itemData]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->serverErrorResponse($e);
         }
     }

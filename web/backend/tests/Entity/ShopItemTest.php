@@ -3,9 +3,9 @@
 namespace App\Tests\Entity;
 
 use App\Entity\ShopItem;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
-use PHPUnit\Framework\Attributes\Group;
 #[Group('unit')]
 class ShopItemTest extends TestCase
 {

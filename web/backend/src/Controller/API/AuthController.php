@@ -6,7 +6,9 @@ use App\Repository\UserRepository;
 use App\Service\Crypto\TokenEncryptorService;
 use App\Service\Discord\DiscordOAuthService;
 use App\Service\User\UserService;
+use Exception;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,7 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Annotation\Route;
-use Psr\Cache\CacheItemPoolInterface;
 
 #[Route('/api/auth', name: 'api_auth_')]
 class AuthController extends AbstractApiController
@@ -33,14 +34,15 @@ class AuthController extends AbstractApiController
         private readonly CacheItemPoolInterface $cache,
         private readonly TokenEncryptorService $tokenEncryptor,
         private readonly UserRepository $userRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('/discord/login', name: 'discord_login', methods: ['GET'])]
     public function discordLogin(): JsonResponse
     {
         $state = bin2hex(random_bytes(16));
 
-        $item = $this->cache->getItem('oauth_state_' . $state);
+        $item = $this->cache->getItem('oauth_state_'.$state);
         $item->set(true)->expiresAfter(300);
         $this->cache->save($item);
 
@@ -61,7 +63,7 @@ class AuthController extends AbstractApiController
         $data = json_decode($request->getContent(), true);
         $code = $data['code'] ?? null;
         $state = $data['state'] ?? null;
-        $cacheKey = 'oauth_state_' . $state;
+        $cacheKey = 'oauth_state_'.$state;
 
         if (!$state || !$this->cache->getItem($cacheKey)->isHit()) {
             return $this->errorResponse('Invalid OAuth state', Response::HTTP_BAD_REQUEST);
@@ -84,7 +86,7 @@ class AuthController extends AbstractApiController
             $response = new JsonResponse([
                 'token' => $jwt,
                 'user' => $this->userService->serializeUser($user),
-                'guilds' => array_map(fn($guild) => [
+                'guilds' => array_map(fn ($guild) => [
                     'id' => $guild->id,
                     'name' => $guild->name,
                     'icon' => $guild->getIconUrl(),
@@ -94,7 +96,7 @@ class AuthController extends AbstractApiController
             $response->headers->setCookie($this->createRefreshCookie($user->getUserId()));
 
             return $response;
-        } catch (\Exception) {
+        } catch (Exception) {
             return $this->unauthorizedResponse('Authentication failed');
         }
     }
@@ -108,7 +110,7 @@ class AuthController extends AbstractApiController
             return $this->unauthorizedResponse('No refresh token');
         }
 
-        $cacheKey = 'refresh_token_' . hash('sha256', $rawToken);
+        $cacheKey = 'refresh_token_'.hash('sha256', $rawToken);
         $item = $this->cache->getItem($cacheKey);
 
         if (!$item->isHit()) {
@@ -120,6 +122,7 @@ class AuthController extends AbstractApiController
 
         if (!$user) {
             $this->cache->deleteItem($cacheKey);
+
             return $this->unauthorizedResponse('User not found');
         }
 
@@ -146,7 +149,7 @@ class AuthController extends AbstractApiController
             $response->headers->setCookie($this->createRefreshCookie($userId));
 
             return $response;
-        } catch (\Exception) {
+        } catch (Exception) {
             return $this->unauthorizedResponse('Token refresh failed');
         }
     }
@@ -161,14 +164,14 @@ class AuthController extends AbstractApiController
                 $this->discordOAuth->revokeToken($this->tokenEncryptor->decrypt($user->getOauthAccessToken()));
             }
 
-            $item = $this->cache->getItem('jwt_blacklist_' . $user->getUserId());
+            $item = $this->cache->getItem('jwt_blacklist_'.$user->getUserId());
             $item->set(time())->expiresAfter(900);
             $this->cache->save($item);
         }
 
         $rawToken = $request->cookies->get(self::REFRESH_COOKIE);
         if ($rawToken) {
-            $this->cache->deleteItem('refresh_token_' . hash('sha256', $rawToken));
+            $this->cache->deleteItem('refresh_token_'.hash('sha256', $rawToken));
         }
 
         $response = new JsonResponse(['message' => 'Logged out successfully']);
@@ -181,7 +184,7 @@ class AuthController extends AbstractApiController
     {
         $rawToken = bin2hex(random_bytes(32));
 
-        $item = $this->cache->getItem('refresh_token_' . hash('sha256', $rawToken));
+        $item = $this->cache->getItem('refresh_token_'.hash('sha256', $rawToken));
         $item->set($userId)->expiresAfter(self::REFRESH_TTL);
         $this->cache->save($item);
 
@@ -212,8 +215,8 @@ class AuthController extends AbstractApiController
         $user = $this->getCurrentUser();
 
         return new JsonResponse([
-            'valid' => $user !== null,
-            'user' => $user !== null ? $this->userService->serializeUser($user) : null,
+            'valid' => null !== $user,
+            'user' => null !== $user ? $this->userService->serializeUser($user) : null,
         ]);
     }
 }

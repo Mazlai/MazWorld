@@ -44,6 +44,7 @@ class Route
     public function setCityFrom(City $city_from): self
     {
         $this->city_from = $city_from;
+
         return $this;
     }
 
@@ -55,6 +56,7 @@ class Route
     public function setCityTo(City $city_to): self
     {
         $this->city_to = $city_to;
+
         return $this;
     }
 
@@ -66,6 +68,7 @@ class Route
     public function setCost(int $cost): self
     {
         $this->cost = $cost;
+
         return $this;
     }
 
@@ -77,6 +80,7 @@ class Route
     public function setDuration(int $duration): self
     {
         $this->duration = $duration;
+
         return $this;
     }
 
