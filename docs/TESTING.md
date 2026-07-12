@@ -150,6 +150,133 @@ Cette suite de tests répond à l'exigence de couverture majoritaire (> 50 %) re
 
 ## Frontend (Angular)
 
-> Section à compléter lors de l'implémentation des tests frontend.
+### Vue d'ensemble
 
-Les tests frontend cibleront les composants et services Angular (tests unitaires via Jest ou Jasmine/Karma + Angular TestBed) et les flux utilisateur critiques (tests end-to-end via Playwright ou Cypress).
+Le frontend Angular est couvert par des tests unitaires et d'intégration composants (TI-composants), exécutés via **Vitest** (moteur de test intégré à `@angular/build:unit-test` depuis Angular 19).
+
+Couverture : **73.43 % des lignes** (481/655), **59.07 % des fonctions** (179/303), **85.42 % des branches** — 231 tests, 23 fichiers (rapport HTML : `web/frontend/coverage/01-final/`).
+
+> Le rapport inclut **tous** les fichiers sources (`src/app/**/*.ts`), y compris les composants de fonctionnalité non couverts (0 % de lignes). Les chiffres sont donc représentatifs de la couverture réelle de l’ensemble du codebase.
+
+---
+
+### Prérequis
+
+- Node 22+ et `npm install` depuis `web/frontend/`
+- Package `@vitest/coverage-v8` requis pour le rapport de couverture (`npm install --save-dev @vitest/coverage-v8`)
+
+---
+
+### Commandes
+
+```bash
+# Depuis web/frontend/
+
+# Suite complète (watch désactivé)
+npx ng test --no-watch
+
+# Avec rapport de couverture (texte)
+npx ng test --no-watch --coverage
+
+# Avec rapport HTML
+npx ng test --no-watch --coverage --coverage-reporters html --coverage-reporters json-summary
+
+# Un fichier précis
+npx ng test --no-watch --include src/app/core/services/auth.service.spec.ts
+```
+
+---
+
+### Structure des tests
+
+```
+web/frontend/src/
+├── app/
+│   ├── app.spec.ts                                       # TI-comp — composant racine (routing, accessibilité)
+│   ├── core/
+│   │   ├── guards/
+│   │   │   └── auth.guard.spec.ts                       # TU — authGuard, guestGuard, adminGuard
+│   │   ├── interceptors/
+│   │   │   └── jwt.interceptor.spec.ts                  # TI — JWT injection, URLs publiques/privées, SSR
+│   │   ├── services/
+│   │   │   ├── auth-storage.service.spec.ts             # TU — sessionStorage, signaux, SSR
+│   │   │   ├── auth.service.spec.ts                     # TI — OAuth Discord, signals computés
+│   │   │   └── profile.service.spec.ts                  # TI — URL, mapping res.profile, erreurs HTTP
+│   │   └── utils/
+│   │       └── profile.utils.spec.ts                    # TU — badges, fonds, formatage date
+│   ├── features/
+│   │   ├── auth/auth-callback.component.spec.ts         # TU — mapping erreurs OAuth, flux succès
+│   │   ├── dashboard/dashboard.component.spec.ts        # TI — isLoading sur erreur, rank silencieux
+│   │   ├── inventory/inventory.component.spec.ts        # TI — éviction slot, suppression clé badge
+│   │   ├── leaderboard/leaderboard.component.spec.ts    # TU — getRankEmoji, pagination, userRank
+│   │   ├── map/map.component.spec.ts                    # TU — formatDuration, canAffordTravel, visualRoutes
+│   │   ├── profile/profile.component.spec.ts            # TI — computed null-safety, retry reset
+│   │   ├── records/records.component.spec.ts            # TU — fmt(), explorationPct div/0
+│   │   ├── servers/servers.component.spec.ts            # TI — presentCount, fallback silencieux, sécurité
+│   │   ├── shop/shop.component.spec.ts                  # TI — tri filteredItems, canBuy(), reset page
+│   │   └── stats/stats.component.spec.ts                # TU — fmt() (impl. dupliquée), set atomique
+│   └── shared/
+│       ├── components/header/header.component.spec.ts   # TI-comp — auth branches, admin gate, clavier
+│       └── components/ui/
+│           ├── avatar/avatar.component.spec.ts          # TI-comp — src/fallback, initiales, taille
+│           ├── badge/badge.component.spec.ts            # TI-comp — 5 variantes sémantiques
+│           ├── empty-state/empty-state.component.spec.ts # TI-comp — titre, description, icône
+│           ├── spinner/spinner.component.spec.ts        # TI-comp — taille, label, a11y
+│           └── stat-card/stat-card.component.spec.ts    # TI-comp — label, valeur, variante
+```
+
+---
+
+### Choix de conception
+
+#### Vitest, pas Jasmine/Karma
+
+Angular 21 utilise `@angular/build:unit-test` avec Vitest comme exécuteur natif. L'API diffère de Jasmine : `vi.fn()` (pas `jasmine.createSpyObj`), `.mockReturnValue()` (pas `.and.returnValue()`), `toBe(true/false)` (pas `toBeTrue()`/`toBeFalse()`).
+
+#### Couverture ciblée sur la logique critique
+
+Les composants de fonctionnalité (dashboard, carte, profil, boutique, classement) ne sont pas couverts : ils dépendent d'API REST actives et de données dynamiques. Les tester sans fixtures complètes produirait des tests fragiles sans valeur ajoutée. La couverture est concentrée sur :
+
+- **Guards** — logique d'accès (auth, guest, admin)
+- **Intercepteur JWT** — injection du token, URLs publiques
+- **Services** — `AuthService` (OAuth Discord, signaux computés), `AuthStorageService` (sessionStorage, SSR)
+- **Utilitaires** — `profile.utils.ts` (badges, fonds, dates)
+- **Composants UI partagés** — 5 composants réutilisables à travers toute l'application
+
+#### Angular TestBed pour les composants
+
+Les composants UI partagés (Avatar, Badge, Spinner, etc.) utilisent `TestBed.createComponent()` avec `fixture.componentRef.setInput()` (API Angular 17+ pour les inputs basés sur les signaux). Les guards utilisent `TestBed.runInInjectionContext()` pour simuler l'environnement d'injection sans instancier un routeur complet.
+
+#### Tests HTTP avec HttpTestingController
+
+`AuthService` et `jwtInterceptor` utilisent `provideHttpClient(withInterceptors([...]))` + `provideHttpClientTesting()` + `HttpTestingController`. Cette approche intercepte les requêtes HTTP avant l'envoi réseau et permet de contrôler les réponses de manière déterministe.
+
+#### Gestion des erreurs asynchrones
+
+Pour les Observables qui émettent une erreur, la conversion `lastValueFrom(observable$)` permet d'utiliser `await expect(...).rejects.toThrow(...)` — syntaxe native Vitest, sans `done` callback ni `.toThrowError()` imbriqué.
+
+---
+
+### Contexte RNCP — Compétence C2.2.2
+
+| Couche testée | Type | Preuve |
+|---------------|------|--------|
+| Guards de navigation (auth, guest, admin) | TU | `auth.guard.spec.ts` |
+| Intercepteur HTTP (JWT, URLs publiques, SSR) | TI | `jwt.interceptor.spec.ts` |
+| Service d'authentification (OAuth, signaux) | TI | `auth.service.spec.ts` |
+| Service profil (URL, mapping réponse API) | TI | `profile.service.spec.ts` |
+| Stockage session (sessionStorage, SSR) | TU | `auth-storage.service.spec.ts` |
+| Utilitaires profil (badges, fonds, dates) | TU | `profile.utils.spec.ts` |
+| Header (auth branches, admin gate, navigation clavier) | TI-comp | `header.component.spec.ts` |
+| Callback OAuth (mapping erreurs, flux succès, redirection) | TU | `auth-callback.component.spec.ts` |
+| Dashboard (chargement, erreur silencieuse rang) | TI | `dashboard.component.spec.ts` |
+| Inventaire (éviction slot, suppression badge) | TI | `inventory.component.spec.ts` |
+| Classement (getRankEmoji, pagination, userRank) | TU | `leaderboard.component.spec.ts` |
+| Carte (formatDuration, canAffordTravel, visualRoutes) | TU | `map.component.spec.ts` |
+| Profil (computed null-safety, retry) | TI | `profile.component.spec.ts` |
+| Records (fmt(), explorationPct div/0) | TU | `records.component.spec.ts` |
+| Serveurs (presentCount, fallback silencieux, sécurité) | TI | `servers.component.spec.ts` |
+| Boutique (tri filteredItems, canBuy, reset page) | TI | `shop.component.spec.ts` |
+| Stats (fmt() dupliqué, set atomique) | TU | `stats.component.spec.ts` |
+| Composants UI partagés (5 composants) | TI-comp | `shared/components/ui/*/` |
+| Composant racine (routing, accessibilité) | TI-comp | `app.spec.ts` |
