@@ -1,0 +1,67 @@
+name: Branch Strategy Validation
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - develop
+      - main
+      - 'release/**'
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-branch-strategy:
+    name: Validate Branch Strategy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch naming rules
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
+
+          echo "Source branch : $SOURCE"
+          echo "Target branch : $TARGET"
+
+          # feature/SU/* -> feature/* (pas feature/SU/*)
+          if [[ "$TARGET" == feature/* && "$TARGET" != feature/SU/* ]]; then
+            if [[ ! "$SOURCE" == feature/SU/* ]]; then
+              echo "ERROR: Only branches starting with 'feature/SU/' can be merged into 'feature/*'."
+              echo "       Current source branch: $SOURCE"
+              exit 1
+            fi
+            echo "OK: feature/SU/* -> feature/*"
+
+          # feature/* -> develop  (ou main -> develop pour sync)
+          elif [[ "$TARGET" == "develop" ]]; then
+            if [[ ! "$SOURCE" == feature/* && "$SOURCE" != "main" ]]; then
+              echo "ERROR: Only branches starting with 'feature/' or 'main' can be merged into 'develop'."
+              echo "       Current source branch: $SOURCE"
+              exit 1
+            fi
+            if [[ "$SOURCE" == feature/* ]]; then
+              echo "OK: feature/* -> develop"
+            elif [[ "$SOURCE" == "main" ]]; then
+              echo "OK: main -> develop (sync)"
+            fi
+
+          # release/* -> main
+          elif [[ "$TARGET" == "main" ]]; then
+            if [[ ! "$SOURCE" == release/* ]]; then
+              echo "ERROR: Only branches starting with 'release/' can be merged into 'main'."
+              echo "       Current source branch: $SOURCE"
+              exit 1
+            fi
+            echo "OK: release/* -> main"
+
+          # develop ou hotfix/* -> release/*
+          elif [[ "$TARGET" == release/* ]]; then
+            if [[ "$SOURCE" != "develop" && ! "$SOURCE" == hotfix/* ]]; then
+              echo "ERROR: Only 'develop' or branches starting with 'hotfix/' can be merged into 'release/*'."
+              echo "       Current source branch: $SOURCE"
+              exit 1
+            fi
+            echo "OK: develop/hotfix/* -> release/*"
+          fi
