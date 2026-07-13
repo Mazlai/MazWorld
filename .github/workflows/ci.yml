@@ -1,0 +1,158 @@
+name: CI - Tests & Linting
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - develop
+      - main
+      - 'release/**'
+
+permissions:
+  contents: read
+
+jobs:
+  # ==================== LINTING JOBS ====================
+
+  frontend-lint:
+    name: Frontend Linting (ESLint Angular)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web/frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: web/frontend
+        run: npm run lint
+
+  backend-lint:
+    name: Backend Linting (PHP CS Fixer)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Install dependencies
+        working-directory: web/backend
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run PHP CS Fixer
+        working-directory: web/backend
+        run: composer lint
+
+  # ==================== TESTS JOBS ====================
+
+  frontend-tests:
+    name: Frontend Tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web/frontend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: web/frontend
+        run: npx ng test --no-watch
+
+  backend-tests-unit:
+    name: Backend Tests — Unitaires (PHPUnit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      - name: Install dependencies
+        working-directory: web/backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run unit tests
+        working-directory: web/backend
+        run: php bin/phpunit --group unit
+
+  backend-tests-integration:
+    name: Backend Tests — Intégration (PHPUnit + MySQL)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: mazworld_test
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        working-directory: web/backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Generate JWT keypair
+        working-directory: web/backend
+        env:
+          JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
+        run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
+      - name: Create test schema and load fixtures
+        working-directory: web/backend
+        env:
+          DATABASE_URL: mysql://root@127.0.0.1:3307/mazworld
+          JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
+        run: |
+          php bin/console doctrine:schema:create --env=test --no-interaction
+          php bin/console doctrine:fixtures:load --env=test --no-interaction
+
+      - name: Run integration tests
+        working-directory: web/backend
+        env:
+          DATABASE_URL: mysql://root@127.0.0.1:3307/mazworld
+          JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
+        run: php bin/phpunit --group integration
