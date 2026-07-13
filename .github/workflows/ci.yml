@@ -39,6 +39,8 @@ jobs:
   backend-lint:
     name: Backend Linting (PHP CS Fixer)
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,7 +53,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: web/backend
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
       - name: Run PHP CS Fixer
         working-directory: web/backend
@@ -84,6 +86,8 @@ jobs:
   backend-tests-unit:
     name: Backend Tests — Unitaires (PHPUnit)
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -97,7 +101,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: web/backend
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --no-scripts
 
       - name: Run unit tests
         working-directory: web/backend
@@ -106,6 +110,10 @@ jobs:
   backend-tests-integration:
     name: Backend Tests — Intégration (PHPUnit + MySQL)
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
     services:
       mysql:
         image: mysql:8.0
@@ -133,26 +141,18 @@ jobs:
 
       - name: Install dependencies
         working-directory: web/backend
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --no-scripts
 
       - name: Generate JWT keypair
         working-directory: web/backend
-        env:
-          JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
       - name: Create test schema and load fixtures
         working-directory: web/backend
-        env:
-          DATABASE_URL: mysql://root@127.0.0.1:3307/mazworld
-          JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
         run: |
           php bin/console doctrine:schema:create --env=test --no-interaction
           php bin/console doctrine:fixtures:load --env=test --no-interaction
 
       - name: Run integration tests
         working-directory: web/backend
-        env:
-          DATABASE_URL: mysql://root@127.0.0.1:3307/mazworld
-          JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
         run: php bin/phpunit --group integration
