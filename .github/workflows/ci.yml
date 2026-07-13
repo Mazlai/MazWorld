@@ -103,6 +103,10 @@ jobs:
         working-directory: web/backend
         run: composer install --no-interaction --prefer-dist --no-scripts
 
+      - name: Create .env placeholder
+        working-directory: web/backend
+        run: touch .env
+
       - name: Run unit tests
         working-directory: web/backend
         run: php bin/phpunit --group unit
@@ -142,6 +146,10 @@ jobs:
       - name: Install dependencies
         working-directory: web/backend
         run: composer install --no-interaction --prefer-dist --no-scripts
+
+      - name: Create .env placeholder
+        working-directory: web/backend
+        run: touch .env
 
       - name: Generate JWT keypair
         working-directory: web/backend
