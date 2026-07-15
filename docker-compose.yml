@@ -1,0 +1,46 @@
+services:
+  frontend-build:
+    build:
+      context: ./web/frontend
+      target: build
+    volumes:
+      - frontend_dist:/output
+    command: sh -c "cp -r /app/dist/frontend/browser/. /output/"
+    profiles: ["prod"]
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      backend:
+        condition: service_started
+
+  backend:
+    build:
+      context: ./web/backend
+      target: prod
+    volumes:
+      - jwt_keys:/var/www/config/jwt
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  bot:
+    build:
+      context: ./bot
+    depends_on:
+      - backend
+
+volumes:
+  frontend_dist:
+  jwt_keys:
+  mysql_data:

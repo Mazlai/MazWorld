@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://localhost:8008",
+    "target": "http://nginx",
     "secure": false,
     "changeOrigin": true
   }

@@ -1,0 +1,47 @@
+services:
+  nginx:
+    volumes:
+      - ./docker/nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
+
+  backend:
+    build:
+      target: dev
+    environment:
+      APP_ENV: dev
+      DATABASE_URL: "mysql://root@mysql:3306/mazworld?serverVersion=8.0.32&charset=utf8mb4"
+    volumes:
+      - ./web/backend:/var/www
+
+  mysql:
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: mazworld
+    ports:
+      - "3307:3306"
+
+  bot:
+    env_file: ./bot/.env
+    environment:
+      API_URL: http://nginx
+      NODE_ENV: development
+    volumes:
+      - ./bot:/app
+      - /app/node_modules
+    command: sh -c "npm ci && npm run dev"
+
+  frontend:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - ./web/frontend:/app
+      - /app/node_modules
+    command: sh -c "npm ci && npx ng serve --host 0.0.0.0 --port 4200"
+    ports:
+      - "4200:4200"
