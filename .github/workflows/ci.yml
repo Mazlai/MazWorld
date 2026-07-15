@@ -7,6 +7,7 @@ on:
       - develop
       - main
       - 'release/**'
+      - 'feature/**'
 
 permissions:
   contents: read
@@ -227,3 +228,41 @@ jobs:
           name: coverage-report
           path: web/backend/coverage-reports/ci
           retention-days: 30
+
+  # ==================== DOCKER BUILD (sanity check) ====================
+
+  docker-build:
+    name: Docker Build (backend, frontend, bot)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: web/backend
+          target: prod
+          push: false
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: web/frontend
+          target: runtime
+          push: false
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Build bot image
+        uses: docker/build-push-action@v6
+        with:
+          context: bot
+          push: false
+          cache-from: type=gha,scope=bot
+          cache-to: type=gha,mode=max,scope=bot
