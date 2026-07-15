@@ -1,0 +1,10 @@
+vendor/
+var/cache/*
+var/log/*
+.env
+.env.local
+.env.test
+config/jwt/*.pem
+coverage-reports/
+.phpunit.cache/
+.php-cs-fixer.cache
