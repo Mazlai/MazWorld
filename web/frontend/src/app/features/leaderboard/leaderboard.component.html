@@ -1,0 +1,79 @@
+<div class="leaderboard-page">
+
+  <!-- Header -->
+  <div class="leaderboard-header container">
+    <div class="leaderboard-header__content">
+      <span class="section-label">CLASSEMENT</span>
+      <h1>Classement MazCoins</h1>
+      <p class="subtitle">Les meilleurs joueurs du serveur</p>
+    </div>
+    @if (userRank() !== null) {
+      <div class="leaderboard-header__rank">
+        <span class="rank-label">Votre rang</span>
+        <span class="rank-value">{{ getRankEmoji(userRank()!) }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="leaderboard-state container" role="status">
+      <div class="loading"></div>
+      <p>Chargement du classement…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (hasError()) {
+    <div class="leaderboard-state leaderboard-state--error container">
+      <span aria-hidden="true">⚠️</span>
+      <p>Impossible de charger le classement.</p>
+      <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  <!-- Empty -->
+  @else if (entries().length === 0) {
+    <div class="leaderboard-state container">
+      <span style="font-size:3rem" aria-hidden="true">📊</span>
+      <p>Aucun joueur dans le classement pour le moment.</p>
+    </div>
+  }
+
+  @else {
+    <!-- Table -->
+    <table class="leaderboard-table container">
+      <thead>
+        <tr class="table-head">
+          <th scope="col" class="col-rank">Rang</th>
+          <th scope="col" class="col-player">Joueur</th>
+          <th scope="col" class="col-coins"><span aria-hidden="true">🪙</span> MazCoins</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of entries(); track entry.discord_id) {
+          <tr class="table-row" [class]="getRankClass(entry.rank)">
+            <td class="col-rank">
+              <span class="rank-badge">{{ getRankEmoji(entry.rank) }}</span>
+            </td>
+            <td class="col-player">
+              <img [src]="getAvatarUrl(entry)" [alt]="entry.username" class="player-avatar" width="40" height="40">
+              <span class="player-name">{{ entry.username }}</span>
+            </td>
+            <td class="col-coins">{{ entry.coins.toLocaleString() }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <nav class="pagination container" aria-label="Pagination">
+        <button class="page-btn" [disabled]="!hasPrev()" (click)="prevPage()">← Précédent</button>
+        <span class="page-info" aria-live="polite">Page {{ currentPage() }} / {{ totalPages() }}</span>
+        <button class="page-btn" [disabled]="!hasNext()" (click)="nextPage()">Suivant →</button>
+      </nav>
+    }
+  }
+
+</div>

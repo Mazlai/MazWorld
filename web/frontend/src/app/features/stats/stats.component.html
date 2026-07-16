@@ -1,0 +1,56 @@
+<div class="stats-page">
+
+  <!-- Header -->
+  <div class="stats-header container">
+    <span class="section-label">STATISTIQUES</span>
+    <h1>Vue d'ensemble du serveur</h1>
+    <p class="subtitle">Données en temps réel de l'univers MazWorld</p>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="stats-state container">
+      <div class="loading"></div>
+      <p>Chargement des statistiques…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (hasError()) {
+    <div class="stats-state stats-state--error container">
+      <span aria-hidden="true">⚠️</span>
+      <p>Impossible de charger les statistiques.</p>
+      <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  @else {
+    <!-- Statistiques globales -->
+    @if (globalStats(); as g) {
+      <section class="stats-section container">
+        <h2 class="section-title"><span aria-hidden="true">🌍</span> Statistiques globales</h2>
+        <div class="stats-grid">
+          <app-stat-card icon="👥" label="Joueurs" [value]="fmt(g.total_users)" />
+          <app-stat-card icon="🏙️" label="Villes" [value]="fmt(g.total_cities)" />
+          <app-stat-card icon="🪙" label="Coins en circulation" [value]="fmt(g.total_coins_circulation)" variant="gold" />
+          <app-stat-card icon="🟢" label="Actifs aujourd'hui" [value]="fmt(g.active_users_today)" variant="accent" />
+          <app-stat-card icon="📅" label="Actifs cette semaine" [value]="fmt(g.active_users_week)" />
+        </div>
+      </section>
+    }
+
+    <!-- Économie -->
+    @if (economyStats(); as e) {
+      <section class="stats-section container">
+        <h2 class="section-title"><span aria-hidden="true">💰</span> Économie</h2>
+        <div class="stats-grid stats-grid--4">
+          <app-stat-card icon="📈" label="Moyenne par joueur" [value]="fmt(e.average_coins_per_user) + ' 🪙'" />
+          <app-stat-card icon="👑" label="Record de richesse" [value]="fmt(e.richest_user_coins) + ' 🪙'" variant="gold" />
+          <app-stat-card icon="🛒" label="Achats boutique" [value]="fmt(e.total_shop_purchases)" />
+          <app-stat-card icon="⭐" label="Item populaire" [value]="e.most_popular_item || 'N/A'" variant="accent" />
+        </div>
+      </section>
+    }
+  }
+
+</div>

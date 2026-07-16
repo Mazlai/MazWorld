@@ -1,0 +1,33 @@
+<div class="dashboard-page container">
+
+  <!-- Header profil -->
+  @if (profile(); as p) {
+    <header class="dashboard-header">
+      <app-avatar [src]="auth.userAvatar()" [alt]="p.username" size="lg" />
+      <div class="dashboard-header__info">
+        <span class="dashboard-header__name">{{ p.username }}</span>
+        @if (rank() !== null) {
+          <span class="dashboard-header__rank">Rang #{{ rank() }}</span>
+        }
+      </div>
+    </header>
+
+    <section class="dashboard-stats">
+      <app-stat-card icon="🪙" label="MazCoins" [value]="p.coins.toLocaleString('fr-FR')" variant="gold" />
+      <app-stat-card icon="🏙️" label="Ville actuelle" [value]="p.current_city_name" />
+      <app-stat-card icon="🗺️" label="Villes visitées" [value]="p.visited_cities_count" />
+      <app-stat-card icon="🎒" label="Items en inventaire" [value]="p.inventory_count" />
+    </section>
+  } @else if (isLoading()) {
+    <div class="dashboard-loading">
+      <div class="loading"></div>
+      <p>Chargement du tableau de bord…</p>
+    </div>
+  } @else {
+    <div class="dashboard-loading">
+      <span aria-hidden="true">⚠️</span>
+      <p>Impossible de charger les données.</p>
+    </div>
+  }
+
+</div>

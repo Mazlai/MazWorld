@@ -1,0 +1,76 @@
+<div class="commands-page">
+
+  <!-- Header -->
+  <div class="commands-header container">
+    <span class="section-label">Bot Discord</span>
+    <h1>Commandes <span class="text-gradient">MazWorld</span></h1>
+    <p class="subtitle">Toutes les commandes slash disponibles sur votre serveur Discord.</p>
+  </div>
+
+  <!-- Tip banner -->
+  <div class="commands-tip container">
+    <span class="commands-tip__icon" aria-hidden="true">💡</span>
+    <span>Tapez <strong>/</strong> dans Discord pour accéder aux commandes. Elles sont disponibles sur tout serveur où le bot est présent.</span>
+  </div>
+
+  <!-- Categories -->
+  @for (cat of categories; track cat.id) {
+    <section class="cmd-category container">
+
+      <div class="cmd-category__header">
+        <span class="cmd-category__icon" aria-hidden="true">{{ cat.emoji }}</span>
+        <span class="cmd-category__title">{{ cat.label }}</span>
+        <span class="cmd-category__count">{{ commandsFor(cat.id).length }} commande{{ commandsFor(cat.id).length > 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="cmd-grid">
+        @for (cmd of commandsFor(cat.id); track cmd.name) {
+          <div class="cmd-card">
+
+            <div class="cmd-card__top">
+              <span class="cmd-card__emoji" aria-hidden="true">{{ cmd.emoji }}</span>
+              <span class="cmd-card__name">/{{ cmd.name }}</span>
+            </div>
+
+            <p class="cmd-card__desc">{{ cmd.description }}</p>
+
+            @if (cmd.options?.length) {
+              <div class="cmd-options">
+                @for (opt of cmd.options!; track opt.name) {
+                  <div class="cmd-option">
+                    <span class="cmd-option__name">{{ opt.name }}</span>
+                    <span class="cmd-option__badge" [class.cmd-option__badge--required]="opt.required" [class.cmd-option__badge--optional]="!opt.required">
+                      {{ opt.required ? 'requis' : 'optionnel' }}
+                    </span>
+                    @if (opt.choices) {
+                      <span class="cmd-option__detail">
+                        @for (c of opt.choices; track c) {
+                          <span class="cmd-choice">{{ c }}</span>
+                        }
+                      </span>
+                    } @else if (opt.range) {
+                      <span class="cmd-option__detail">{{ opt.range.min }}–{{ opt.range.max }} {{ opt.range.unit }}</span>
+                    } @else {
+                      <span class="cmd-option__detail">{{ opt.description }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            @if (cmd.meta?.length) {
+              <div class="cmd-meta">
+                @for (m of cmd.meta!; track m.label) {
+                  <span class="cmd-meta-tag">{{ m.icon }} {{ m.label }}</span>
+                }
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+
+    </section>
+  }
+
+</div>

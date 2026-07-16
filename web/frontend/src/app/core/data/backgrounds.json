@@ -1,0 +1,10 @@
+{
+  "backgrounds": [
+    { "id": "bg_default", "name": "Défaut", "color": "#2f3136", "price": 0 },
+    { "id": "bg_blue", "name": "Bleu Discord", "color": "#5865f2", "price": 50 },
+    { "id": "bg_purple", "name": "Violet", "color": "#9b59b6", "price": 75 },
+    { "id": "bg_green", "name": "Vert", "color": "#2ecc71", "price": 75 },
+    { "id": "bg_red", "name": "Rouge", "color": "#e74c3c", "price": 75 },
+    { "id": "bg_orange", "name": "Orange MazWorld", "color": "#ff6b35", "price": 100 }
+  ]
+}

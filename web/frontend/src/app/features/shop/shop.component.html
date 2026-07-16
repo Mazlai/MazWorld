@@ -1,0 +1,172 @@
+<div class="shop-page">
+
+  <!-- Header -->
+  <div class="shop-header container">
+    <div class="shop-header__content">
+      <span class="section-label">SHOP</span>
+      <h1>Boutique</h1>
+      <p class="subtitle">Personnalisez votre profil avec des backgrounds et badges uniques</p>
+    </div>
+    <div class="shop-header__balance">
+      <span aria-hidden="true">💰</span>
+      <span class="balance-value">{{ userCoins() }}</span>
+      <span class="balance-unit">MC</span>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  @if (notification(); as notif) {
+    <div class="notification container" role="alert" aria-live="assertive" [class.notification--success]="notif.type === 'success'" [class.notification--error]="notif.type === 'error'">
+      <span aria-hidden="true">{{ notif.type === 'success' ? '✅' : '❌' }}</span>
+      <span>{{ notif.message }}</span>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="shop-state" role="status">
+      <div class="loading"></div>
+      <p>Chargement de la boutique…</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (hasError()) {
+    <div class="shop-state shop-state--error">
+      <span aria-hidden="true">⚠️</span>
+      <p>Impossible de charger la boutique.</p>
+      <button class="btn btn-primary btn--sm" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  @else {
+    <!-- Stats -->
+    <div class="shop-stats container">
+      <div class="stat-chip">
+        <span aria-hidden="true">🛍️</span>
+        <strong>{{ totalCount() }}</strong>
+        <span>Articles</span>
+      </div>
+      <div class="stat-chip">
+        <span aria-hidden="true">🖼️</span>
+        <strong>{{ bgCount() }}</strong>
+        <span>Backgrounds</span>
+      </div>
+      <div class="stat-chip">
+        <span aria-hidden="true">🏅</span>
+        <strong>{{ badgeCount() }}</strong>
+        <span>Badges</span>
+      </div>
+      <div class="stat-chip stat-chip--owned">
+        <span aria-hidden="true">📦</span>
+        <strong>{{ ownedCount() }}</strong>
+        <span>Possédés</span>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="shop-filters container">
+      @for (f of filters; track f) {
+        <button class="filter-btn" [class.filter-btn--active]="filter() === f" (click)="setFilter(f)">
+          <span>{{ filterIcon(f) }}</span>
+          <span>{{ filterLabel(f) }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Grille articles -->
+    @if (filteredItems().length === 0) {
+      <div class="shop-state container">
+        <span style="font-size:3rem" aria-hidden="true">🔍</span>
+        <p>Aucun article dans cette catégorie.</p>
+      </div>
+    } @else {
+      <div class="items-grid container">
+        @for (item of paginatedItems(); track item.item_id) {
+          <div class="item-card"
+            [class.item-card--owned]="item.owned"
+            [class.item-card--equipped]="item.equipped">
+
+            <!-- En-tête visuel -->
+            <div class="item-card__header" [class.item-card__header--bg]="item.item_type === 'background'" [class.item-card__header--badge]="item.item_type === 'badge'">
+              <span class="item-emoji" aria-hidden="true">{{ getEmoji(item) }}</span>
+              @if (item.equipped) {
+                <span class="item-tag item-tag--equipped">⭐ Équipé</span>
+              } @else if (item.owned) {
+                <span class="item-tag item-tag--owned">✓ Possédé</span>
+              }
+            </div>
+
+            <!-- Contenu -->
+            <div class="item-card__body">
+              <h3 class="item-name">{{ item.name }}</h3>
+              @if (item.description) {
+                <p class="item-desc">{{ item.description }}</p>
+              }
+              <span class="item-type-tag" [class.item-type-tag--bg]="item.item_type === 'background'" [class.item-type-tag--badge]="item.item_type === 'badge'">
+                {{ item.item_type === 'background' ? '🖼️ Background' : '🏅 Badge' }}
+              </span>
+            </div>
+
+            <!-- Pied -->
+            <div class="item-card__footer">
+              @if (!item.owned) {
+                <span class="item-price" [class.item-price--affordable]="canBuy(item)">
+                  {{ item.price }} 🪙
+                </span>
+                <button
+                  class="btn-buy"
+                  [disabled]="!canBuy(item) || purchasing() === item.item_id"
+                  [attr.aria-label]="purchasing() === item.item_id ? 'Achat en cours…' : null"
+                  (click)="purchase(item)">
+                  @if (purchasing() === item.item_id) {
+                    <span class="loading-dot" aria-hidden="true"></span>
+                  } @else if (!item.available) {
+                    Indisponible
+                  } @else if (userCoins() < item.price) {
+                    Fonds insuffisants
+                  } @else {
+                    Acheter
+                  }
+                </button>
+              } @else {
+                @if (item.item_type === 'background' && !item.equipped) {
+                  <button class="btn-equip" (click)="equipBg(item)">Équiper</button>
+                } @else if (item.item_type === 'badge' && !item.equipped) {
+                  <div class="badge-slots">
+                    <span class="badge-slots__label">Slot :</span>
+                    @for (slot of [0,1,2,3,4,5]; track slot) {
+                      <button class="slot-btn" [title]="'Slot ' + (slot + 1)" (click)="equipBadge(item, slot)">
+                        {{ slot + 1 }}
+                      </button>
+                    }
+                  </div>
+                } @else if (item.equipped) {
+                  <span class="item-status item-status--equipped">Actuellement équipé</span>
+                } @else {
+                  <span class="item-status">Dans l'inventaire</span>
+                }
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <nav class="pagination container" aria-label="Pagination">
+          <button class="pagination-btn" [disabled]="!canGoPrev()" (click)="prevPage()" aria-label="Page précédente">◀</button>
+          <div class="pagination-pages">
+            @for (p of pagesArray(); track p) {
+              <button class="pagination-page" [class.pagination-page--active]="page() === p" [attr.aria-current]="page() === p ? 'page' : null" [attr.aria-label]="'Page ' + p" (click)="goToPage(p)">{{ p }}</button>
+            }
+          </div>
+          <button class="pagination-btn" [disabled]="!canGoNext()" (click)="nextPage()" aria-label="Page suivante">▶</button>
+          <span class="pagination-info" aria-live="polite">{{ page() }}/{{ totalPages() }}</span>
+        </nav>
+      }
+    }
+  }
+
+</div>
