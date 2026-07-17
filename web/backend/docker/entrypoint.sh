@@ -3,6 +3,8 @@ set -e
 
 cd /var/www
 
+touch .env
+
 if [ ! -f vendor/autoload.php ]; then
     composer install --prefer-dist --no-interaction
 fi
