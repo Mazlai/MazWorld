@@ -10,7 +10,8 @@
     "rest": "tsx src/utils/rest.ts",
     "rest-guild": "tsx src/utils/rest-guild.ts",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -31,9 +32,11 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.6",
+    "@vitest/coverage-v8": "^4.1.10",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

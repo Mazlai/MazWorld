@@ -17,6 +17,15 @@ Le backend Symfony est couvert par deux catégories de tests clairement séparé
 
 Couverture : **74.32 % des lignes**, **81.34 % des méthodes** — 295 tests, 715 assertions (rapport HTML : `web/backend/coverage-reports/07-final/`, exclu du dépôt via `.gitignore`).
 
+**Couverture isolée par groupe** — le chiffre ci-dessus combine TU et TI. En isolant `--group unit` seul (`php bin/phpunit --group unit --coverage-text`), sans base de données :
+
+| Périmètre | Lignes | Méthodes | Classes |
+|---|---|---|---|
+| TU seul (`--group unit`) | 26.55 % | 50.70 % | 28.89 % |
+| TU + TI combinés | 74.32 % | 81.34 % | — |
+
+L'écart s'explique directement par le choix de conception ci-dessous : les 13 controllers et les 2 repositories à requêtes DQL custom, testés en intégration plutôt qu'en unitaire, représentent une part importante des lignes du code source. La couverture en lignes isolée passe sous 50 %, mais la couverture en méthodes reste au-dessus — les méthodes des couches non couvertes en TU sont en nombre plus faible que leur nombre de lignes (controllers avec peu de méthodes mais un corps HTTP verbeux).
+
 ---
 
 ### Prérequis
@@ -158,6 +167,8 @@ Couverture : **73.43 % des lignes** (481/655), **59.07 % des fonctions** (179/30
 
 > Le rapport inclut **tous** les fichiers sources (`src/app/**/*.ts`), y compris les composants de fonctionnalité non couverts (0 % de lignes). Les chiffres sont donc représentatifs de la couverture réelle de l’ensemble du codebase.
 
+**Pas de séparation TU/TI isolable côté frontend** — contrairement au backend (groupes PHPUnit `unit`/`integration` filtrables en une commande), Vitest/Angular ne propose ici aucun mécanisme de tag ou de projet séparant les tests. Les tests de composants passent tous par `TestBed`, y compris ceux qui ne dépendent d'aucune API (ex. les guards utilisent `TestBed.runInInjectionContext()`). Isoler un chiffre « TU pur » nécessiterait de reconstituer manuellement une liste de fichiers, sans commande unique pour le faire. Le chiffre combiné ci-dessus est donc présenté tel quel, en cohérence avec la nature des tests Angular modernes plutôt qu'en simulant une séparation qui n'existe pas dans l'outillage.
+
 ---
 
 ### Prérequis
@@ -280,3 +291,72 @@ Pour les Observables qui émettent une erreur, la conversion `lastValueFrom(obse
 | Stats (fmt() dupliqué, set atomique) | TU | `stats.component.spec.ts` |
 | Composants UI partagés (5 composants) | TI-comp | `shared/components/ui/*/` |
 | Composant racine (routing, accessibilité) | TI-comp | `app.spec.ts` |
+
+---
+
+## Bot Discord (Node/TypeScript)
+
+### Vue d'ensemble
+
+Le bot est couvert par des tests unitaires exécutés via **Vitest** (même outil que le frontend, pour une stack de test homogène) — **48 tests, 4 fichiers**, sur un périmètre volontairement restreint à la logique testable sans dépendance à une session Discord live (voir choix de conception ci-dessous). Contrairement au backend et au frontend, ce module n'a pas vocation à démontrer une couverture chiffrée globale : l'exigence RNCP de couverture majoritaire (> 50 %) est déjà remplie et documentée sur les deux autres modules. L'objectif ici est d'étendre la même méthodologie TU/TI à un troisième contexte technique, sur un périmètre choisi plutôt que subi.
+
+---
+
+### Prérequis
+
+- Node 22+ et `npm install` depuis `bot/`
+- Package `@vitest/coverage-v8` requis pour le rapport de couverture (déjà en devDependency)
+
+---
+
+### Commandes
+
+```bash
+# Depuis bot/
+
+# Suite complète
+npx vitest run
+
+# Avec rapport de couverture (texte)
+npx vitest run --coverage
+```
+
+---
+
+### Structure des tests
+
+```
+bot/src/commands/mazworld/utils/
+├── cooldownManager.spec.ts     # TU — calcul de cooldown, formatage du temps, isolation par user/commande
+├── components.spec.ts          # TU — boutons/menus Discord (état disabled, options dynamiques)
+├── embeds.spec.ts              # TU — construction d'embeds Discord (branches conditionnelles)
+└── travelMiddleware.spec.ts    # TU — appel API mocké + interaction Discord mockée
+```
+
+---
+
+### Choix de conception
+
+#### Pourquoi ce périmètre et pas plus ?
+
+Le code du bot se répartit en quatre catégories, avec une seule réellement pertinente à tester unitairement :
+
+- **Logique pure, testée** (`cooldownManager.ts`, `embeds.ts`, `components.ts`, `travelMiddleware.ts`) : aucune dépendance à une session Discord live. `EmbedBuilder`/`ActionRowBuilder`/`ButtonBuilder`/`StringSelectMenuBuilder` (`embeds.ts`, `components.ts`) sont de simples constructeurs d'objet, exécutables hors ligne ; `travelMiddleware.ts` ne dépend que d'un appel API et d'un objet `interaction`, tous deux mockables sans introduire de framework de test Discord.
+- **Commandes slash** (`commands/mazworld/*.ts`, ex. `coinflip.ts`, `shop.ts`) : orchestrent directement `interaction.reply()`/`interaction.deferReply()` et l'état complet d'une interaction Discord. Les tester unitairement reviendrait à re-simuler l'intégralité du cycle d'interaction Discord.js pour une valeur ajoutée faible — la logique métier qu'elles orchestrent (achat, pari, travail) est déjà couverte côté backend (`CommandsController`, `ShopController`). Non testées, à l'image des controllers Symfony qui ne sont pas testés en TU mais en TI.
+- **Rendu canvas** (`profileCard.ts`) : génère une image pixel par pixel. La tester reviendrait soit à comparer des snapshots d'image (fragile, faible valeur), soit à ne tester que les deux tables de correspondance couleur/emoji qu'elle contient, ce qui ne justifie pas un fichier de test dédié. Non testé, à l'image des repositories Doctrine sans DQL custom qui ne sont pas testés côté backend car cela reviendrait à tester l'ORM lui-même.
+- **Bootstrap et scripts utilitaires** (`index.ts`, `utils/rest.ts`, `utils/clean-commands.ts`, `handlers/*`) : câblage d'événements Discord et scripts d'enregistrement de commandes exécutés une fois au déploiement. Non testés pour la même raison que `public/index.php` ou `main.ts` ne le sont pas côté backend/frontend.
+
+#### Mock du client API et de l'interaction Discord
+
+`travelMiddleware.spec.ts` mocke le module `api/client` via `vi.mock()` (le même principe que `HttpTestingController` côté Angular) et fournit un objet `interaction` minimal (`{ user, reply: vi.fn() }`) plutôt que d'instancier un vrai `ChatInputCommandInteraction` — seules les propriétés réellement utilisées par la fonction testée sont simulées.
+
+---
+
+### Contexte RNCP — Compétence C2.2.2
+
+| Couche testée | Type | Preuve |
+|---------------|------|--------|
+| Gestion des cooldowns (calcul, isolation, formatage) | TU | `cooldownManager.spec.ts` |
+| Construction des embeds Discord (branches conditionnelles) | TU | `embeds.spec.ts` |
+| Boutons/menus Discord (état disabled, options dynamiques) | TU | `components.spec.ts` |
+| Middleware de vérification de voyage (API + interaction mockées) | TU | `travelMiddleware.spec.ts` |
