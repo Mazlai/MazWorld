@@ -15,7 +15,7 @@ Le backend Symfony est couvert par deux catégories de tests clairement séparé
 | Tests unitaires (TU) | `unit` | Non |
 | Tests d'intégration (TI) | `integration` | Oui (MySQL) |
 
-Couverture : **74.24 % des lignes**, **81.34 % des méthodes** — 296 tests, 716 assertions (rapport HTML : `web/backend/coverage-reports/07-final/`, exclu du dépôt via `.gitignore`).
+Couverture : **74.24 % des lignes**, **81.34 % des méthodes** — 296 tests, 718 assertions (rapport HTML : `web/backend/coverage-reports/07-final/`, exclu du dépôt via `.gitignore`).
 
 **Couverture isolée par groupe** : le chiffre ci-dessus combine TU et TI. En isolant `--group unit` seul (`php bin/phpunit --group unit --coverage-text`), sans base de données :
 
