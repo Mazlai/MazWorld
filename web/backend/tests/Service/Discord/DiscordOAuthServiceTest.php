@@ -22,17 +22,17 @@ class DiscordOAuthServiceTest extends TestCase
         $this->apiClient = $this->createMock(DiscordApiClient::class);
     }
 
-    private function makeService(?string $botToken): DiscordOAuthService
+    private function construireService(?string $botToken): DiscordOAuthService
     {
         return new DiscordOAuthService($this->apiClient, $botToken);
     }
 
-    private function makeTokenDTO(): DiscordTokenDTO
+    private function construireTokenDTO(): DiscordTokenDTO
     {
         return new DiscordTokenDTO('access', 'refresh', 3600, 'Bearer', '');
     }
 
-    private function makeUserDTO(): DiscordUserDTO
+    private function construireUserDTO(): DiscordUserDTO
     {
         return new DiscordUserDTO('1', 'mazlai', null, null, null, true, null);
     }
@@ -46,42 +46,42 @@ class DiscordOAuthServiceTest extends TestCase
             ->with('state_abc')
             ->willReturn('https://discord.com/oauth2/authorize?state=state_abc');
 
-        $result = $this->makeService(null)->getAuthorizationUrl('state_abc');
+        $result = $this->construireService(null)->getAuthorizationUrl('state_abc');
 
         $this->assertSame('https://discord.com/oauth2/authorize?state=state_abc', $result);
     }
 
     public function testExchangeCodeDelegatesToApiClient(): void
     {
-        $dto = $this->makeTokenDTO();
+        $dto = $this->construireTokenDTO();
         $this->apiClient->expects($this->once())
             ->method('exchangeCodeForTokens')
             ->with('auth_code')
             ->willReturn($dto);
 
-        $this->assertSame($dto, $this->makeService(null)->exchangeCode('auth_code'));
+        $this->assertSame($dto, $this->construireService(null)->exchangeCode('auth_code'));
     }
 
     public function testRefreshTokensDelegatesToApiClient(): void
     {
-        $dto = $this->makeTokenDTO();
+        $dto = $this->construireTokenDTO();
         $this->apiClient->expects($this->once())
             ->method('refreshTokens')
             ->with('refresh_token_xyz')
             ->willReturn($dto);
 
-        $this->assertSame($dto, $this->makeService(null)->refreshTokens('refresh_token_xyz'));
+        $this->assertSame($dto, $this->construireService(null)->refreshTokens('refresh_token_xyz'));
     }
 
     public function testGetDiscordUserDelegatesToApiClient(): void
     {
-        $dto = $this->makeUserDTO();
+        $dto = $this->construireUserDTO();
         $this->apiClient->expects($this->once())
             ->method('getCurrentUser')
             ->with('access_token_abc')
             ->willReturn($dto);
 
-        $this->assertSame($dto, $this->makeService(null)->getDiscordUser('access_token_abc'));
+        $this->assertSame($dto, $this->construireService(null)->getDiscordUser('access_token_abc'));
     }
 
     public function testGetDiscordUserGuildsDelegatesToApiClient(): void
@@ -91,7 +91,7 @@ class DiscordOAuthServiceTest extends TestCase
             ->with('access_token_abc', true)
             ->willReturn([]);
 
-        $this->makeService(null)->getDiscordUserGuilds('access_token_abc', true);
+        $this->construireService(null)->getDiscordUserGuilds('access_token_abc', true);
     }
 
     public function testRevokeTokenDelegatesToApiClient(): void
@@ -101,7 +101,7 @@ class DiscordOAuthServiceTest extends TestCase
             ->with('token_to_revoke')
             ->willReturn(true);
 
-        $this->assertTrue($this->makeService(null)->revokeToken('token_to_revoke'));
+        $this->assertTrue($this->construireService(null)->revokeToken('token_to_revoke'));
     }
 
     // ===== isBotInGuild() — logique propre =====
@@ -110,14 +110,14 @@ class DiscordOAuthServiceTest extends TestCase
     {
         $this->apiClient->expects($this->never())->method('isBotInGuild');
 
-        $this->assertFalse($this->makeService(null)->isBotInGuild('guild_123'));
+        $this->assertFalse($this->construireService(null)->isBotInGuild('guild_123'));
     }
 
     public function testIsBotInGuildReturnsFalseWhenBotTokenIsEmpty(): void
     {
         $this->apiClient->expects($this->never())->method('isBotInGuild');
 
-        $this->assertFalse($this->makeService('')->isBotInGuild('guild_123'));
+        $this->assertFalse($this->construireService('')->isBotInGuild('guild_123'));
     }
 
     public function testIsBotInGuildDelegatesToApiClientWithGuildId(): void
@@ -127,6 +127,6 @@ class DiscordOAuthServiceTest extends TestCase
             ->with('guild_123')
             ->willReturn(true);
 
-        $this->assertTrue($this->makeService('bot_token_xyz')->isBotInGuild('guild_123'));
+        $this->assertTrue($this->construireService('bot_token_xyz')->isBotInGuild('guild_123'));
     }
 }

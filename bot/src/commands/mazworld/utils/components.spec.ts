@@ -9,127 +9,168 @@ import {
 } from './components';
 import type { MapRoute, ShopItem } from '../data';
 
-function route(overrides: Partial<MapRoute> = {}): MapRoute {
+function routeVers(destination: string, overrides: Partial<MapRoute> = {}): MapRoute {
   return {
-    city_to: 'riverside', destination_name: 'Riverside', destination_emoji: '🏞️',
+    city_to: destination.toLowerCase(), destination_name: destination, destination_emoji: '🏞️',
     cost: 100, duration: 600, visited: false, effective_cost: 100, ...overrides,
   };
 }
 
-function item(overrides: Partial<ShopItem> = {}): ShopItem {
-  return { item_id: 'bg_blue', item_type: 'background', name: 'Blue', price: 100, owned: false, equipped: false, ...overrides };
-}
-
-describe('components', () => {
-  describe('buildMapButtons', () => {
-    it('returns no row when there is no route', () => {
-      expect(buildMapButtons([])).toHaveLength(0);
-    });
-
-    it('caps buttons to the first 5 routes', () => {
-      const routes = Array.from({ length: 8 }, (_, i) => route({ city_to: `city-${i}`, destination_name: `City ${i}` }));
-
-      const [row] = buildMapButtons(routes);
-
-      expect(row.toJSON().components).toHaveLength(5);
-    });
+describe('Sélection des boutons de trajet', () => {
+  it("ne construit aucune ligne de boutons s'il n'y a aucune route", () => {
+    expect(buildMapButtons([])).toHaveLength(0);
   });
 
-  describe('buildPurchaseConfirmRow', () => {
-    it('disables the purchase button when the item is already owned', () => {
-      const [buyButton] = buildPurchaseConfirmRow(true, true).toJSON().components as any[];
+  // Discord limite une ActionRow à 5 composants : au-delà, les routes supplémentaires
+  // restent visibles dans le texte de l'embed (cf. embeds.spec.ts) mais perdent leur bouton.
+  it('affiche un bouton par route tant qu\'on reste à 5 ou moins', () => {
+    const cinqRoutes = Array.from({ length: 5 }, (_, i) => routeVers(`Ville ${i}`, { city_to: `ville-${i}` }));
 
-      expect(buyButton.disabled).toBe(true);
-    });
+    const [ligne] = buildMapButtons(cinqRoutes);
 
-    it('disables the purchase button when the balance is insufficient', () => {
-      const [buyButton] = buildPurchaseConfirmRow(false, false).toJSON().components as any[];
-
-      expect(buyButton.disabled).toBe(true);
-    });
-
-    it('enables the purchase button when affordable and not owned', () => {
-      const [buyButton] = buildPurchaseConfirmRow(false, true).toJSON().components as any[];
-
-      expect(buyButton.disabled).toBe(false);
-    });
+    expect(ligne.toJSON().components).toHaveLength(5);
   });
 
-  describe('buildInventoryButtons', () => {
-    it('shows only the background action when only backgrounds are owned', () => {
-      const rows = buildInventoryButtons(true, false);
+  it('tronque à 5 boutons dès la 6e route, sans erreur', () => {
+    const huitRoutes = Array.from({ length: 8 }, (_, i) => routeVers(`Ville ${i}`, { city_to: `ville-${i}` }));
 
-      expect(rows).toHaveLength(1);
-      expect((rows[0].toJSON().components[0] as any).custom_id).toBe('equip_background');
-    });
+    const [ligne] = buildMapButtons(huitRoutes);
 
-    it('shows badge actions (equip + unequip) when only badges are owned', () => {
-      const rows = buildInventoryButtons(false, true);
-      const ids = (rows[0].toJSON().components as any[]).map(c => c.custom_id);
+    expect(ligne.toJSON().components).toHaveLength(5);
+  });
+});
 
-      expect(ids).toEqual(['equip_badge', 'unequip_badge']);
-    });
+describe('Confirmation d\'achat — cas bloquants combinés', () => {
+  it('désactive le bouton si l\'item est déjà possédé', () => {
+    const [boutonAcheter] = buildPurchaseConfirmRow(true, true).toJSON().components as any[];
 
-    it('falls back to a disabled shop link when the inventory is empty', () => {
-      const rows = buildInventoryButtons(false, false);
-      const button = rows[0].toJSON().components[0] as any;
-
-      expect(button.custom_id).toBe('goto_shop');
-      expect(button.disabled).toBe(true);
-    });
+    expect(boutonAcheter.disabled).toBe(true);
   });
 
-  describe('buildBackgroundSelectMenu', () => {
-    it('marks the currently equipped background in its label and description', () => {
-      const backgrounds = [item({ item_id: 'bg_blue', name: 'Blue' }), item({ item_id: 'bg_red', name: 'Red' })];
+  it('désactive le bouton si le solde est insuffisant', () => {
+    const [boutonAcheter] = buildPurchaseConfirmRow(false, false).toJSON().components as any[];
 
-      const menu = buildBackgroundSelectMenu(backgrounds, 'bg_blue').toJSON().components[0] as any;
-      const [blue, red] = menu.options;
-
-      expect(blue.label).toBe('Blue (équipé)');
-      expect(blue.description).toBe('✅ Actuellement équipé');
-      expect(red.label).toBe('Red');
-    });
+    expect(boutonAcheter.disabled).toBe(true);
   });
 
-  describe('buildSlotSelectMenu', () => {
-    it('shows a slot as empty when no badge occupies it', () => {
-      const menu = buildSlotSelectMenu('badge_new', [], []).toJSON().components[0] as any;
+  // Cas réel fréquent : un joueur fauché qui recroise un item déjà possédé (les deux
+  // conditions bloquantes sont vraies en même temps) — le bouton doit rester désactivé.
+  it('reste désactivé quand l\'item est possédé ET le solde insuffisant à la fois', () => {
+    const [boutonAcheter] = buildPurchaseConfirmRow(true, false).toJSON().components as any[];
 
-      expect(menu.options[0].description).toBe('Vide');
-      expect(menu.options[0].emoji.name).toBe('⚫');
-    });
-
-    it('shows the occupying badge name when a slot is already used', () => {
-      const badge = item({ item_id: 'badge_founder', item_type: 'badge', name: 'Founder', emoji: '👑' });
-
-      const menu = buildSlotSelectMenu('badge_new', [badge], ['badge_founder']).toJSON().components[0] as any;
-
-      expect(menu.options[0].description).toContain('Founder');
-      expect(menu.options[0].description).toContain('sera remplacé');
-    });
-
-    it('always exposes exactly 6 slots', () => {
-      const menu = buildSlotSelectMenu('badge_new', [], []).toJSON().components[0] as any;
-
-      expect(menu.options).toHaveLength(6);
-    });
+    expect(boutonAcheter.disabled).toBe(true);
   });
 
-  describe('buildUnequipSelectMenu', () => {
-    it('only lists slots that are actually occupied', () => {
-      const badge = item({ item_id: 'badge_founder', item_type: 'badge', name: 'Founder' });
+  it('active le bouton uniquement si le joueur peut réellement acheter', () => {
+    const [boutonAcheter] = buildPurchaseConfirmRow(false, true).toJSON().components as any[];
 
-      const menu = buildUnequipSelectMenu(['badge_founder', '', '', '', '', ''], [badge]).toJSON().components[0] as any;
+    expect(boutonAcheter.disabled).toBe(false);
+  });
+});
 
-      expect(menu.options).toHaveLength(1);
-      expect(menu.options[0].label).toContain('Founder');
-    });
+describe('Actions disponibles depuis l\'inventaire', () => {
+  it("ne propose que l'action background si le joueur ne possède que des backgrounds", () => {
+    const lignes = buildInventoryButtons(true, false);
 
-    it('produces no options when nothing is equipped', () => {
-      const menu = buildUnequipSelectMenu(['', '', '', '', '', ''], []).toJSON().components[0] as any;
+    expect(lignes).toHaveLength(1);
+    expect((lignes[0].toJSON().components[0] as any).custom_id).toBe('equip_background');
+  });
 
-      expect(menu.options ?? []).toHaveLength(0);
-    });
+  it('propose équiper + retirer quand le joueur ne possède que des badges', () => {
+    const idsBoutons = (buildInventoryButtons(false, true)[0].toJSON().components as any[]).map(c => c.custom_id);
+
+    expect(idsBoutons).toEqual(['equip_badge', 'unequip_badge']);
+  });
+
+  // Cas le plus courant en pratique une fois le joueur un peu avancé : il possède
+  // à la fois des backgrounds et des badges, les deux lignes doivent coexister.
+  it('affiche les deux lignes (background et badges) quand le joueur possède les deux', () => {
+    const lignes = buildInventoryButtons(true, true);
+
+    expect(lignes).toHaveLength(2);
+    const tousLesIds = lignes.flatMap(l => (l.toJSON().components as any[]).map(c => c.custom_id));
+    expect(tousLesIds).toEqual(['equip_background', 'equip_badge', 'unequip_badge']);
+  });
+
+  it('renvoie vers la boutique (bouton désactivé) quand l\'inventaire est vide', () => {
+    const bouton = buildInventoryButtons(false, false)[0].toJSON().components[0] as any;
+
+    expect(bouton.custom_id).toBe('goto_shop');
+    expect(bouton.disabled).toBe(true);
+  });
+});
+
+it('marque le background actuellement équipé dans son libellé et sa description', () => {
+  const backgrounds: ShopItem[] = [
+    { item_id: 'bg_ocean', item_type: 'background', name: 'Ocean', price: 100, owned: true, equipped: true },
+    { item_id: 'bg_lava', item_type: 'background', name: 'Lava', price: 100, owned: true, equipped: false },
+  ];
+
+  const menu = buildBackgroundSelectMenu(backgrounds, 'bg_ocean').toJSON().components[0] as any;
+  const [ocean, lava] = menu.options;
+
+  expect(ocean.label).toBe('Ocean (équipé)');
+  expect(ocean.description).toBe('✅ Actuellement équipé');
+  expect(lava.label).toBe('Lava');
+});
+
+describe('Choix du slot pour équiper un badge (6 emplacements)', () => {
+  it('affiche "Vide" pour un slot que personne n\'occupe', () => {
+    const menu = buildSlotSelectMenu('badge_nouveau', [], []).toJSON().components[0] as any;
+
+    expect(menu.options[0].description).toBe('Vide');
+    expect(menu.options[0].emoji.name).toBe('⚫');
+  });
+
+  it("prévient qu'équiper ce badge remplacera celui déjà présent dans le slot", () => {
+    const founder: ShopItem = { item_id: 'badge_founder', item_type: 'badge', name: 'Founder', emoji: '👑', price: 0, owned: true, equipped: true };
+
+    const menu = buildSlotSelectMenu('badge_nouveau', [founder], ['badge_founder']).toJSON().components[0] as any;
+
+    expect(menu.options[0].description).toContain('Founder');
+    expect(menu.options[0].description).toContain('sera remplacé');
+  });
+
+  // Joueur en fin de progression avec sa collection complète équipée : les 6 slots
+  // doivent tous rester proposés (avec leur contenu respectif), aucun ne disparaît.
+  it('propose toujours les 6 slots même quand ils sont tous déjà occupés', () => {
+    const sixBadges: ShopItem[] = Array.from({ length: 6 }, (_, i) => ({
+      item_id: `badge_${i}`, item_type: 'badge', name: `Badge ${i}`, price: 0, owned: true, equipped: true,
+    }));
+    const sixSlotsRemplis = sixBadges.map(b => b.item_id);
+
+    const menu = buildSlotSelectMenu('badge_nouveau', sixBadges, sixSlotsRemplis).toJSON().components[0] as any;
+
+    expect(menu.options).toHaveLength(6);
+    expect(menu.options.every((o: any) => o.description.includes('sera remplacé'))).toBe(true);
+  });
+});
+
+describe('Retrait d\'un badge équipé', () => {
+  it('ne liste que les slots réellement occupés', () => {
+    const founder: ShopItem = { item_id: 'badge_founder', item_type: 'badge', name: 'Founder', price: 0, owned: true, equipped: true };
+
+    const menu = buildUnequipSelectMenu(['badge_founder', '', '', '', '', ''], [founder]).toJSON().components[0] as any;
+
+    expect(menu.options).toHaveLength(1);
+    expect(menu.options[0].label).toContain('Founder');
+  });
+
+  it('gère un mélange de slots occupés et vides dispersés (pas seulement en début de liste)', () => {
+    const founder: ShopItem = { item_id: 'badge_founder', item_type: 'badge', name: 'Founder', price: 0, owned: true, equipped: true };
+    const star: ShopItem = { item_id: 'badge_star', item_type: 'badge', name: 'Star', price: 0, owned: true, equipped: true };
+
+    const menu = buildUnequipSelectMenu(['', 'badge_founder', '', '', 'badge_star', ''], [founder, star]).toJSON().components[0] as any;
+
+    expect(menu.options).toHaveLength(2);
+    expect(menu.options.map((o: any) => o.label)).toEqual(
+      expect.arrayContaining([expect.stringContaining('Founder'), expect.stringContaining('Star')]),
+    );
+  });
+
+  it("ne propose aucune option si le joueur n'a rien équipé", () => {
+    const menu = buildUnequipSelectMenu(['', '', '', '', '', ''], []).toJSON().components[0] as any;
+
+    expect(menu.options ?? []).toHaveLength(0);
   });
 });

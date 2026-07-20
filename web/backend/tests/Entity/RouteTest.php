@@ -32,6 +32,6 @@ class RouteTest extends TestCase
         $this->assertSame('lyon', $array['city_to']);
         $this->assertSame(150, $array['cost']);
         $this->assertSame(3600, $array['duration']);
-        $this->assertNull($array['route_id']); // non persisté
+        $this->assertNull($array['route_id']); // null tant que l'entité n'a pas été persistée
     }
 }

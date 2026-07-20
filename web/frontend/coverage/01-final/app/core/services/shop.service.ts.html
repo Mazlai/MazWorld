@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">14.28% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -97,24 +97,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable, inject } from '@angular/core';
@@ -124,24 +124,24 @@ import { environment } from '../../../environments/environment';
 import type { ShopResponse, PurchaseResponse, EquipResponse } from '../models/shop.model';
 &nbsp;
 @Injectable({ providedIn: 'root' })
-export class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >ShopService {</span></span>
-  private readonly <span class="cstat-no" title="statement not covered" >http = inject(HttpClient);</span>
-  private readonly base = <span class="cstat-no" title="statement not covered" >environment.apiUrl;</span>
+export class ShopService {
+  private readonly http = inject(HttpClient);
+  private readonly base = environment.apiUrl;
 &nbsp;
-<span class="fstat-no" title="function not covered" >  getShopItems(</span>): Observable&lt;ShopResponse&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.get&lt;ShopResponse&gt;(`${this.base}/api/shop`);</span>
+  getShopItems(): Observable&lt;ShopResponse&gt; {
+    return this.http.get&lt;ShopResponse&gt;(`${this.base}/api/shop`);
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  purchaseItem(i</span>temId: string): Observable&lt;PurchaseResponse&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.post&lt;PurchaseResponse&gt;(`${this.base}/api/shop/purchase`, { item_id: itemId });</span>
+  purchaseItem(itemId: string): Observable&lt;PurchaseResponse&gt; {
+    return this.http.post&lt;PurchaseResponse&gt;(`${this.base}/api/shop/purchase`, { item_id: itemId });
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  equipBackground(i</span>temId: string): Observable&lt;EquipResponse&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.post&lt;EquipResponse&gt;(`${this.base}/api/profile/equip/background`, { item_id: itemId });</span>
+  equipBackground(itemId: string): Observable&lt;EquipResponse&gt; {
+    return this.http.post&lt;EquipResponse&gt;(`${this.base}/api/profile/equip/background`, { item_id: itemId });
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  equipBadge(b</span>adgeId: string, slot: number): Observable&lt;EquipResponse&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.post&lt;EquipResponse&gt;(`${this.base}/api/profile/equip/badge`, { badge_id: badgeId, slot });</span>
+  equipBadge(badgeId: string, slot: number): Observable&lt;EquipResponse&gt; {
+    return this.http.post&lt;EquipResponse&gt;(`${this.base}/api/profile/equip/badge`, { badge_id: badgeId, slot });
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -151,7 +151,7 @@ export class <span class="cstat-no" title="statement not covered" ><span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-12T15:27:21.898Z
+                at 2026-07-19T22:47:37.488Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

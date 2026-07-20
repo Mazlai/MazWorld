@@ -21,7 +21,7 @@ class SecurityHeadersSubscriberTest extends TestCase
         $this->subscriber = new SecurityHeadersSubscriber();
     }
 
-    private function makeEvent(string $path, bool $isMainRequest = true): array
+    private function construireEvenementReponse(string $path, bool $isMainRequest = true): array
     {
         $response    = new Response();
         $request     = Request::create($path);
@@ -44,7 +44,7 @@ class SecurityHeadersSubscriberTest extends TestCase
 
     public function testSkipsSubRequests(): void
     {
-        [$event, $response] = $this->makeEvent('/api/test', isMainRequest: false);
+        [$event, $response] = $this->construireEvenementReponse('/api/test', isMainRequest: false);
         $this->subscriber->onKernelResponse($event);
 
         $this->assertNull($response->headers->get('X-Frame-Options'));
@@ -52,7 +52,7 @@ class SecurityHeadersSubscriberTest extends TestCase
 
     public function testSetsSecurityHeadersOnEveryMainRequest(): void
     {
-        [$event, $response] = $this->makeEvent('/some-page');
+        [$event, $response] = $this->construireEvenementReponse('/some-page');
         $this->subscriber->onKernelResponse($event);
 
         $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
@@ -64,7 +64,7 @@ class SecurityHeadersSubscriberTest extends TestCase
 
     public function testSetsCacheControlNoStoreOnApiPath(): void
     {
-        [$event, $response] = $this->makeEvent('/api/user/me');
+        [$event, $response] = $this->construireEvenementReponse('/api/user/me');
         $this->subscriber->onKernelResponse($event);
 
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
@@ -72,7 +72,7 @@ class SecurityHeadersSubscriberTest extends TestCase
 
     public function testDoesNotForceCacheControlOnNonApiPath(): void
     {
-        [$event, $response] = $this->makeEvent('/about');
+        [$event, $response] = $this->construireEvenementReponse('/about');
         $this->subscriber->onKernelResponse($event);
 
         $this->assertNotSame('no-store', $response->headers->get('Cache-Control'));

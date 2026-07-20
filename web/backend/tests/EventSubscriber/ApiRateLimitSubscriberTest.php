@@ -26,7 +26,7 @@ class ApiRateLimitSubscriberTest extends TestCase
         $this->security = $this->createMock(Security::class);
     }
 
-    private function makeSubscriber(int $limit = 1000, ?InMemoryStorage $storage = null): ApiRateLimitSubscriber
+    private function construireSubscriber(int $limit = 1000, ?InMemoryStorage $storage = null): ApiRateLimitSubscriber
     {
         $factory = new RateLimiterFactory([
             'id' => 'api_test',
@@ -38,7 +38,7 @@ class ApiRateLimitSubscriberTest extends TestCase
         return new ApiRateLimitSubscriber($this->security, $factory);
     }
 
-    private function makeEvent(string $path, bool $isMainRequest = true): RequestEvent
+    private function construireEvenement(string $path, bool $isMainRequest = true): RequestEvent
     {
         $kernel      = $this->createMock(HttpKernelInterface::class);
         $requestType = $isMainRequest ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::SUB_REQUEST;
@@ -57,15 +57,15 @@ class ApiRateLimitSubscriberTest extends TestCase
 
     public function testSkipsSubRequests(): void
     {
-        $event = $this->makeEvent('/api/test', isMainRequest: false);
-        $this->makeSubscriber()->onKernelRequest($event);
+        $event = $this->construireEvenement('/api/test', isMainRequest: false);
+        $this->construireSubscriber()->onKernelRequest($event);
         $this->assertNull($event->getResponse());
     }
 
     public function testSkipsNonApiPaths(): void
     {
-        $event = $this->makeEvent('/about');
-        $this->makeSubscriber()->onKernelRequest($event);
+        $event = $this->construireEvenement('/about');
+        $this->construireSubscriber()->onKernelRequest($event);
         $this->assertNull($event->getResponse());
     }
 
@@ -73,8 +73,8 @@ class ApiRateLimitSubscriberTest extends TestCase
     {
         $this->security->method('getUser')->willReturn(null);
 
-        $event = $this->makeEvent('/api/me');
-        $this->makeSubscriber()->onKernelRequest($event);
+        $event = $this->construireEvenement('/api/me');
+        $this->construireSubscriber()->onKernelRequest($event);
         $this->assertNull($event->getResponse());
     }
 
@@ -84,8 +84,8 @@ class ApiRateLimitSubscriberTest extends TestCase
         $user->method('getUserId')->willReturn('42');
         $this->security->method('getUser')->willReturn($user);
 
-        $event = $this->makeEvent('/api/inventory');
-        $this->makeSubscriber(1000)->onKernelRequest($event);
+        $event = $this->construireEvenement('/api/inventory');
+        $this->construireSubscriber(1000)->onKernelRequest($event);
 
         $this->assertNull($event->getResponse());
     }
@@ -108,7 +108,7 @@ class ApiRateLimitSubscriberTest extends TestCase
         $factory->create('42')->consume();
 
         $subscriber = new ApiRateLimitSubscriber($this->security, $factory);
-        $event      = $this->makeEvent('/api/shop');
+        $event      = $this->construireEvenement('/api/shop');
         $subscriber->onKernelRequest($event);
 
         $response = $event->getResponse();

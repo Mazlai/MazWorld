@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { StatCardComponent } from './stat-card.component';
 
-function setup(inputs: { label: string; value: string | number; icon?: string; variant?: 'default' | 'accent' | 'gold' }): ComponentFixture<StatCardComponent> {
+function afficherCarte(inputs: { label: string; value: string | number; icon?: string; variant?: 'default' | 'accent' | 'gold' }): ComponentFixture<StatCardComponent> {
   TestBed.configureTestingModule({ imports: [StatCardComponent] });
   const fixture = TestBed.createComponent(StatCardComponent);
   fixture.componentRef.setInput('label', inputs.label);
@@ -12,53 +12,37 @@ function setup(inputs: { label: string; value: string | number; icon?: string; v
   return fixture;
 }
 
-describe('StatCardComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+afterEach(() => TestBed.resetTestingModule());
 
-  it('se crée sans erreur', () => {
-    const fixture = setup({ label: 'Score', value: 42 });
-    expect(fixture.componentInstance).toBeTruthy();
+it('affiche la valeur et le label reçus (ex. solde de MazCoins sur le dashboard)', () => {
+  const fixture = afficherCarte({ label: 'Pièces', value: 1500 });
+
+  expect(fixture.nativeElement.querySelector('.stat-card__value')?.textContent?.trim()).toBe('1500');
+  expect(fixture.nativeElement.querySelector('.stat-card__label')?.textContent?.trim()).toBe('Pièces');
+});
+
+describe('Variante de couleur', () => {
+  it('applique "default" quand aucune variante n\'est précisée', () => {
+    expect(afficherCarte({ label: 'Score', value: 10 }).nativeElement.querySelector('.stat-card--default')).toBeTruthy();
   });
 
-  it('affiche la valeur dans le DOM', () => {
-    const fixture = setup({ label: 'Score', value: 1500 });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.stat-card__value')?.textContent?.trim()).toBe('1500');
+  it('applique la variante demandée sur le conteneur', () => {
+    expect(afficherCarte({ label: 'Score', value: 10, variant: 'accent' }).nativeElement.querySelector('.stat-card--accent')).toBeTruthy();
+  });
+});
+
+describe('Icône — optionnelle', () => {
+  it('l\'affiche quand elle est fournie', () => {
+    expect(afficherCarte({ label: 'Score', value: 10, icon: '⭐' }).nativeElement.querySelector('.stat-card__icon')?.textContent?.trim()).toBe('⭐');
   });
 
-  it('affiche le label dans le DOM', () => {
-    const fixture = setup({ label: 'Pièces', value: 0 });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.stat-card__label')?.textContent?.trim()).toBe('Pièces');
+  it('ne laisse pas d\'élément vide dans le DOM quand elle est absente', () => {
+    expect(afficherCarte({ label: 'Score', value: 10 }).nativeElement.querySelector('.stat-card__icon')).toBeNull();
   });
+});
 
-  it('applique la classe de variante sur le conteneur', () => {
-    const fixture = setup({ label: 'Score', value: 10, variant: 'accent' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.stat-card--accent')).toBeTruthy();
-  });
+it('combine valeur et label dans un seul aria-label pour les lecteurs d\'écran', () => {
+  const fixture = afficherCarte({ label: 'Pièces', value: 500 });
 
-  it('applique la variante "default" par défaut', () => {
-    const fixture = setup({ label: 'Score', value: 10 });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.stat-card--default')).toBeTruthy();
-  });
-
-  it('affiche l\'icône quand fournie', () => {
-    const fixture = setup({ label: 'Score', value: 10, icon: '⭐' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.stat-card__icon')?.textContent?.trim()).toBe('⭐');
-  });
-
-  it('n\'affiche pas l\'icône quand vide (défaut)', () => {
-    const fixture = setup({ label: 'Score', value: 10 });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.stat-card__icon')).toBeNull();
-  });
-
-  it('définit un aria-label combinant value et label', () => {
-    const fixture = setup({ label: 'Pièces', value: 500 });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('[role="group"]')?.getAttribute('aria-label')).toBe('500 Pièces');
-  });
+  expect(fixture.nativeElement.querySelector('[role="group"]')?.getAttribute('aria-label')).toBe('500 Pièces');
 });

@@ -4,7 +4,7 @@ import { ServersComponent } from './servers.component';
 import { ServersService } from '../../core/services/servers.service';
 import type { DiscordServer, BotStatus } from '../../core/models/servers.model';
 
-function makeServer(overrides: Partial<DiscordServer> & { id: string }): DiscordServer {
+function serveurDiscord(overrides: Partial<DiscordServer> & { id: string }): DiscordServer {
   return {
     name: overrides.id,
     icon: null,
@@ -16,143 +16,100 @@ function makeServer(overrides: Partial<DiscordServer> & { id: string }): Discord
   };
 }
 
-function setup() {
-  const botStatusSubject  = new Subject<BotStatus>();
-  const serversSubject    = new Subject<DiscordServer[]>();
-
-  const mockService = {
-    getBotStatus:  vi.fn().mockReturnValue(botStatusSubject.asObservable()),
-    getMyServers: vi.fn().mockReturnValue(serversSubject.asObservable()),
-  };
-
+function monterAvecService(service: Pick<ServersService, 'getBotStatus' | 'getMyServers'>) {
   TestBed.configureTestingModule({
     imports: [ServersComponent],
-    providers: [{ provide: ServersService, useValue: mockService }],
+    providers: [{ provide: ServersService, useValue: service }],
   });
   const fixture = TestBed.createComponent(ServersComponent);
   fixture.detectChanges();
-
-  return {
-    component: fixture.componentInstance,
-    botStatusSubject,
-    serversSubject,
-    mockService,
-  };
+  return { component: fixture.componentInstance };
 }
 
-describe('ServersComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+function monterPage() {
+  const botStatus$ = new Subject<BotStatus>();
+  const servers$ = new Subject<DiscordServer[]>();
+  const serviceMock = {
+    getBotStatus: vi.fn().mockReturnValue(botStatus$.asObservable()),
+    getMyServers: vi.fn().mockReturnValue(servers$.asObservable()),
+  };
 
-  // ===== presentCount() =====
+  return { ...monterAvecService(serviceMock), botStatus$, servers$, serviceMock };
+}
 
-  describe('presentCount()', () => {
-    it('compte uniquement les serveurs où bot_present est true', () => {
-      const { component } = setup();
-      component.servers.set([
-        makeServer({ id: 's1', bot_present: true }),
-        makeServer({ id: 's2', bot_present: false }),
-        makeServer({ id: 's3', bot_present: true }),
-        makeServer({ id: 's4', bot_present: false }),
-      ]);
-      expect(component.presentCount()).toBe(2);
+afterEach(() => TestBed.resetTestingModule());
+
+it('presentCount() ne compte que les serveurs où le bot est effectivement présent', () => {
+  const { component } = monterPage();
+  component.servers.set([
+    serveurDiscord({ id: 's1', bot_present: true }),
+    serveurDiscord({ id: 's2', bot_present: false }),
+    serveurDiscord({ id: 's3', bot_present: true }),
+    serveurDiscord({ id: 's4', bot_present: false }),
+  ]);
+
+  expect(component.presentCount()).toBe(2);
+});
+
+describe('Statut du bot — l\'API bot/status peut échouer sans casser la page', () => {
+  it('retombe sur un statut "hors ligne" plutôt que de déclencher hasError si l\'appel échoue', () => {
+    const { component } = monterAvecService({
+      getBotStatus: vi.fn().mockReturnValue(throwError(() => new Error('Bot offline'))),
+      getMyServers: vi.fn().mockReturnValue(new Subject().asObservable()),
     });
 
-    it('retourne 0 si aucun serveur n\'a le bot', () => {
-      const { component } = setup();
-      component.servers.set([makeServer({ id: 's1' }), makeServer({ id: 's2' })]);
-      expect(component.presentCount()).toBe(0);
-    });
+    expect(component.botStatus()).toEqual({ online: false, username: null, bot_id: null });
+    expect(component.hasError()).toBe(false);
   });
 
-  // ===== getBotStatus() — fallback silencieux =====
+  it('reflète le vrai statut une fois la réponse reçue', () => {
+    const { component, botStatus$ } = monterPage();
 
-  describe('getBotStatus() — fallback silencieux sur erreur', () => {
-    it('set botStatus avec online:false en cas d\'erreur sans déclencher hasError', () => {
-      const mockService = {
-        getBotStatus: vi.fn().mockReturnValue(throwError(() => new Error('Bot offline'))),
-        getMyServers: vi.fn().mockReturnValue(new Subject().asObservable()),
-      };
-      TestBed.configureTestingModule({
-        imports: [ServersComponent],
-        providers: [{ provide: ServersService, useValue: mockService }],
-      });
-      const fixture = TestBed.createComponent(ServersComponent);
-      fixture.detectChanges();
-      const component = fixture.componentInstance;
+    botStatus$.next({ online: true, username: 'MazBot#0001', bot_id: '987654' });
 
-      expect(component.botStatus()).toEqual({ online: false, username: null, bot_id: null });
-      expect(component.hasError()).toBe(false);
-    });
+    expect(component.botStatus()?.online).toBe(true);
+    expect(component.botStatus()?.username).toBe('MazBot#0001');
+  });
+});
 
-    it('set botStatus à partir de la réponse API quand elle réussit', () => {
-      const { component, botStatusSubject } = setup();
-      botStatusSubject.next({ online: true, username: 'MazBot#0001', bot_id: '987654' });
-      expect(component.botStatus()?.online).toBe(true);
-      expect(component.botStatus()?.username).toBe('MazBot#0001');
-    });
+describe('Chargement de la liste des serveurs', () => {
+  it('affiche les serveurs reçus et sort de l\'état de chargement', () => {
+    const { component, servers$ } = monterPage();
+
+    servers$.next([serveurDiscord({ id: 's1' }), serveurDiscord({ id: 's2' })]);
+
+    expect(component.servers()).toHaveLength(2);
+    expect(component.isLoading()).toBe(false);
   });
 
-  // ===== Flux serveurs =====
-
-  describe('Chargement des serveurs', () => {
-    it('set les serveurs et passe isLoading à false', () => {
-      const { component, serversSubject } = setup();
-      serversSubject.next([makeServer({ id: 's1' }), makeServer({ id: 's2' })]);
-      expect(component.servers()).toHaveLength(2);
-      expect(component.isLoading()).toBe(false);
+  it('déclenche hasError (contrairement au statut bot) si /api/servers échoue', () => {
+    const { component } = monterAvecService({
+      getBotStatus: vi.fn().mockReturnValue(new Subject().asObservable()),
+      getMyServers: vi.fn().mockReturnValue(throwError(() => new Error('API error'))),
     });
 
-    it('passe hasError à true en cas d\'erreur sur getMyServers', () => {
-      const mockService = {
-        getBotStatus:  vi.fn().mockReturnValue(new Subject().asObservable()),
-        getMyServers: vi.fn().mockReturnValue(throwError(() => new Error('API error'))),
-      };
-      TestBed.configureTestingModule({
-        imports: [ServersComponent],
-        providers: [{ provide: ServersService, useValue: mockService }],
-      });
-      const fixture = TestBed.createComponent(ServersComponent);
-      fixture.detectChanges();
-      const component = fixture.componentInstance;
-
-      expect(component.hasError()).toBe(true);
-      expect(component.isLoading()).toBe(false);
-    });
+    expect(component.hasError()).toBe(true);
+    expect(component.isLoading()).toBe(false);
   });
+});
 
-  // ===== fmtCount() =====
+it('fmtCount() traite null et 0 comme un simple "0", puis abrège en K/M au-delà', () => {
+  const { component } = monterPage();
 
-  describe('fmtCount()', () => {
-    it('retourne "0" quand la valeur est null', () => {
-      const { component } = setup();
-      expect(component.fmtCount(null)).toBe('0');
-    });
+  expect(component.fmtCount(null)).toBe('0');
+  expect(component.fmtCount(0)).toBe('0');
+  expect(component.fmtCount(1500)).toBe('1.5K');
+  expect(component.fmtCount(2_000_000)).toBe('2.0M');
+});
 
-    it('retourne "0" quand la valeur est 0', () => {
-      const { component } = setup();
-      expect(component.fmtCount(0)).toBe('0');
-    });
+// noopener,noreferrer empêche la page ouverte (l'invite Discord) d'accéder à window.opener —
+// une négligence classique lors de l'ouverture de liens externes en nouvel onglet.
+it('openInvite() ouvre le lien Discord avec les protections noopener/noreferrer', () => {
+  const { component } = monterPage();
+  const openSpy = vi.spyOn(window, 'open').mockReturnValue(null as unknown as Window);
 
-    it('formate en K pour les milliers', () => {
-      const { component } = setup();
-      expect(component.fmtCount(1500)).toBe('1.5K');
-    });
+  component.openInvite('https://discord.com/invite/abc123');
 
-    it('formate en M pour les millions', () => {
-      const { component } = setup();
-      expect(component.fmtCount(2_000_000)).toBe('2.0M');
-    });
-  });
-
-  // ===== openInvite() — sécurité noopener,noreferrer =====
-
-  describe('openInvite()', () => {
-    it('ouvre l\'URL avec _blank et noopener,noreferrer', () => {
-      const { component } = setup();
-      const openSpy = vi.spyOn(window, 'open').mockReturnValue(null as unknown as Window);
-      component.openInvite('https://discord.com/invite/abc123');
-      expect(openSpy).toHaveBeenCalledWith('https://discord.com/invite/abc123', '_blank', 'noopener,noreferrer');
-      openSpy.mockRestore();
-    });
-  });
+  expect(openSpy).toHaveBeenCalledWith('https://discord.com/invite/abc123', '_blank', 'noopener,noreferrer');
+  openSpy.mockRestore();
 });
