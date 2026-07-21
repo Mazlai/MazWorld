@@ -1,5 +1,17 @@
 # Stratégie de tests — MazWorld
 
+**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+
+---
+
+## Sommaire
+
+1. [Backend (Symfony)](#backend-symfony)
+2. [Frontend (Angular)](#frontend-angular)
+3. [Bot Discord (Node/TypeScript)](#bot-discord-nodetypescript)
+
+---
+
 Ce document centralise la stratégie de tests du projet MazWorld. Chaque module dispose de sa propre section détaillant les catégories de tests, les commandes et les choix de conception.
 
 ---

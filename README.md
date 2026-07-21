@@ -22,7 +22,7 @@ Avec Docker (recommandé, mêmes services qu'en production) :
 docker compose up -d
 ```
 
-L'application est alors disponible sur `http://localhost:8080`. Le détail des prérequis, des variables d'environnement et du déploiement en production se trouve dans le [manuel de déploiement](docs/DEPLOYMENT.md).
+L'application est alors disponible sur `http://localhost:8080`. Le détail des prérequis, des variables d'environnement et du déploiement en production se trouve dans le [manuel de déploiement](docs/DEPLOIEMENT.md).
 
 Sans Docker, en local :
 
@@ -37,8 +37,11 @@ démarre en parallèle le backend (`symfony server:start`), le frontend (`ng ser
 
 | Document | Contenu |
 |---|---|
-| [Manuel d'utilisation](docs/USER_GUIDE.md) | Fonctionnalités du jeu, interface web et commandes du bot |
-| [Manuel de déploiement](docs/DEPLOYMENT.md) | Installation, environnements dev/prod, variables d'environnement |
-| [Manuel de mise à jour](docs/UPDATE.md) | Versionnement, migrations de base de données, mise à jour d'une instance en production |
-| [Stratégie de tests](docs/TESTING.md) | Tests unitaires et d'intégration, couverture |
-| [Audit d'accessibilité](docs/accessibility-audit.md) | Conformité WCAG 2.1 AA |
+| [Manuel d'utilisation](docs/GUIDE_UTILISATION.md) | Fonctionnalités du jeu, interface web et commandes du bot |
+| [Manuel de déploiement](docs/DEPLOIEMENT.md) | Installation, environnements dev/prod, variables d'environnement |
+| [Manuel de mise à jour](docs/MISE_A_JOUR.md) | Versionnement, migrations de base de données, mise à jour d'une instance en production |
+| [Stratégie de tests](docs/STRATEGIE_TESTS.md) | Tests unitaires et d'intégration, couverture |
+| [Audit d'accessibilité](docs/AUDIT_ACCESSIBILITE.md) | Conformité WCAG 2.1 AA |
+| [Sécurité — OWASP Top 10](docs/SECURITE_OWASP.md) | Couverture des 10 failles principales |
+| [User stories](docs/USER_STORIES.md) | Inventaire des fonctionnalités attendues |
+| [Cahier de recettes](docs/CAHIER_DE_RECETTES.md) | Scénarios de test fonctionnels, structurels et de sécurité |

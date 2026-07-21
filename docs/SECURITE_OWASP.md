@@ -1,6 +1,25 @@
 # Sécurité — OWASP Top 10 (2021)
 
-**Date :** juillet 2026
+**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+
+---
+
+## Sommaire
+
+1. [Vue d'ensemble](#vue-densemble)
+2. [A01 — Broken Access Control](#a01--broken-access-control)
+3. [A02 — Cryptographic Failures](#a02--cryptographic-failures)
+4. [A03 — Injection](#a03--injection)
+5. [A04 — Insecure Design](#a04--insecure-design)
+6. [A05 — Security Misconfiguration](#a05--security-misconfiguration)
+7. [A06 — Vulnerable and Outdated Components](#a06--vulnerable-and-outdated-components)
+8. [A07 — Identification and Authentication Failures](#a07--identification-and-authentication-failures)
+9. [A08 — Software and Data Integrity Failures](#a08--software-and-data-integrity-failures)
+10. [A09 — Security Logging and Monitoring Failures](#a09--security-logging-and-monitoring-failures)
+11. [A10 — Server-Side Request Forgery (SSRF)](#a10--server-side-request-forgery-ssrf)
+
+---
+
 **Référentiel :** OWASP Top 10 2021
 **Périmètre :** Backend Symfony 7 + Frontend Angular 21
 

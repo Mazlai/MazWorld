@@ -1,6 +1,18 @@
 # Audit d'accessibilité — MazWorld
 
-**Date :** juillet 2026
+**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+
+---
+
+## Sommaire
+
+1. [Choix du référentiel et du niveau](#choix-du-référentiel-et-du-niveau)
+2. [Outils d'audit](#outils-daudit)
+3. [État des SUs — Feature #178 (conformité WCAG 2.1 AA)](#état-des-sus--feature-178-conformité-wcag-21-aa)
+4. [Points conformes (dès l'audit initial)](#points-conformes-dès-laudit-initial)
+
+---
+
 **Périmètre :** 14 templates Angular (pages publiques + protégées)
 **Référentiel :** WCAG 2.1 niveau AA
 

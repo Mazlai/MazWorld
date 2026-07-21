@@ -1,5 +1,20 @@
 # Manuel de déploiement — MazWorld
 
+**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+
+---
+
+## Sommaire
+
+1. [Architecture](#1-architecture)
+2. [Prérequis](#2-prérequis)
+3. [Déploiement en développement](#3-déploiement-en-développement)
+4. [Déploiement en production](#4-déploiement-en-production)
+5. [Rollback](#5-rollback)
+6. [Intégration et déploiement continus](#6-intégration-et-déploiement-continus)
+
+---
+
 Ce document explique comment déployer MazWorld, en développement comme en production. Les trois services applicatifs (backend Symfony, frontend Angular, bot Discord) et la base de données MySQL sont orchestrés par Docker Compose, avec **la même topologie dans les deux environnements** — seule la configuration change, via un fichier de surcouche dédié.
 
 Pour le détail des choix d'architecture, la stratégie de branches et l'historique des incidents rencontrés pendant la mise en place de cette infrastructure, voir `docs/C2.1.1-environnement-deploiement.md` (branche `feature/SU/101-migration-deploiement-vps`).

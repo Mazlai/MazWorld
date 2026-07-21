@@ -1,5 +1,32 @@
 # User stories - MazWorld
 
+**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+
+---
+
+## Sommaire
+
+- [Méthode](#méthode)
+1. [Fondations techniques](#1-fondations-techniques-configuration-initiale--features-16-17-18-29-31-32)
+2. [Authentification](#2-authentification-features-30-31)
+3. [Profil de l'utilisateur](#3-profil-de-lutilisateur-features-55-56)
+4. [Carte / Villes](#4-carte--villes-features-57-58)
+5. [Boutique](#5-boutique-features-59-60-177)
+6. [Classement](#6-classement-feature-63)
+7. [Statistiques](#7-statistiques-features-61-62)
+8. [Bot Discord - commandes slash](#8-bot-discord---commandes-slash-features-43-64)
+9. [Discord Bot — cœur technique](#9-discord-bot--cœur-technique-features-18-31-39-65)
+10. [Gestion des serveurs Discord](#10-gestion-des-serveurs-discord-features-66-67-68)
+11. [UX/UI en transversal](#11-uxui-en-transversal-features-16-35)
+12. [Sécurité applicative](#12-sécurité-applicative-epic-173--features-175-176)
+13. [Qualité et tests](#13-qualité-et-tests-epic-89--feature-90)
+14. [Accessibilité](#14-accessibilité-epic-174--feature-178)
+15. [CI/CD](#15-cicd-epic-94--features-95-96)
+16. [Monitoring](#16-monitoring-epic-102--feature-103)
+- [Synthèse](#synthèse)
+
+---
+
 ## Méthode
 
 Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tracés dans GitHub Issues avec le label **`SU`** ("Scénario Utilisateur"), dans une structure `Initiative > Epic > Feature > SU` mise en place grâce aux sous-issues natives de GitHub (les relations parent/enfant sont vérifiées par l'API, pour un total de 78 SU tous rattachés à une feature ou une epic).

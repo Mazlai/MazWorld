@@ -1,5 +1,19 @@
 # Manuel d'utilisation — MazWorld
 
+**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+
+---
+
+## Sommaire
+
+1. [Se connecter](#1-se-connecter)
+2. [L'application web](#2-lapplication-web)
+3. [Le bot Discord](#3-le-bot-discord)
+4. [Rôles](#4-rôles)
+5. [Questions fréquentes](#5-questions-fréquentes)
+
+---
+
 MazWorld est un jeu économique de voyage : chaque joueur incarne un personnage qui se déplace entre des villes, y travaille pour gagner des mazcoins, dépense cette monnaie en boutique et peut comparer sa progression au classement général. Le jeu se joue indifféremment via le **bot Discord** ou l'**application web** — un seul et même compte, la progression est partagée entre les deux interfaces.
 
 ---
