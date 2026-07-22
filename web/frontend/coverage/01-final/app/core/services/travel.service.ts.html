@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.18% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/11</span>
+                <span class='fraction'>11/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -101,28 +101,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Injectable, inject } from '@angular/core';
@@ -132,28 +132,28 @@ import { environment } from '../../../environments/environment';
 import type { City, RouteData, TravelMapData, TravelStatus, TravelStartResult } from '../models/travel.model';
 &nbsp;
 @Injectable({ providedIn: 'root' })
-export class <span class="cstat-no" title="statement not covered" ><span class="cstat-no" title="statement not covered" >TravelService {</span></span>
-  private readonly <span class="cstat-no" title="statement not covered" >http = inject(HttpClient);</span>
-  private readonly base = <span class="cstat-no" title="statement not covered" >environment.apiUrl;</span>
+export class TravelService {
+  private readonly http = inject(HttpClient);
+  private readonly base = environment.apiUrl;
 &nbsp;
-<span class="fstat-no" title="function not covered" >  getAllCities(</span>): Observable&lt;City[]&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.get&lt;City[]&gt;(`${this.base}/api/cities`);</span>
+  getAllCities(): Observable&lt;City[]&gt; {
+    return this.http.get&lt;City[]&gt;(`${this.base}/api/cities`);
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  getAllRoutes(</span>): Observable&lt;RouteData[]&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.get&lt;RouteData[]&gt;(`${this.base}/api/routes`);</span>
+  getAllRoutes(): Observable&lt;RouteData[]&gt; {
+    return this.http.get&lt;RouteData[]&gt;(`${this.base}/api/routes`);
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  getMap(</span>): Observable&lt;TravelMapData&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.get&lt;TravelMapData&gt;(`${this.base}/api/travel/map`);</span>
+  getMap(): Observable&lt;TravelMapData&gt; {
+    return this.http.get&lt;TravelMapData&gt;(`${this.base}/api/travel/map`);
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  getStatus(</span>): Observable&lt;TravelStatus&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.get&lt;TravelStatus&gt;(`${this.base}/api/travel/status`);</span>
+  getStatus(): Observable&lt;TravelStatus&gt; {
+    return this.http.get&lt;TravelStatus&gt;(`${this.base}/api/travel/status`);
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  startTravel(d</span>estinationId: string): Observable&lt;TravelStartResult&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.http.post&lt;TravelStartResult&gt;(`${this.base}/api/travel/start`, { destination_id: destinationId });</span>
+  startTravel(destinationId: string): Observable&lt;TravelStartResult&gt; {
+    return this.http.post&lt;TravelStartResult&gt;(`${this.base}/api/travel/start`, { destination_id: destinationId });
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -163,7 +163,7 @@ export class <span class="cstat-no" title="statement not covered" ><span class="
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-12T15:27:21.898Z
+                at 2026-07-19T22:47:37.488Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

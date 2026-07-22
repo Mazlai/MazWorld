@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { HeaderComponent } from './header.component';
 import { AuthService } from '../../../core/services/auth.service';
 
-function makeAuthMock(opts: { isLoading?: boolean; isAuthenticated?: boolean; roles?: string[] } = {}) {
+function authMockAvec(opts: { isLoading?: boolean; isAuthenticated?: boolean; roles?: string[] } = {}) {
   return {
     isLoading: vi.fn().mockReturnValue(opts.isLoading ?? false),
     isAuthenticated: vi.fn().mockReturnValue(opts.isAuthenticated ?? false),
@@ -16,165 +16,161 @@ function makeAuthMock(opts: { isLoading?: boolean; isAuthenticated?: boolean; ro
   };
 }
 
-function setup(authOpts?: Parameters<typeof makeAuthMock>[0]): {
+function monterHeader(authOpts?: Parameters<typeof authMockAvec>[0]): {
   fixture: ComponentFixture<HeaderComponent>;
   component: HeaderComponent;
-  mockAuth: ReturnType<typeof makeAuthMock>;
+  authMock: ReturnType<typeof authMockAvec>;
 } {
-  const mockAuth = makeAuthMock(authOpts);
+  const authMock = authMockAvec(authOpts);
   TestBed.configureTestingModule({
     imports: [HeaderComponent],
-    providers: [provideRouter([]), { provide: AuthService, useValue: mockAuth }],
+    providers: [provideRouter([]), { provide: AuthService, useValue: authMock }],
   });
   const fixture = TestBed.createComponent(HeaderComponent);
   fixture.detectChanges();
-  return { fixture, component: fixture.componentInstance, mockAuth };
+  return { fixture, component: fixture.componentInstance, authMock };
 }
 
-describe('HeaderComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+function contientLienStats(el: HTMLElement): boolean {
+  let trouve = false;
+  el.querySelectorAll('a').forEach(a => { if (a.textContent?.includes('Stats')) trouve = true; });
+  return trouve;
+}
 
-  // ===== Affichage selon l'état d'authentification =====
+afterEach(() => TestBed.resetTestingModule());
 
-  describe('Branchement auth (isLoading / isAuthenticated)', () => {
-    it('affiche le spinner quand isLoading est true', () => {
-      const { fixture } = setup({ isLoading: true });
-      expect(fixture.nativeElement.querySelector('app-spinner')).toBeTruthy();
-    });
+describe('Zone actions — dépend de isLoading / isAuthenticated', () => {
+  it('affiche un spinner tant que l\'état de connexion n\'est pas encore connu', () => {
+    const { fixture } = monterHeader({ isLoading: true });
 
-    it('affiche le bouton de connexion Discord quand non authentifié', () => {
-      const { fixture } = setup({ isLoading: false, isAuthenticated: false });
-      expect(fixture.nativeElement.querySelector('button.btn-discord')).toBeTruthy();
-    });
-
-    it('affiche le menu utilisateur quand authentifié', () => {
-      const { fixture } = setup({ isLoading: false, isAuthenticated: true, roles: ['ROLE_USER'] });
-      expect(fixture.nativeElement.querySelector('.user-menu')).toBeTruthy();
-    });
-
-    it('n\'affiche pas le bouton de connexion dans la zone actions quand authentifié', () => {
-      const { fixture } = setup({ isLoading: false, isAuthenticated: true, roles: ['ROLE_USER'] });
-      expect(fixture.nativeElement.querySelector('.site-header__actions .btn-discord')).toBeFalsy();
-    });
+    expect(fixture.nativeElement.querySelector('app-spinner')).toBeTruthy();
   });
 
-  // ===== Lien Stats conditionnel ROLE_ADMIN =====
+  it('propose la connexion Discord pour un visiteur non authentifié', () => {
+    const { fixture } = monterHeader({ isLoading: false, isAuthenticated: false });
 
-  describe('Lien Stats (ROLE_ADMIN)', () => {
-    function hasStatsLink(el: HTMLElement): boolean {
-      let found = false;
-      el.querySelectorAll('a').forEach(a => { if (a.textContent?.includes('Stats')) found = true; });
-      return found;
-    }
-
-    it('affiche le lien Stats quand l\'utilisateur a ROLE_ADMIN', () => {
-      const { fixture } = setup({ isAuthenticated: true, roles: ['ROLE_ADMIN'] });
-      expect(hasStatsLink(fixture.nativeElement)).toBe(true);
-    });
-
-    it('n\'affiche pas le lien Stats sans ROLE_ADMIN', () => {
-      const { fixture } = setup({ isAuthenticated: true, roles: ['ROLE_USER'] });
-      expect(hasStatsLink(fixture.nativeElement)).toBe(false);
-    });
-
-    it('n\'affiche pas le lien Stats quand non authentifié', () => {
-      const { fixture } = setup({ isAuthenticated: false });
-      expect(hasStatsLink(fixture.nativeElement)).toBe(false);
-    });
+    expect(fixture.nativeElement.querySelector('button.btn-discord')).toBeTruthy();
   });
 
-  // ===== logout() — ordre des opérations =====
+  it('affiche le menu utilisateur (avatar + pseudo) une fois authentifié', () => {
+    const { fixture } = monterHeader({ isLoading: false, isAuthenticated: true, roles: ['ROLE_USER'] });
 
-  describe('logout()', () => {
-    it('ferme le menu utilisateur avant d\'appeler auth.logout()', () => {
-      const { component, mockAuth } = setup({ isAuthenticated: true, roles: ['ROLE_USER'] });
-      component.isUserMenuOpen.set(true);
-      component.logout();
-      expect(component.isUserMenuOpen()).toBe(false);
-      expect(mockAuth.logout).toHaveBeenCalledTimes(1);
-    });
+    expect(fixture.nativeElement.querySelector('.user-menu')).toBeTruthy();
   });
 
-  // ===== Gestion du menu mobile =====
+  it('retire le bouton de connexion de la zone actions une fois authentifié (pas de doublon avec le menu)', () => {
+    const { fixture } = monterHeader({ isLoading: false, isAuthenticated: true, roles: ['ROLE_USER'] });
 
-  describe('toggleMobileMenu()', () => {
-    it('bascule isMobileMenuOpen de false à true puis retour', () => {
-      const { component } = setup();
-      expect(component.isMobileMenuOpen()).toBe(false);
-      component.toggleMobileMenu();
-      expect(component.isMobileMenuOpen()).toBe(true);
-      component.toggleMobileMenu();
-      expect(component.isMobileMenuOpen()).toBe(false);
-    });
+    expect(fixture.nativeElement.querySelector('.site-header__actions .btn-discord')).toBeFalsy();
+  });
+});
 
-    it('met à jour aria-expanded sur le bouton hamburger', () => {
-      const { component, fixture } = setup();
-      component.toggleMobileMenu();
-      fixture.detectChanges();
-      const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.mobile-toggle');
-      expect(btn.getAttribute('aria-expanded')).toBe('true');
-    });
-
-    it('met à jour aria-label du bouton hamburger selon l\'état', () => {
-      const { component, fixture } = setup();
-      const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.mobile-toggle');
-      expect(btn.getAttribute('aria-label')).toBe('Ouvrir le menu');
-
-      component.toggleMobileMenu();
-      fixture.detectChanges();
-      expect(btn.getAttribute('aria-label')).toBe('Fermer le menu');
-    });
+describe('Lien "Stats" réservé aux administrateurs', () => {
+  it('apparaît pour un compte avec ROLE_ADMIN', () => {
+    expect(contientLienStats(monterHeader({ isAuthenticated: true, roles: ['ROLE_ADMIN'] }).fixture.nativeElement)).toBe(true);
   });
 
-  // ===== Gestion du menu utilisateur =====
-
-  describe('toggleUserMenu()', () => {
-    it('bascule isUserMenuOpen', () => {
-      const { component } = setup({ isAuthenticated: true, roles: ['ROLE_USER'] });
-      expect(component.isUserMenuOpen()).toBe(false);
-      component.toggleUserMenu();
-      expect(component.isUserMenuOpen()).toBe(true);
-    });
-
-    it('met à jour aria-expanded sur le trigger', () => {
-      const { component, fixture } = setup({ isAuthenticated: true, roles: ['ROLE_USER'] });
-      component.toggleUserMenu();
-      fixture.detectChanges();
-      const trigger: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-haspopup="menu"]');
-      expect(trigger?.getAttribute('aria-expanded')).toBe('true');
-    });
+  it('reste caché pour un joueur standard (ROLE_USER seul)', () => {
+    expect(contientLienStats(monterHeader({ isAuthenticated: true, roles: ['ROLE_USER'] }).fixture.nativeElement)).toBe(false);
   });
 
-  // ===== Navigation clavier =====
+  it('reste caché pour un visiteur non connecté', () => {
+    expect(contientLienStats(monterHeader({ isAuthenticated: false }).fixture.nativeElement)).toBe(false);
+  });
+});
 
-  describe('onUserMenuKeydown()', () => {
-    it('ferme le menu sur Escape', () => {
-      const { component } = setup();
-      component.isUserMenuOpen.set(true);
-      component.onUserMenuKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
-      expect(component.isUserMenuOpen()).toBe(false);
-    });
+it('logout() referme le menu utilisateur avant d\'appeler AuthService.logout()', () => {
+  const { component, authMock } = monterHeader({ isAuthenticated: true, roles: ['ROLE_USER'] });
+  component.isUserMenuOpen.set(true);
 
-    it('ouvre le menu sur ArrowDown', () => {
-      const { component } = setup();
-      component.onUserMenuKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
-      expect(component.isUserMenuOpen()).toBe(true);
-    });
+  component.logout();
+
+  expect(component.isUserMenuOpen()).toBe(false);
+  expect(authMock.logout).toHaveBeenCalledTimes(1);
+});
+
+describe('Menu hamburger mobile', () => {
+  it('bascule d\'ouvert à fermé et inversement à chaque appel', () => {
+    const { component } = monterHeader();
+    expect(component.isMobileMenuOpen()).toBe(false);
+
+    component.toggleMobileMenu();
+    expect(component.isMobileMenuOpen()).toBe(true);
+
+    component.toggleMobileMenu();
+    expect(component.isMobileMenuOpen()).toBe(false);
   });
 
-  describe('onMenuKeydown()', () => {
-    it('ferme le menu sur Tab', () => {
-      const { component } = setup();
-      component.isUserMenuOpen.set(true);
-      component.onMenuKeydown(new KeyboardEvent('keydown', { key: 'Tab' }));
-      expect(component.isUserMenuOpen()).toBe(false);
-    });
+  it('reflète l\'état ouvert dans aria-expanded, pour les lecteurs d\'écran', () => {
+    const { component, fixture } = monterHeader();
 
-    it('ferme le menu sur Escape', () => {
-      const { component } = setup();
-      component.isUserMenuOpen.set(true);
-      component.onMenuKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
-      expect(component.isUserMenuOpen()).toBe(false);
-    });
+    component.toggleMobileMenu();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.mobile-toggle').getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('change le libellé du bouton entre "Ouvrir" et "Fermer" le menu', () => {
+    const { component, fixture } = monterHeader();
+    const bouton: HTMLButtonElement = fixture.nativeElement.querySelector('.mobile-toggle');
+    expect(bouton.getAttribute('aria-label')).toBe('Ouvrir le menu');
+
+    component.toggleMobileMenu();
+    fixture.detectChanges();
+
+    expect(bouton.getAttribute('aria-label')).toBe('Fermer le menu');
+  });
+});
+
+describe('Menu déroulant du profil (desktop)', () => {
+  it('toggleUserMenu() bascule l\'état ouvert/fermé', () => {
+    const { component } = monterHeader({ isAuthenticated: true, roles: ['ROLE_USER'] });
+    expect(component.isUserMenuOpen()).toBe(false);
+
+    component.toggleUserMenu();
+
+    expect(component.isUserMenuOpen()).toBe(true);
+  });
+
+  it('reflète l\'état ouvert dans aria-expanded sur le déclencheur du menu', () => {
+    const { component, fixture } = monterHeader({ isAuthenticated: true, roles: ['ROLE_USER'] });
+
+    component.toggleUserMenu();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[aria-haspopup="menu"]')?.getAttribute('aria-expanded')).toBe('true');
+  });
+});
+
+// Navigation clavier du menu déroulant — conforme aux patterns ARIA (menu accessible
+// sans souris) : Escape ferme toujours, ArrowDown ouvre le menu depuis le bouton déclencheur.
+describe('Navigation clavier du menu utilisateur', () => {
+  it('Escape ferme le menu, qu\'il soit ouvert depuis le déclencheur ou depuis l\'intérieur', () => {
+    const { component } = monterHeader();
+    component.isUserMenuOpen.set(true);
+
+    component.onUserMenuKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(component.isUserMenuOpen()).toBe(false);
+
+    component.isUserMenuOpen.set(true);
+    component.onMenuKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(component.isUserMenuOpen()).toBe(false);
+  });
+
+  it('ArrowDown sur le déclencheur ouvre le menu', () => {
+    const { component } = monterHeader();
+
+    component.onUserMenuKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+
+    expect(component.isUserMenuOpen()).toBe(true);
+  });
+
+  it('Tab depuis l\'intérieur du menu le referme (pas de piège au clavier)', () => {
+    const { component } = monterHeader();
+    component.isUserMenuOpen.set(true);
+
+    component.onMenuKeydown(new KeyboardEvent('keydown', { key: 'Tab' }));
+
+    expect(component.isUserMenuOpen()).toBe(false);
   });
 });

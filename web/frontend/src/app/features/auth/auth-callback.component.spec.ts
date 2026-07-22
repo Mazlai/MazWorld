@@ -6,7 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AuthStorageService } from '../../core/services/auth-storage.service';
 import type { AuthResponse } from '../../core/models/user.model';
 
-const MOCK_RESPONSE: AuthResponse = {
+const REPONSE_OAUTH_MAZLAI: AuthResponse = {
   token: 'jwt_token',
   user: {
     id: 1, user_id: '123', username: 'Mazlai', discord_avatar: null,
@@ -15,114 +15,107 @@ const MOCK_RESPONSE: AuthResponse = {
   },
 };
 
-function setup(
-  params: Record<string, string> = {},
-  callbackResponse: AuthResponse | 'never' = 'never',
+function monterCallback(
+  queryParams: Record<string, string> = {},
+  reponseCallback: AuthResponse | 'never' = 'never',
   redirectUrl: string | null = null,
 ) {
-  const mockAuth = {
-    handleDiscordCallback: vi.fn().mockReturnValue(
-      callbackResponse === 'never' ? NEVER : of(callbackResponse),
-    ),
+  const authMock = {
+    handleDiscordCallback: vi.fn().mockReturnValue(reponseCallback === 'never' ? NEVER : of(reponseCallback)),
     loginWithDiscord: vi.fn().mockReturnValue(of(null)),
   };
-  const mockStorage = { getRedirectUrl: vi.fn().mockReturnValue(redirectUrl), clearRedirectUrl: vi.fn() };
-  const mockRouter = { navigateByUrl: vi.fn() };
+  const storageMock = { getRedirectUrl: vi.fn().mockReturnValue(redirectUrl), clearRedirectUrl: vi.fn() };
+  const routerMock = { navigateByUrl: vi.fn() };
 
   TestBed.configureTestingModule({
     imports: [AuthCallbackComponent],
     providers: [
-      { provide: ActivatedRoute, useValue: { snapshot: { queryParams: params } } },
-      { provide: Router, useValue: mockRouter },
-      { provide: AuthService, useValue: mockAuth },
-      { provide: AuthStorageService, useValue: mockStorage },
+      { provide: ActivatedRoute, useValue: { snapshot: { queryParams } } },
+      { provide: Router, useValue: routerMock },
+      { provide: AuthService, useValue: authMock },
+      { provide: AuthStorageService, useValue: storageMock },
     ],
   });
 
   const fixture = TestBed.createComponent(AuthCallbackComponent);
   fixture.detectChanges();
-  return { component: fixture.componentInstance, mockAuth, mockStorage, mockRouter };
+  return { component: fixture.componentInstance, authMock, storageMock, routerMock };
 }
 
-describe('AuthCallbackComponent', () => {
-  afterEach(() => {
-    vi.useRealTimers();
-    TestBed.resetTestingModule();
+afterEach(() => {
+  vi.useRealTimers();
+  TestBed.resetTestingModule();
+});
+
+describe('Discord renvoie une erreur OAuth (utilisateur a refusé, panne Discord...)', () => {
+  it('traduit access_denied en message compréhensible pour le joueur', () => {
+    const { component } = monterCallback({ error: 'access_denied' });
+
+    expect(component.error()).toBe('Vous avez refusé l\'autorisation. Veuillez réessayer.');
+    expect(component.isLoading()).toBe(false);
   });
 
-  // ===== Erreurs OAuth Discord =====
-
-  describe('Mapping des erreurs Discord', () => {
-    it('mappe access_denied vers un message en français', () => {
-      const { component } = setup({ error: 'access_denied' });
-      expect(component.error()).toBe('Vous avez refusé l\'autorisation. Veuillez réessayer.');
-      expect(component.isLoading()).toBe(false);
-    });
-
-    it('mappe server_error vers un message en français', () => {
-      const { component } = setup({ error: 'server_error' });
-      expect(component.error()).toBe('Erreur serveur Discord. Veuillez réessayer plus tard.');
-    });
-
-    it('mappe temporarily_unavailable vers un message en français', () => {
-      const { component } = setup({ error: 'temporarily_unavailable' });
-      expect(component.error()).toBe('Discord est temporairement indisponible.');
-    });
-
-    it('génère un message générique pour un code d\'erreur inconnu', () => {
-      const { component } = setup({ error: 'unknown_error_xyz' });
-      expect(component.error()).toBe('Erreur Discord : unknown_error_xyz');
-    });
-
-    it('ne fait pas d\'appel handleDiscordCallback sur une erreur OAuth', () => {
-      const { mockAuth } = setup({ error: 'access_denied' });
-      expect(mockAuth.handleDiscordCallback).not.toHaveBeenCalled();
-    });
+  it('traduit server_error en message compréhensible', () => {
+    expect(monterCallback({ error: 'server_error' }).component.error()).toBe('Erreur serveur Discord. Veuillez réessayer plus tard.');
   });
 
-  // ===== Code manquant =====
-
-  describe('Code d\'autorisation absent', () => {
-    it('set l\'erreur quand aucun code ni erreur ne sont présents', () => {
-      const { component } = setup({});
-      expect(component.error()).toBe('Code d\'autorisation manquant. Veuillez réessayer.');
-      expect(component.isLoading()).toBe(false);
-    });
-
-    it('ne fait pas d\'appel handleDiscordCallback quand le code est absent', () => {
-      const { mockAuth } = setup({});
-      expect(mockAuth.handleDiscordCallback).not.toHaveBeenCalled();
-    });
+  it('traduit temporarily_unavailable en message compréhensible', () => {
+    expect(monterCallback({ error: 'temporarily_unavailable' }).component.error()).toBe('Discord est temporairement indisponible.');
   });
 
-  // ===== Flux de succès =====
+  it('affiche le code brut pour un code d\'erreur que Discord n\'a pas encore documenté', () => {
+    expect(monterCallback({ error: 'unknown_error_xyz' }).component.error()).toBe('Erreur Discord : unknown_error_xyz');
+  });
 
-  describe('Flux de succès OAuth', () => {
-    it('set successUsername et passe isLoading à false', () => {
-      vi.useFakeTimers();
-      const { component } = setup({ code: 'valid_code', state: 'state_abc' }, MOCK_RESPONSE);
-      expect(component.successUsername()).toBe('Mazlai');
-      expect(component.isLoading()).toBe(false);
-    });
+  it('n\'appelle jamais le backend quand Discord a déjà signalé une erreur', () => {
+    const { authMock } = monterCallback({ error: 'access_denied' });
 
-    it('efface l\'URL de redirection après utilisation', () => {
-      vi.useFakeTimers();
-      const { mockStorage } = setup({ code: 'valid_code', state: 'state_abc' }, MOCK_RESPONSE);
-      expect(mockStorage.clearRedirectUrl).toHaveBeenCalled();
-    });
+    expect(authMock.handleDiscordCallback).not.toHaveBeenCalled();
+  });
+});
 
-    it('navigue vers /dashboard quand aucune URL n\'est sauvegardée', () => {
-      vi.useFakeTimers();
-      const { mockRouter } = setup({ code: 'valid_code', state: 'state_abc' }, MOCK_RESPONSE, null);
-      vi.runAllTimers();
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/dashboard');
-    });
+describe('Code d\'autorisation absent (URL de callback malformée)', () => {
+  it('affiche un message d\'erreur explicite plutôt qu\'un écran vide', () => {
+    const { component } = monterCallback({});
 
-    it('navigue vers l\'URL sauvegardée quand elle existe', () => {
-      vi.useFakeTimers();
-      const { mockRouter } = setup({ code: 'valid_code', state: 'state_abc' }, MOCK_RESPONSE, '/profile');
-      vi.runAllTimers();
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/profile');
-    });
+    expect(component.error()).toBe('Code d\'autorisation manquant. Veuillez réessayer.');
+    expect(component.isLoading()).toBe(false);
+  });
+
+  it('n\'appelle pas le backend puisqu\'il n\'y a rien à échanger', () => {
+    expect(monterCallback({}).authMock.handleDiscordCallback).not.toHaveBeenCalled();
+  });
+});
+
+describe('Callback réussi — connexion et redirection', () => {
+  it('affiche le pseudo du joueur connecté et sort de l\'état de chargement', () => {
+    vi.useFakeTimers();
+    const { component } = monterCallback({ code: 'valid_code', state: 'state_abc' }, REPONSE_OAUTH_MAZLAI);
+
+    expect(component.successUsername()).toBe('Mazlai');
+    expect(component.isLoading()).toBe(false);
+  });
+
+  it('efface l\'URL de redirection sauvegardée pour ne pas la réutiliser à la prochaine connexion', () => {
+    vi.useFakeTimers();
+    const { storageMock } = monterCallback({ code: 'valid_code', state: 'state_abc' }, REPONSE_OAUTH_MAZLAI);
+
+    expect(storageMock.clearRedirectUrl).toHaveBeenCalled();
+  });
+
+  it('renvoie vers /dashboard par défaut si aucune page n\'était visée avant la connexion', () => {
+    vi.useFakeTimers();
+    const { routerMock } = monterCallback({ code: 'valid_code', state: 'state_abc' }, REPONSE_OAUTH_MAZLAI, null);
+    vi.runAllTimers();
+
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('renvoie vers la page que le joueur essayait d\'atteindre avant d\'être redirigé au login', () => {
+    vi.useFakeTimers();
+    const { routerMock } = monterCallback({ code: 'valid_code', state: 'state_abc' }, REPONSE_OAUTH_MAZLAI, '/profile');
+    vi.runAllTimers();
+
+    expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/profile');
   });
 });

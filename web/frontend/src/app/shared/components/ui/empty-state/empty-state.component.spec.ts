@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EmptyStateComponent } from './empty-state.component';
 
-function setup(inputs: { title: string; description?: string; icon?: string }): ComponentFixture<EmptyStateComponent> {
+function afficherEtatVide(inputs: { title: string; description?: string; icon?: string }): ComponentFixture<EmptyStateComponent> {
   TestBed.configureTestingModule({ imports: [EmptyStateComponent] });
   const fixture = TestBed.createComponent(EmptyStateComponent);
   fixture.componentRef.setInput('title', inputs.title);
@@ -11,47 +11,38 @@ function setup(inputs: { title: string; description?: string; icon?: string }): 
   return fixture;
 }
 
-describe('EmptyStateComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+afterEach(() => TestBed.resetTestingModule());
 
-  it('se crée sans erreur', () => {
-    const fixture = setup({ title: 'Aucun résultat' });
-    expect(fixture.componentInstance).toBeTruthy();
+it('affiche toujours le titre (ex. "Inventaire vide")', () => {
+  const fixture = afficherEtatVide({ title: 'Inventaire vide' });
+
+  expect(fixture.nativeElement.querySelector('.empty-state__title')?.textContent?.trim()).toBe('Inventaire vide');
+});
+
+describe('Description — optionnelle', () => {
+  it('l\'affiche quand elle est fournie', () => {
+    const fixture = afficherEtatVide({ title: 'Aucun résultat', description: 'Rien à afficher pour le moment.' });
+
+    expect(fixture.nativeElement.querySelector('.empty-state__description')?.textContent?.trim()).toBe('Rien à afficher pour le moment.');
   });
 
-  it('affiche le titre', () => {
-    const fixture = setup({ title: 'Inventaire vide' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.empty-state__title')?.textContent?.trim()).toBe('Inventaire vide');
+  it('ne laisse pas d\'élément vide dans le DOM quand elle est absente', () => {
+    expect(afficherEtatVide({ title: 'Aucun résultat' }).nativeElement.querySelector('.empty-state__description')).toBeNull();
+  });
+});
+
+describe('Icône — optionnelle', () => {
+  it('l\'affiche quand elle est fournie', () => {
+    const fixture = afficherEtatVide({ title: 'Vide', icon: '📦' });
+
+    expect(fixture.nativeElement.querySelector('.empty-state__icon')?.textContent?.trim()).toBe('📦');
   });
 
-  it('affiche la description quand fournie', () => {
-    const fixture = setup({ title: 'Aucun résultat', description: 'Rien à afficher pour le moment.' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.empty-state__description')?.textContent?.trim()).toBe('Rien à afficher pour le moment.');
+  it('ne laisse pas d\'élément vide dans le DOM quand elle est absente', () => {
+    expect(afficherEtatVide({ title: 'Vide' }).nativeElement.querySelector('.empty-state__icon')).toBeNull();
   });
+});
 
-  it('n\'affiche pas la description quand absente (défaut)', () => {
-    const fixture = setup({ title: 'Aucun résultat' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.empty-state__description')).toBeNull();
-  });
-
-  it('affiche l\'icône quand fournie', () => {
-    const fixture = setup({ title: 'Vide', icon: '📦' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.empty-state__icon')?.textContent?.trim()).toBe('📦');
-  });
-
-  it('n\'affiche pas l\'icône quand absente (défaut)', () => {
-    const fixture = setup({ title: 'Vide' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.empty-state__icon')).toBeNull();
-  });
-
-  it('expose aria-live="polite" pour l\'accessibilité', () => {
-    const fixture = setup({ title: 'Vide' });
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('[aria-live="polite"]')).toBeTruthy();
-  });
+it('expose aria-live="polite" pour que les lecteurs d\'écran annoncent l\'état vide', () => {
+  expect(afficherEtatVide({ title: 'Vide' }).nativeElement.querySelector('[aria-live="polite"]')).toBeTruthy();
 });

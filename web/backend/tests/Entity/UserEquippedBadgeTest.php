@@ -17,7 +17,7 @@ class UserEquippedBadgeTest extends TestCase
         $this->badge = new UserEquippedBadge();
     }
 
-    // ===== setSlotNumber() =====
+    // ===== setSlotNumber() — bornes 0 à 5 (6 emplacements, cohérent avec MAX_BADGE_SLOTS côté frontend) =====
 
     public function testSetSlotNumberAcceptsMinBoundary(): void
     {

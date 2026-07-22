@@ -2,7 +2,10 @@
 
 namespace App\Tests\Controller\API;
 
+use App\Service\Crypto\TokenEncryptorService;
 use PHPUnit\Framework\Attributes\Group;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 #[Group('integration')]
 class ProfileControllerTest extends AbstractApiWebTestCase
@@ -64,6 +67,48 @@ class ProfileControllerTest extends AbstractApiWebTestCase
 
         $this->assertSame(200, $this->statusCode());
         $this->assertSame([], $this->json()['guilds']);
+    }
+
+    // Non-régression : même bug et même correctif que ServersController — le token
+    // OAuth est stocké chiffré (TokenEncryptorService). Un test qui l'utiliserait tel
+    // quel sans le déchiffrer ne détecterait pas la régression (token encore chiffré
+    // envoyé à Discord, rejeté silencieusement, liste vide sans erreur visible).
+    public function testGetGuildsReturnsAdminGuildsWithEncryptedTokenStoredInDb(): void
+    {
+        $user = $this->createTestUser();
+        $tokenEncryptor = static::getContainer()->get(TokenEncryptorService::class);
+        $user->setOauthAccessToken($tokenEncryptor->encrypt('discord_access_token_valide'));
+        $user->setOauthTokenExpiresAt(time() + 3600);
+        $this->em->flush();
+        $this->auth($user);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getStatusCode')->willReturn(200);
+        $response->method('toArray')->willReturn([
+            ['id' => '111', 'name' => 'Guilde administrée', 'icon' => null, 'owner' => true, 'permissions' => '8', 'approximate_member_count' => 5, 'approximate_presence_count' => 1],
+        ]);
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $this->callback(function (array $options) {
+                    $auth = $options['headers']['Authorization'] ?? null;
+
+                    return 'Bearer discord_access_token_valide' === $auth || str_starts_with((string) $auth, 'Bot ');
+                }),
+            )
+            ->willReturn($response);
+        static::getContainer()->set(HttpClientInterface::class, $httpClient);
+
+        $this->get('/api/profile/guilds');
+
+        $this->assertSame(200, $this->statusCode());
+        $guilds = $this->json()['guilds'];
+        $this->assertCount(1, $guilds);
+        $this->assertSame('Guilde administrée', $guilds[0]['name']);
     }
 
     // ===== POST /api/profile/equip/background =====
