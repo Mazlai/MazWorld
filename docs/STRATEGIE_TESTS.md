@@ -27,14 +27,14 @@ Le backend Symfony est couvert par deux catégories de tests clairement séparé
 | Tests unitaires (TU) | `unit` | Non |
 | Tests d'intégration (TI) | `integration` | Oui (MySQL) |
 
-Couverture : **74.24 % des lignes**, **81.34 % des méthodes** — 296 tests, 718 assertions (rapport HTML : `web/backend/coverage-reports/07-final/`, exclu du dépôt via `.gitignore`).
+Couverture : **77.82 % des lignes**, **82.04 % des méthodes** — 301 tests, 744 assertions (rapport HTML : `web/backend/coverage-reports/07-final/` — seul rapport de couverture conservé dans le dépôt, les autres étant exclus via `.gitignore`).
 
 **Couverture isolée par groupe** : le chiffre ci-dessus combine TU et TI. En isolant `--group unit` seul (`php bin/phpunit --group unit --coverage-text`), sans base de données :
 
 | Périmètre | Lignes | Méthodes | Classes |
 |---|---|---|---|
 | TU seul (`--group unit`) | 26.55 % | 50.70 % | 28.89 % |
-| TU + TI combinés | 74.24 % | 81.34 % | — |
+| TU + TI combinés | 77.82 % | 82.04 % | — |
 
 L'écart s'explique directement par le choix de conception ci-dessous : les 13 controllers et les 2 repositories à requêtes DQL custom, testés en intégration plutôt qu'en unitaire, représentent une part importante des lignes du code source. La couverture en lignes isolée passe sous 50 %, mais la couverture en méthodes reste au-dessus. Les méthodes des couches non couvertes en TU sont en nombre plus faible que leur nombre de lignes (controllers avec peu de méthodes mais un corps HTTP verbeux).
 
@@ -89,6 +89,7 @@ web/backend/tests/
 │   ├── ProfileControllerTest.php
 │   ├── RecordsControllerTest.php
 │   ├── RouteControllerTest.php
+│   ├── ServersControllerTest.php
 │   ├── ShopControllerTest.php
 │   ├── StatsControllerTest.php
 │   └── TravelControllerTest.php
