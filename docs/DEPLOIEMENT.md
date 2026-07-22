@@ -17,7 +17,7 @@
 
 Ce document explique comment déployer MazWorld, en développement comme en production. Les trois services applicatifs (backend Symfony, frontend Angular, bot Discord) et la base de données MySQL sont orchestrés par Docker Compose, avec **la même topologie dans les deux environnements** — seule la configuration change, via un fichier de surcouche dédié.
 
-Pour le détail des choix d'architecture, la stratégie de branches et l'historique des incidents rencontrés pendant la mise en place de cette infrastructure, voir `docs/C2.1.1-environnement-deploiement.md` (branche `feature/SU/101-migration-deploiement-vps`).
+Le détail des choix d'architecture, la stratégie de branches et l'historique des incidents rencontrés pendant la mise en place de cette infrastructure sont couverts par la compétence RNCP C2.1.1 du rapport — ce document-ci se concentre sur la procédure, pas sur la justification des choix.
 
 ---
 
@@ -142,4 +142,4 @@ Deux workflows GitHub Actions accompagnent ce déploiement manuel :
 - **`ci.yml`** — à chaque pull request, exécute lint (frontend/backend), tests unitaires et d'intégration, fusion de la couverture, et un `docker build` de sanity-check des trois images (sans publication).
 - **`release.yml`** — à la fermeture d'une pull request `release/x.y.z` → `main`, crée automatiquement le tag Git correspondant (version lue depuis `web/frontend/package.json`) et publie une GitHub Release.
 
-Le détail de chaque job, les secrets utilisés et les choix de conception (pourquoi PCOV plutôt que Xdebug, pourquoi un `env_file` par service plutôt qu'un seul partagé, etc.) sont documentés dans `docs/C2.1.1-environnement-deploiement.md`.
+Le détail de chaque job, les secrets utilisés et les choix de conception (pourquoi PCOV plutôt que Xdebug, pourquoi un `env_file` par service plutôt qu'un seul partagé, etc.) relèvent de la compétence RNCP C2.1.1 du rapport.
