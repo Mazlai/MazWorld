@@ -25,7 +25,7 @@ class JwtBlacklistSubscriberTest extends TestCase
         $this->subscriber = new JwtBlacklistSubscriber($this->cache);
     }
 
-    private function makeEvent(array $payload): JWTAuthenticatedEvent
+    private function construireEvenementJwt(array $payload): JWTAuthenticatedEvent
     {
         $event = $this->createMock(JWTAuthenticatedEvent::class);
         $event->method('getPayload')->willReturn($payload);
@@ -33,7 +33,7 @@ class JwtBlacklistSubscriberTest extends TestCase
         return $event;
     }
 
-    private function makeCacheItem(bool $isHit, mixed $value = null): CacheItemInterface
+    private function construireEntreeCache(bool $isHit, mixed $value = null): CacheItemInterface
     {
         $item = $this->createMock(CacheItemInterface::class);
         $item->method('isHit')->willReturn($isHit);
@@ -57,15 +57,15 @@ class JwtBlacklistSubscriberTest extends TestCase
     {
         $this->cache->expects($this->never())->method('getItem');
 
-        $this->subscriber->onJWTAuthenticated($this->makeEvent(['iat' => time()]));
+        $this->subscriber->onJWTAuthenticated($this->construireEvenementJwt(['iat' => time()]));
     }
 
     public function testDoesNothingWhenNotBlacklisted(): void
     {
-        $this->cache->method('getItem')->willReturn($this->makeCacheItem(false));
+        $this->cache->method('getItem')->willReturn($this->construireEntreeCache(false));
 
         // Aucune exception attendue
-        $this->subscriber->onJWTAuthenticated($this->makeEvent(['user_id' => '123', 'iat' => time()]));
+        $this->subscriber->onJWTAuthenticated($this->construireEvenementJwt(['user_id' => '123', 'iat' => time()]));
         $this->addToAssertionCount(1);
     }
 
@@ -74,9 +74,9 @@ class JwtBlacklistSubscriberTest extends TestCase
         $blacklistTime = time() - 100;
         $iat           = time();  // token émis APRÈS la blacklist → valide
 
-        $this->cache->method('getItem')->willReturn($this->makeCacheItem(true, $blacklistTime));
+        $this->cache->method('getItem')->willReturn($this->construireEntreeCache(true, $blacklistTime));
 
-        $this->subscriber->onJWTAuthenticated($this->makeEvent(['user_id' => '123', 'iat' => $iat]));
+        $this->subscriber->onJWTAuthenticated($this->construireEvenementJwt(['user_id' => '123', 'iat' => $iat]));
         $this->addToAssertionCount(1);
     }
 
@@ -85,9 +85,9 @@ class JwtBlacklistSubscriberTest extends TestCase
         $blacklistTime = time();
         $iat           = time() - 60; // token émis AVANT la blacklist → révoqué
 
-        $this->cache->method('getItem')->willReturn($this->makeCacheItem(true, $blacklistTime));
+        $this->cache->method('getItem')->willReturn($this->construireEntreeCache(true, $blacklistTime));
 
         $this->expectException(AuthenticationException::class);
-        $this->subscriber->onJWTAuthenticated($this->makeEvent(['user_id' => '123', 'iat' => $iat]));
+        $this->subscriber->onJWTAuthenticated($this->construireEvenementJwt(['user_id' => '123', 'iat' => $iat]));
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Controller\API;
 
 use App\Entity\UserEquippedBadge;
+use App\Service\Crypto\TokenEncryptorService;
 use App\Service\Discord\DiscordOAuthService;
+use App\Service\User\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +20,8 @@ class ProfileController extends AbstractApiController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly DiscordOAuthService $discordOAuth,
+        private readonly TokenEncryptorService $tokenEncryptor,
+        private readonly UserService $userService,
     ) {
     }
 
@@ -73,13 +77,12 @@ class ProfileController extends AbstractApiController
         if (!$accessToken) {
             return new JsonResponse(['guilds' => []]);
         }
+        $accessToken = $this->tokenEncryptor->decrypt($accessToken);
 
         try {
             if ($user->isAccessTokenExpired() && $user->getOauthRefreshToken()) {
-                $newTokens = $this->discordOAuth->refreshTokens($user->getOauthRefreshToken());
-                $user->setOauthAccessToken($newTokens->accessToken);
-                $user->setOauthRefreshToken($newTokens->refreshToken);
-                $user->setOauthTokenExpiresAt($newTokens->getExpiresAt());
+                $newTokens = $this->discordOAuth->refreshTokens($this->tokenEncryptor->decrypt($user->getOauthRefreshToken()));
+                $this->userService->updateUserTokens($user, $newTokens);
                 $this->entityManager->flush();
 
                 $accessToken = $newTokens->accessToken;
