@@ -19,7 +19,7 @@ class CityTest extends TestCase
         $this->city->setName('Paris');
     }
 
-    // ===== addJob() =====
+    // ===== addJob() / removeJob() — la collection ne doit jamais contenir de doublon =====
 
     public function testAddJobEnforcesUniqueness(): void
     {

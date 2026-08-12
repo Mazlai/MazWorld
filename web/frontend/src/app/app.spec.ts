@@ -4,34 +4,31 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
 
-describe('App', () => {
+describe('Composant racine — squelette de page et accessibilité', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-      ],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
-  it('se crée sans erreur', () => {
-    const fixture = TestBed.createComponent(App);
-    expect(fixture.componentInstance).toBeTruthy();
+  it('se compile et s\'instancie sans erreur avec le routeur et le client HTTP réels', () => {
+    expect(TestBed.createComponent(App).componentInstance).toBeTruthy();
   });
 
-  it('affiche le lien d\'accessibilité "Aller au contenu principal"', async () => {
+  // Le lien d'évitement (skip-link) et l'ancre #main-content vont de pair : le premier
+  // sans le second serait un lien mort au clavier — on vérifie donc les deux ensemble.
+  it('expose un lien d\'évitement "Aller au contenu principal"', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.skip-link')?.textContent?.trim()).toBe('Aller au contenu principal');
+
+    expect(fixture.nativeElement.querySelector('.skip-link')?.textContent?.trim()).toBe('Aller au contenu principal');
   });
 
-  it('expose un élément <main> avec l\'id "main-content"', async () => {
+  it('fournit bien la cible #main-content visée par le lien d\'évitement', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('main#main-content')).toBeTruthy();
+
+    expect(fixture.nativeElement.querySelector('main#main-content')).toBeTruthy();
   });
 });

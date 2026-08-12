@@ -1,90 +1,76 @@
 import { getBadgeSlots, getBackgroundName, getBackgroundStyle, formatDateFr, MAX_BADGE_SLOTS } from './profile.utils';
 
-describe('profile.utils', () => {
+it('MAX_BADGE_SLOTS correspond aux 6 emplacements de badges affichés sur le profil', () => {
+  expect(MAX_BADGE_SLOTS).toBe(6);
+});
 
-  // ===== MAX_BADGE_SLOTS =====
-
-  describe('MAX_BADGE_SLOTS', () => {
-    it('vaut 6', () => {
-      expect(MAX_BADGE_SLOTS).toBe(6);
-    });
+describe('getBadgeSlots() — normalisation vers exactement 6 emplacements', () => {
+  it('retourne 6 slots vides quand le joueur n\'a encore rien équipé', () => {
+    expect(getBadgeSlots([])).toEqual([null, null, null, null, null, null]);
   });
 
-  // ===== getBadgeSlots() =====
-
-  describe('getBadgeSlots()', () => {
-    it('retourne 6 slots null quand aucun badge équipé', () => {
-      expect(getBadgeSlots([])).toEqual([null, null, null, null, null, null]);
-    });
-
-    it('retourne 6 slots null par défaut (sans argument)', () => {
-      expect(getBadgeSlots()).toEqual([null, null, null, null, null, null]);
-    });
-
-    it('remplit les premiers slots avec les badges fournis', () => {
-      expect(getBadgeSlots(['badge_verified', 'badge_star'])).toEqual([
-        'badge_verified', 'badge_star', null, null, null, null,
-      ]);
-    });
-
-    it('remplit exactement 6 slots quand 6 badges fournis', () => {
-      const badges = ['a', 'b', 'c', 'd', 'e', 'f'];
-      expect(getBadgeSlots(badges)).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
-    });
-
-    it('tronque à 6 quand plus de 6 badges fournis', () => {
-      const result = getBadgeSlots(['a', 'b', 'c', 'd', 'e', 'f', 'g']);
-      expect(result.length).toBe(6);
-      expect(result).not.toContain('g');
-    });
+  it('retourne 6 slots vides même sans argument (nouveau compte)', () => {
+    expect(getBadgeSlots()).toEqual([null, null, null, null, null, null]);
   });
 
-  // ===== getBackgroundName() =====
-
-  describe('getBackgroundName()', () => {
-    it('retourne le nom du background pour un ID valide', () => {
-      expect(getBackgroundName('bg_blue')).toBe('Bleu Discord');
-    });
-
-    it('retourne "Défaut" pour un ID inconnu', () => {
-      expect(getBackgroundName('bg_inexistant')).toBe('Défaut');
-    });
-
-    it('retourne le nom du background par défaut pour bg_default', () => {
-      expect(getBackgroundName('bg_default')).toBe('Défaut');
-    });
+  it('place les badges équipés dans les premiers slots, le reste à null', () => {
+    expect(getBadgeSlots(['badge_verified', 'badge_star'])).toEqual([
+      'badge_verified', 'badge_star', null, null, null, null,
+    ]);
   });
 
-  // ===== getBackgroundStyle() =====
-
-  describe('getBackgroundStyle()', () => {
-    it('retourne la couleur du background pour un ID valide', () => {
-      expect(getBackgroundStyle('bg_blue')).toEqual({ 'background-color': '#5865f2' });
-    });
-
-    it('retourne la couleur de fallback (#2f3136) pour un ID inconnu', () => {
-      expect(getBackgroundStyle('bg_inexistant')).toEqual({ 'background-color': '#2f3136' });
-    });
-
-    it('retourne un objet avec la clé background-color', () => {
-      const style = getBackgroundStyle('bg_purple');
-      expect(style).toHaveProperty('background-color');
-    });
+  it('remplit exactement les 6 slots quand le joueur a sa collection complète équipée', () => {
+    expect(getBadgeSlots(['a', 'b', 'c', 'd', 'e', 'f'])).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
   });
 
-  // ===== formatDateFr() =====
+  // En théorie le backend ne devrait jamais renvoyer plus de 6 badges équipés (contrainte
+  // de 6 slots imposée côté API), mais le frontend ne doit pas planter si ça arrivait quand même.
+  it('tronque à 6 plutôt que de planter si l\'API renvoie un 7e badge par erreur', () => {
+    const slots = getBadgeSlots(['a', 'b', 'c', 'd', 'e', 'f', 'g']);
 
-  describe('formatDateFr()', () => {
-    it('formate une date en français (jour mois année)', () => {
-      expect(formatDateFr('2024-01-15')).toBe('15 janvier 2024');
-    });
+    expect(slots).toHaveLength(6);
+    expect(slots).not.toContain('g');
+  });
+});
 
-    it('formate le 31 décembre correctement', () => {
-      expect(formatDateFr('2023-12-31')).toBe('31 décembre 2023');
-    });
+describe('getBackgroundName() — libellé affiché du background équipé', () => {
+  it('retourne le nom lisible pour un identifiant connu', () => {
+    expect(getBackgroundName('bg_blue')).toBe('Bleu Discord');
+  });
 
-    it('formate le 1er mars correctement', () => {
-      expect(formatDateFr('2025-03-01')).toBe('1 mars 2025');
-    });
+  it('retourne "Défaut" pour un identifiant qui ne correspond à aucun background', () => {
+    expect(getBackgroundName('bg_inexistant')).toBe('Défaut');
+  });
+
+  it('retourne "Défaut" explicitement pour bg_default', () => {
+    expect(getBackgroundName('bg_default')).toBe('Défaut');
+  });
+});
+
+describe('getBackgroundStyle() — couleur CSS appliquée derrière le profil', () => {
+  it('retourne la couleur associée à un identifiant connu', () => {
+    expect(getBackgroundStyle('bg_blue')).toEqual({ 'background-color': '#5865f2' });
+  });
+
+  it('retombe sur le gris Discord par défaut pour un identifiant inconnu', () => {
+    expect(getBackgroundStyle('bg_inexistant')).toEqual({ 'background-color': '#2f3136' });
+  });
+
+  it('expose toujours la clé background-color, quel que soit le background', () => {
+    expect(getBackgroundStyle('bg_purple')).toHaveProperty('background-color');
+  });
+});
+
+describe('formatDateFr() — affichage localisé des dates (ex. date d\'inscription)', () => {
+  it('formate au format "jour mois année"', () => {
+    expect(formatDateFr('2024-01-15')).toBe('15 janvier 2024');
+  });
+
+  it('gère correctement le changement d\'année (31 décembre)', () => {
+    expect(formatDateFr('2023-12-31')).toBe('31 décembre 2023');
+  });
+
+  it('n\'ajoute pas de zéro superflu devant un jour à un chiffre (1er mars, pas 01 mars)', () => {
+    expect(formatDateFr('2025-03-01')).toBe('1 mars 2025');
   });
 });

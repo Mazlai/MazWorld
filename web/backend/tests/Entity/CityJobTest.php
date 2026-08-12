@@ -33,6 +33,6 @@ class CityJobTest extends TestCase
         $this->assertSame('Pétrir la pâte', $array['task_1']);
         $this->assertSame('Cuire le pain', $array['task_2']);
         $this->assertSame('Vendre le pain', $array['task_3']);
-        $this->assertNull($array['job_id']); // non persisté
+        $this->assertNull($array['job_id']); // null tant que Doctrine n'a pas persisté l'entité (auto-increment)
     }
 }

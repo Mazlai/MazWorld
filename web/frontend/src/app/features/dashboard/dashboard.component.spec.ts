@@ -6,7 +6,7 @@ import { ProfileService } from '../../core/services/profile.service';
 import { LeaderboardService } from '../../core/services/leaderboard.service';
 import type { UserProfile } from '../../core/models/profile.model';
 
-const MOCK_PROFILE: UserProfile = {
+const PROFIL_MAZLAI: UserProfile = {
   user_id: '123',
   username: 'Mazlai',
   discord_avatar: null,
@@ -22,7 +22,7 @@ const MOCK_PROFILE: UserProfile = {
   inventory_count: 3,
 };
 
-function makeAuthMock() {
+function authMockConnecte() {
   return {
     isAuthenticated: vi.fn().mockReturnValue(true),
     currentUser: vi.fn().mockReturnValue({ username: 'Mazlai' }),
@@ -32,26 +32,26 @@ function makeAuthMock() {
   };
 }
 
-function setup(opts: {
-  profileResult?: 'never' | UserProfile | 'error';
-  rankResult?: 'never' | number | 'error';
+function monterDashboard(reponses: {
+  profil?: 'never' | UserProfile | 'error';
+  rang?: 'never' | number | 'error';
 } = {}) {
-  const profileObs =
-    opts.profileResult === undefined || opts.profileResult === 'never' ? NEVER
-    : opts.profileResult === 'error' ? throwError(() => new Error('Profile error'))
-    : of(opts.profileResult);
+  const profilObs =
+    reponses.profil === undefined || reponses.profil === 'never' ? NEVER
+    : reponses.profil === 'error' ? throwError(() => new Error('Profile error'))
+    : of(reponses.profil);
 
-  const rankObs =
-    opts.rankResult === undefined || opts.rankResult === 'never' ? NEVER
-    : opts.rankResult === 'error' ? throwError(() => new Error('Rank error'))
-    : of({ rank: opts.rankResult });
+  const rangObs =
+    reponses.rang === undefined || reponses.rang === 'never' ? NEVER
+    : reponses.rang === 'error' ? throwError(() => new Error('Rank error'))
+    : of({ rank: reponses.rang });
 
   TestBed.configureTestingModule({
     imports: [DashboardComponent],
     providers: [
-      { provide: AuthService, useValue: makeAuthMock() },
-      { provide: ProfileService, useValue: { getMyProfile: vi.fn().mockReturnValue(profileObs) } },
-      { provide: LeaderboardService, useValue: { getMyRank: vi.fn().mockReturnValue(rankObs) } },
+      { provide: AuthService, useValue: authMockConnecte() },
+      { provide: ProfileService, useValue: { getMyProfile: vi.fn().mockReturnValue(profilObs) } },
+      { provide: LeaderboardService, useValue: { getMyRank: vi.fn().mockReturnValue(rangObs) } },
     ],
   });
   const fixture = TestBed.createComponent(DashboardComponent);
@@ -59,59 +59,48 @@ function setup(opts: {
   return { component: fixture.componentInstance };
 }
 
-describe('DashboardComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+afterEach(() => TestBed.resetTestingModule());
 
-  // ===== État initial =====
-
-  describe('État initial', () => {
-    it('démarre en état de chargement', () => {
-      const { component } = setup();
-      expect(component.isLoading()).toBe(true);
-    });
-
-    it('profile et rank sont null au départ', () => {
-      const { component } = setup();
-      expect(component.profile()).toBeNull();
-      expect(component.rank()).toBeNull();
-    });
+describe('Avant la réponse de l\'API (état initial)', () => {
+  it('démarre en état de chargement', () => {
+    expect(monterDashboard().component.isLoading()).toBe(true);
   });
 
-  // ===== Chargement réussi =====
+  it('profil et rang sont null tant que rien n\'est encore arrivé', () => {
+    const { component } = monterDashboard();
 
-  describe('Chargement du profil', () => {
-    it('passe isLoading à false après la réception du profil', () => {
-      const { component } = setup({ profileResult: MOCK_PROFILE });
-      expect(component.isLoading()).toBe(false);
-    });
+    expect(component.profile()).toBeNull();
+    expect(component.rank()).toBeNull();
+  });
+});
 
-    it('set le profil après réception', () => {
-      const { component } = setup({ profileResult: MOCK_PROFILE });
-      expect(component.profile()?.username).toBe('Mazlai');
-    });
-
-    it('set le rang après réception', () => {
-      const { component } = setup({ profileResult: MOCK_PROFILE, rankResult: 42 });
-      expect(component.rank()).toBe(42);
-    });
+describe('Chargement réussi du profil et du classement', () => {
+  it('sort de l\'état de chargement dès que le profil arrive', () => {
+    expect(monterDashboard({ profil: PROFIL_MAZLAI }).component.isLoading()).toBe(false);
   });
 
-  // ===== Chemin d'erreur =====
+  it('affiche le profil reçu', () => {
+    expect(monterDashboard({ profil: PROFIL_MAZLAI }).component.profile()?.username).toBe('Mazlai');
+  });
 
-  describe('Gestion des erreurs', () => {
-    it('passe isLoading à false même si le profil échoue', () => {
-      const { component } = setup({ profileResult: 'error' });
-      expect(component.isLoading()).toBe(false);
-    });
+  it('affiche le rang reçu', () => {
+    expect(monterDashboard({ profil: PROFIL_MAZLAI, rang: 42 }).component.rank()).toBe(42);
+  });
+});
 
-    it('rank reste null si l\'appel classement échoue (erreur silencieuse)', () => {
-      const { component } = setup({ profileResult: MOCK_PROFILE, rankResult: 'error' });
-      expect(component.rank()).toBeNull();
-    });
+// Le dashboard mélange une donnée essentielle (le profil, sans quoi la page n'a pas de sens)
+// et une donnée secondaire (le rang, un simple bonus d'affichage) — elles doivent donc être
+// traitées différemment en cas d'échec : l'une bloque le chargement, l'autre reste silencieuse.
+describe('Panne API — le profil est bloquant, le classement ne l\'est pas', () => {
+  it('sort quand même de l\'état de chargement si le profil échoue', () => {
+    expect(monterDashboard({ profil: 'error' }).component.isLoading()).toBe(false);
+  });
 
-    it('isLoading ne reste pas à true en cas d\'erreur profil', () => {
-      const { component } = setup({ profileResult: 'error', rankResult: 'never' });
-      expect(component.isLoading()).toBe(false);
-    });
+  it('le rang reste simplement null si son appel échoue, sans faire planter le dashboard', () => {
+    expect(monterDashboard({ profil: PROFIL_MAZLAI, rang: 'error' }).component.rank()).toBeNull();
+  });
+
+  it('ne reste pas bloqué en chargement même si le profil échoue et que le rang ne répond jamais', () => {
+    expect(monterDashboard({ profil: 'error', rang: 'never' }).component.isLoading()).toBe(false);
   });
 });

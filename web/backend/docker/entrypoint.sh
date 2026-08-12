@@ -3,6 +3,8 @@ set -e
 
 cd /var/www
 
+touch .env
+
 if [ ! -f vendor/autoload.php ]; then
     composer install --prefer-dist --no-interaction
 fi
@@ -18,9 +20,11 @@ done
 
 php bin/console doctrine:migrations:migrate --no-interaction
 
-if [ "$APP_ENV" = "dev" ] && [ ! -f var/.fixtures_loaded ]; then
-    php bin/console doctrine:fixtures:load --no-interaction
-    touch var/.fixtures_loaded
+if [ "$APP_ENV" = "dev" ]; then
+    CITY_COUNT=$(php bin/console dbal:run-sql "SELECT COUNT(*) as c FROM cities" 2>/dev/null | grep -oE '[0-9]+' | tail -1)
+    if [ "${CITY_COUNT:-0}" = "0" ]; then
+        php bin/console doctrine:fixtures:load --no-interaction
+    fi
 fi
 
 if [ "$APP_ENV" = "prod" ]; then

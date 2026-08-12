@@ -2,7 +2,9 @@
 
 namespace App\Controller\API;
 
+use App\Service\Crypto\TokenEncryptorService;
 use App\Service\Discord\DiscordApiClient;
+use App\Service\User\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +17,8 @@ class ServersController extends AbstractApiController
     public function __construct(
         private readonly DiscordApiClient $discord,
         private readonly EntityManagerInterface $entityManager,
+        private readonly TokenEncryptorService $tokenEncryptor,
+        private readonly UserService $userService,
         private readonly string $discordClientId
     ) {
     }
@@ -32,6 +36,7 @@ class ServersController extends AbstractApiController
         if (!$accessToken) {
             return $this->errorResponse('No OAuth token available. Please log in again.');
         }
+        $accessToken = $this->tokenEncryptor->decrypt($accessToken);
 
         if ($user->isAccessTokenExpired()) {
             $refreshToken = $user->getOauthRefreshToken();
@@ -40,10 +45,8 @@ class ServersController extends AbstractApiController
             }
 
             try {
-                $newTokens = $this->discord->refreshTokens($refreshToken);
-                $user->setOauthAccessToken($newTokens->accessToken);
-                $user->setOauthRefreshToken($newTokens->refreshToken);
-                $user->setOauthTokenExpiresAt(time() + $newTokens->expiresIn);
+                $newTokens = $this->discord->refreshTokens($this->tokenEncryptor->decrypt($refreshToken));
+                $this->userService->updateUserTokens($user, $newTokens);
                 $this->entityManager->flush();
                 $accessToken = $newTokens->accessToken;
             } catch (Throwable) {

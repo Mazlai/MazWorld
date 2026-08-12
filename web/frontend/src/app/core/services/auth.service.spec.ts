@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 import { AuthStorageService } from './auth-storage.service';
 import type { User, AuthResponse } from '../models/user.model';
 
-const MOCK_USER: User = {
+const MAZLAI: User = {
   id: 1,
   user_id: '123456789',
   username: 'Mazlai',
@@ -19,9 +19,9 @@ const MOCK_USER: User = {
   roles: ['ROLE_USER'],
 };
 
-const MOCK_AUTH_RESPONSE: AuthResponse = { token: 'jwt_token', user: MOCK_USER };
+const REPONSE_AUTH_VALIDE: AuthResponse = { token: 'jwt_token', user: MAZLAI };
 
-function makeStorageMock() {
+function storageMockVierge() {
   return {
     saveToken: vi.fn(), getToken: vi.fn(), clearToken: vi.fn(),
     saveUser: vi.fn(),  getUser: vi.fn(),  clearUser: vi.fn(),
@@ -31,28 +31,28 @@ function makeStorageMock() {
   };
 }
 
-function setup(user: User = MOCK_USER) {
-  const mockStorage = makeStorageMock();
-  const mockRouter  = { navigate: vi.fn() };
+function monterServiceConnecte(user: User = MAZLAI) {
+  const storageMock = storageMockVierge();
+  const routerMock  = { navigate: vi.fn() };
 
   TestBed.configureTestingModule({
     providers: [
       AuthService,
       provideHttpClient(),
       provideHttpClientTesting(),
-      { provide: AuthStorageService, useValue: mockStorage },
-      { provide: Router, useValue: mockRouter },
+      { provide: AuthStorageService, useValue: storageMock },
+      { provide: Router, useValue: routerMock },
     ],
   });
 
   const service = TestBed.inject(AuthService);
   const httpMock = TestBed.inject(HttpTestingController);
 
-  // Flush la requête initiale initializeAuth()
-  httpMock.expectOne(r => r.url.includes('/api/auth/refresh'))
-    .flush({ token: 'jwt_token', user });
+  // AuthService tente un rafraîchissement silencieux dès sa construction (restauration
+  // de session via le cookie httpOnly) — il faut répondre à cette requête avant de tester quoi que ce soit d'autre.
+  httpMock.expectOne(r => r.url.includes('/api/auth/refresh')).flush({ token: 'jwt_token', user });
 
-  return { service, httpMock, mockStorage, mockRouter };
+  return { service, httpMock, storageMock, routerMock };
 }
 
 describe('AuthService', () => {
@@ -61,84 +61,66 @@ describe('AuthService', () => {
     TestBed.resetTestingModule();
   });
 
-  // ===== Signals computed =====
-
-  describe('isAuthenticated()', () => {
-    it('retourne true après une initialisation réussie', () => {
-      const { service } = setup();
-      expect(service.isAuthenticated()).toBe(true);
-    });
-  });
-
-  describe('displayName()', () => {
-    it('retourne le username de l\'utilisateur courant', () => {
-      const { service } = setup();
-      expect(service.displayName()).toBe('Mazlai');
-    });
-  });
-
-  describe('userAvatar()', () => {
-    it('retourne l\'URL CDN Discord quand discord_avatar est défini', () => {
-      const { service } = setup();
-      expect(service.userAvatar()).toContain('cdn.discordapp.com/avatars/123456789/avatar_hash.png');
+  describe('État dérivé de la session (signals computed)', () => {
+    it('isAuthenticated() vaut true après une restauration de session réussie', () => {
+      expect(monterServiceConnecte().service.isAuthenticated()).toBe(true);
     });
 
-    it('retourne l\'URL de fallback quand discord_avatar est null', () => {
-      const { service } = setup({ ...MOCK_USER, discord_avatar: null });
+    it('displayName() reprend le pseudo Discord de l\'utilisateur courant', () => {
+      expect(monterServiceConnecte().service.displayName()).toBe('Mazlai');
+    });
+
+    it('userAvatar() pointe vers le CDN Discord quand un avatar est défini', () => {
+      expect(monterServiceConnecte().service.userAvatar()).toContain('cdn.discordapp.com/avatars/123456789/avatar_hash.png');
+    });
+
+    it('userAvatar() retombe sur l\'avatar par défaut Discord si discord_avatar est null', () => {
+      const { service } = monterServiceConnecte({ ...MAZLAI, discord_avatar: null });
+
       expect(service.userAvatar()).toContain('cdn.discordapp.com/embed/avatars/');
     });
   });
 
-  // ===== handleDiscordCallback() =====
+  describe('Callback OAuth Discord — protections contre le rejeu', () => {
+    it('rejette un code déjà traité (protection contre un double clic ou un replay)', async () => {
+      const { service, storageMock } = monterServiceConnecte();
+      storageMock.getProcessedCode.mockReturnValue('already_used_code');
 
-  describe('handleDiscordCallback()', () => {
-    it('rejette si le code a déjà été traité', async () => {
-      const { service, mockStorage } = setup();
-      mockStorage.getProcessedCode.mockReturnValue('already_used_code');
-
-      await expect(
-        lastValueFrom(service.handleDiscordCallback('already_used_code', 'state_abc'))
-      ).rejects.toThrow('Code already processed');
+      await expect(lastValueFrom(service.handleDiscordCallback('already_used_code', 'state_abc')))
+        .rejects.toThrow('Code already processed');
     });
 
-    it('rejette si le state ne correspond pas au state sauvegardé', async () => {
-      const { service, mockStorage } = setup();
-      mockStorage.getProcessedCode.mockReturnValue(null);
-      mockStorage.getState.mockReturnValue('expected_state');
+    it('rejette un state qui ne correspond pas à celui sauvegardé (protection CSRF)', async () => {
+      const { service, storageMock } = monterServiceConnecte();
+      storageMock.getProcessedCode.mockReturnValue(null);
+      storageMock.getState.mockReturnValue('expected_state');
 
-      await expect(
-        lastValueFrom(service.handleDiscordCallback('new_code', 'wrong_state'))
-      ).rejects.toThrow('Invalid state parameter');
+      await expect(lastValueFrom(service.handleDiscordCallback('new_code', 'wrong_state')))
+        .rejects.toThrow('Invalid state parameter');
     });
 
-    it('retourne l\'AuthResponse et sauvegarde le token en cas de succès', async () => {
-      const { service, httpMock, mockStorage } = setup();
-      mockStorage.getProcessedCode.mockReturnValue(null);
-      mockStorage.getState.mockReturnValue(null);
+    it('sauvegarde le token et renvoie la réponse complète quand code et state sont valides', async () => {
+      const { service, httpMock, storageMock } = monterServiceConnecte();
+      storageMock.getProcessedCode.mockReturnValue(null);
+      storageMock.getState.mockReturnValue(null);
 
-      const promise = lastValueFrom(service.handleDiscordCallback('valid_code', 'state_abc'));
-      httpMock.expectOne(r => r.url.includes('/api/auth/discord/callback')).flush(MOCK_AUTH_RESPONSE);
+      const promesse = lastValueFrom(service.handleDiscordCallback('valid_code', 'state_abc'));
+      httpMock.expectOne(r => r.url.includes('/api/auth/discord/callback')).flush(REPONSE_AUTH_VALIDE);
 
-      const res = await promise;
-      expect(res.token).toBe('jwt_token');
-      expect(mockStorage.saveToken).toHaveBeenCalledWith('jwt_token');
+      const reponse = await promesse;
+      expect(reponse.token).toBe('jwt_token');
+      expect(storageMock.saveToken).toHaveBeenCalledWith('jwt_token');
     });
   });
 
-  // ===== logout() =====
+  it('logout() vide le stockage local et renvoie le joueur à l\'accueil, même en asynchrone', async () => {
+    const { service, httpMock, storageMock, routerMock } = monterServiceConnecte();
 
-  describe('logout()', () => {
-    it('appelle clearAll et navigue vers "/"', async () => {
-      const { service, httpMock, mockStorage, mockRouter } = setup();
+    service.logout();
+    httpMock.expectOne(r => r.url.includes('/api/auth/logout')).flush({});
+    await Promise.resolve(); // laisser le micro-task du subscribe se terminer
 
-      service.logout();
-      httpMock.expectOne(r => r.url.includes('/api/auth/logout')).flush({});
-
-      // Laisser le micro-task se terminer
-      await Promise.resolve();
-
-      expect(mockStorage.clearAll).toHaveBeenCalled();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
-    });
+    expect(storageMock.clearAll).toHaveBeenCalled();
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/']);
   });
 });

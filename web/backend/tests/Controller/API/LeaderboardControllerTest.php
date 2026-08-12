@@ -9,11 +9,19 @@ class LeaderboardControllerTest extends AbstractApiWebTestCase
 {
     // ===== GET /api/leaderboard =====
 
-    public function testLeaderboardWithoutAuthReturns401(): void
+    public function testLeaderboardWithoutAuthReturnsPublicListWithoutUserRank(): void
     {
+        // Le classement est un contenu public (rang, pseudo, avatar, solde — rien de
+        // sensible) : un visiteur non connecté doit pouvoir le consulter, sans son
+        // propre rang évidemment puisqu'on ne sait pas qui il est.
+        $this->createTestUser(coins: 100);
+
         $this->get('/api/leaderboard');
 
-        $this->assertSame(401, $this->statusCode());
+        $this->assertSame(200, $this->statusCode());
+        $data = $this->json();
+        $this->assertNotEmpty($data['entries']);
+        $this->assertNull($data['user_rank']);
     }
 
     public function testLeaderboardWithAuthReturnsUserRank(): void

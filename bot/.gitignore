@@ -39,6 +39,9 @@ backup/
 /build
 /*.tsbuildinfo
 
+# Test coverage
+/coverage
+
 # Database (SQLite)
 /data/*.db
 /data/*.db-shm

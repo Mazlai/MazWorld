@@ -5,7 +5,7 @@ import { lastValueFrom } from 'rxjs';
 import { ProfileService } from './profile.service';
 import type { UserProfile } from '../models/profile.model';
 
-const MOCK_PROFILE: UserProfile = {
+const PROFIL_MAZLAI: UserProfile = {
   user_id: '123456',
   username: 'Mazlai',
   discord_avatar: 'avatar_hash',
@@ -21,7 +21,7 @@ const MOCK_PROFILE: UserProfile = {
   inventory_count: 7,
 };
 
-function setup() {
+function monterService() {
   TestBed.configureTestingModule({
     providers: [ProfileService, provideHttpClient(), provideHttpClientTesting()],
   });
@@ -31,43 +31,42 @@ function setup() {
   };
 }
 
-describe('ProfileService', () => {
+describe('getMyProfile() — GET /api/profile/me', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     TestBed.resetTestingModule();
   });
 
-  describe('getMyProfile()', () => {
-    it('envoie une requête GET vers /api/profile/me', () => {
-      const { httpMock } = setup();
-      TestBed.inject(ProfileService).getMyProfile().subscribe();
+  it('interroge le bon endpoint en GET', () => {
+    const { httpMock } = monterService();
+    TestBed.inject(ProfileService).getMyProfile().subscribe();
 
-      const req = httpMock.expectOne(r => r.url.includes('/api/profile/me'));
-      expect(req.request.method).toBe('GET');
-      req.flush({ profile: MOCK_PROFILE });
-    });
+    const req = httpMock.expectOne(r => r.url.includes('/api/profile/me'));
+    expect(req.request.method).toBe('GET');
+    req.flush({ profile: PROFIL_MAZLAI });
+  });
 
-    it('extrait res.profile de la réponse enveloppée (mapping)', async () => {
-      const { service, httpMock } = setup();
-      const promise = lastValueFrom(service.getMyProfile());
+  // La réponse API est enveloppée dans { profile: {...} } — le service doit déballer
+  // cette enveloppe pour que les composants consomment directement le profil, sans avoir
+  // à connaître ce détail de format de réponse à chaque appel.
+  it('déballe le champ profile de la réponse plutôt que de le laisser imbriqué', async () => {
+    const { service, httpMock } = monterService();
+    const promesse = lastValueFrom(service.getMyProfile());
 
-      httpMock.expectOne(r => r.url.includes('/api/profile/me'))
-        .flush({ profile: MOCK_PROFILE });
+    httpMock.expectOne(r => r.url.includes('/api/profile/me')).flush({ profile: PROFIL_MAZLAI });
 
-      const result = await promise;
-      expect(result.username).toBe('Mazlai');
-      expect(result.coins).toBe(500);
-      expect((result as unknown as { profile?: unknown }).profile).toBeUndefined();
-    });
+    const resultat = await promesse;
+    expect(resultat.username).toBe('Mazlai');
+    expect(resultat.coins).toBe(500);
+    expect((resultat as unknown as { profile?: unknown }).profile).toBeUndefined();
+  });
 
-    it('propage les erreurs HTTP au subscriber', async () => {
-      const { service, httpMock } = setup();
-      const promise = lastValueFrom(service.getMyProfile());
+  it('propage une erreur HTTP au lieu de renvoyer un profil vide silencieusement', async () => {
+    const { service, httpMock } = monterService();
+    const promesse = lastValueFrom(service.getMyProfile());
 
-      httpMock.expectOne(r => r.url.includes('/api/profile/me'))
-        .flush('Not found', { status: 404, statusText: 'Not Found' });
+    httpMock.expectOne(r => r.url.includes('/api/profile/me')).flush('Not found', { status: 404, statusText: 'Not Found' });
 
-      await expect(promise).rejects.toBeDefined();
-    });
+    await expect(promesse).rejects.toBeDefined();
   });
 });

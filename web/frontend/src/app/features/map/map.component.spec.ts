@@ -4,11 +4,11 @@ import { MapComponent } from './map.component';
 import { TravelService } from '../../core/services/travel.service';
 import type { City, RouteData, TravelRoute, TravelMapData } from '../../core/models/travel.model';
 
-function makeCity(overrides: Partial<City> & { city_id: string }): City {
+function villeSurLaCarte(overrides: Partial<City> & { city_id: string }): City {
   return { name: overrides.city_id, position_x: 100, position_y: 200, ...overrides };
 }
 
-function makeRoute(overrides: Partial<TravelRoute> & { city_to: string }): TravelRoute {
+function routeVersDestination(overrides: Partial<TravelRoute> & { city_to: string }): TravelRoute {
   return {
     route_id: 1,
     destination_name: overrides.city_to,
@@ -21,8 +21,8 @@ function makeRoute(overrides: Partial<TravelRoute> & { city_to: string }): Trave
   };
 }
 
-function setup() {
-  const mockService = {
+function monterCarte() {
+  const serviceMock = {
     getAllCities: vi.fn().mockReturnValue(NEVER),
     getAllRoutes: vi.fn().mockReturnValue(NEVER),
     getMap: vi.fn().mockReturnValue(NEVER),
@@ -31,174 +31,139 @@ function setup() {
   };
   TestBed.configureTestingModule({
     imports: [MapComponent],
-    providers: [{ provide: TravelService, useValue: mockService }],
+    providers: [{ provide: TravelService, useValue: serviceMock }],
   });
   const fixture = TestBed.createComponent(MapComponent);
   fixture.detectChanges();
-  return { component: fixture.componentInstance, mockService };
+  return { component: fixture.componentInstance, serviceMock };
 }
 
-describe('MapComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+afterEach(() => TestBed.resetTestingModule());
 
-  // ===== formatDuration() =====
+it('formatDuration() bascule proprement entre minutes, heures rondes et heures+minutes', () => {
+  const { component } = monterCarte();
 
-  describe('formatDuration()', () => {
-    it('affiche en minutes si < 60', () => {
-      const { component } = setup();
-      expect(component.formatDuration(45)).toBe('45 min');
-      expect(component.formatDuration(1)).toBe('1 min');
-      expect(component.formatDuration(59)).toBe('59 min');
-    });
+  expect(component.formatDuration(45)).toBe('45 min');
+  expect(component.formatDuration(59)).toBe('59 min');
+  expect(component.formatDuration(60)).toBe('1h');
+  expect(component.formatDuration(120)).toBe('2h');
+  expect(component.formatDuration(90)).toBe('1h30');
+  expect(component.formatDuration(65)).toBe('1h05'); // zéro de remplissage sur les minutes
+});
 
-    it('affiche en heures entières si multiple de 60', () => {
-      const { component } = setup();
-      expect(component.formatDuration(60)).toBe('1h');
-      expect(component.formatDuration(120)).toBe('2h');
-    });
+it('formatCountdown() affiche un compte à rebours MM:SS avec zéro de remplissage', () => {
+  const { component } = monterCarte();
 
-    it('affiche heures et minutes avec zéro padding si minutes > 0', () => {
-      const { component } = setup();
-      expect(component.formatDuration(90)).toBe('1h30');
-      expect(component.formatDuration(65)).toBe('1h05');
-      expect(component.formatDuration(75)).toBe('1h15');
-    });
+  expect(component.formatCountdown(65)).toBe('1:05');
+  expect(component.formatCountdown(3600)).toBe('60:00');
+  expect(component.formatCountdown(0)).toBe('0:00');
+  expect(component.formatCountdown(9)).toBe('0:09');
+});
+
+describe('getThemeColor()', () => {
+  it('associe chaque thème de ville à sa couleur de fond', () => {
+    const { component } = monterCarte();
+
+    expect(component.getThemeColor('nature')).toBe('rgba(139, 195, 74, 0.4)');
+    expect(component.getThemeColor('maritime')).toBe('rgba(3, 169, 244, 0.4)');
+    expect(component.getThemeColor('cyber')).toBe('rgba(156, 39, 176, 0.4)');
   });
 
-  // ===== formatCountdown() =====
+  it('retombe sur la couleur orange de la charte pour un thème non répertorié ou absent', () => {
+    const { component } = monterCarte();
 
-  describe('formatCountdown()', () => {
-    it('formate les secondes en MM:SS avec zéro padding', () => {
-      const { component } = setup();
-      expect(component.formatCountdown(65)).toBe('1:05');
-      expect(component.formatCountdown(3600)).toBe('60:00');
-      expect(component.formatCountdown(0)).toBe('0:00');
-      expect(component.formatCountdown(9)).toBe('0:09');
-    });
+    expect(component.getThemeColor('inexistant')).toBe('rgba(255, 107, 53, 0.4)');
+    expect(component.getThemeColor(undefined)).toBe('rgba(255, 107, 53, 0.4)');
+  });
+});
+
+describe('canAffordTravel() — le joueur peut-il financer ce trajet ?', () => {
+  it('refuse si aucune route n\'existe vers la ville cible', () => {
+    const { component } = monterCarte();
+    (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
+      current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
+      coins: 500, routes: [], jobs: [],
+    };
+
+    expect(component.canAffordTravel('inexistant')).toBe(false);
   });
 
-  // ===== getThemeColor() =====
+  it('autorise un trajet gratuit (coût effectif 0) même sans le moindre coin', () => {
+    const { component } = monterCarte();
+    (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
+      current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
+      coins: 0, routes: [routeVersDestination({ city_to: 'dest', effective_cost: 0 })], jobs: [],
+    };
+    component.coins.set(0);
 
-  describe('getThemeColor()', () => {
-    it('retourne la couleur correcte pour les thèmes connus', () => {
-      const { component } = setup();
-      expect(component.getThemeColor('nature')).toBe('rgba(139, 195, 74, 0.4)');
-      expect(component.getThemeColor('maritime')).toBe('rgba(3, 169, 244, 0.4)');
-      expect(component.getThemeColor('cyber')).toBe('rgba(156, 39, 176, 0.4)');
-    });
-
-    it('retourne la couleur de fallback pour un thème inconnu', () => {
-      const { component } = setup();
-      expect(component.getThemeColor('inexistant')).toBe('rgba(255, 107, 53, 0.4)');
-    });
-
-    it('retourne la couleur de fallback si theme est undefined', () => {
-      const { component } = setup();
-      expect(component.getThemeColor(undefined)).toBe('rgba(255, 107, 53, 0.4)');
-    });
+    expect(component.canAffordTravel('dest')).toBe(true);
   });
 
-  // ===== canAffordTravel() =====
+  it('autorise le trajet quand le solde couvre le coût', () => {
+    const { component } = monterCarte();
+    (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
+      current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
+      coins: 500, routes: [routeVersDestination({ city_to: 'dest', effective_cost: 200 })], jobs: [],
+    };
+    component.coins.set(500);
 
-  describe('canAffordTravel()', () => {
-    it('retourne false si la route n\'existe pas pour la ville cible', () => {
-      const { component } = setup();
-      (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
-        current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
-        coins: 500,
-        routes: [],
-        jobs: [],
-      };
-      expect(component.canAffordTravel('inexistant')).toBe(false);
-    });
-
-    it('retourne true si le coût effectif est 0 (peu importe les coins)', () => {
-      const { component } = setup();
-      (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
-        current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
-        coins: 0,
-        routes: [makeRoute({ city_to: 'dest', effective_cost: 0 })],
-        jobs: [],
-      };
-      component.coins.set(0);
-      expect(component.canAffordTravel('dest')).toBe(true);
-    });
-
-    it('retourne true si les coins sont suffisants', () => {
-      const { component } = setup();
-      (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
-        current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
-        coins: 500,
-        routes: [makeRoute({ city_to: 'dest', effective_cost: 200 })],
-        jobs: [],
-      };
-      component.coins.set(500);
-      expect(component.canAffordTravel('dest')).toBe(true);
-    });
-
-    it('retourne false si les coins sont insuffisants', () => {
-      const { component } = setup();
-      (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
-        current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
-        coins: 50,
-        routes: [makeRoute({ city_to: 'dest', effective_cost: 200 })],
-        jobs: [],
-      };
-      component.coins.set(50);
-      expect(component.canAffordTravel('dest')).toBe(false);
-    });
+    expect(component.canAffordTravel('dest')).toBe(true);
   });
 
-  // ===== visualRoutes — garde longueur zéro =====
+  it('refuse le trajet quand le solde est insuffisant', () => {
+    const { component } = monterCarte();
+    (component as unknown as { travelMapData: TravelMapData | null }).travelMapData = {
+      current_city: { city_id: 'a', name: 'A', description: '', emoji: '', theme: '' },
+      coins: 50, routes: [routeVersDestination({ city_to: 'dest', effective_cost: 200 })], jobs: [],
+    };
+    component.coins.set(50);
 
-  describe('visualRoutes — garde SVG longueur zéro', () => {
-    it('ajoute 0.001 à x2 si les positions X sont identiques', () => {
-      const { component } = setup();
-      component.cities.set([
-        makeCity({ city_id: 'a', position_x: 300, position_y: 100 }),
-        makeCity({ city_id: 'b', position_x: 300, position_y: 400 }),
-      ]);
-      component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'b', from_name: 'A', from_emoji: '', to_name: 'B', to_emoji: '', cost: 0, duration: 10 }]);
-      expect(component.visualRoutes()[0].x2).toBeCloseTo(300.001);
-    });
+    expect(component.canAffordTravel('dest')).toBe(false);
+  });
+});
 
-    it('ajoute 0.001 à y2 si les positions Y sont identiques', () => {
-      const { component } = setup();
-      component.cities.set([
-        makeCity({ city_id: 'a', position_x: 100, position_y: 200 }),
-        makeCity({ city_id: 'b', position_x: 400, position_y: 200 }),
-      ]);
-      component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'b', from_name: 'A', from_emoji: '', to_name: 'B', to_emoji: '', cost: 0, duration: 10 }]);
-      expect(component.visualRoutes()[0].y2).toBeCloseTo(200.001);
-    });
+// Deux villes parfaitement alignées horizontalement ou verticalement donneraient un
+// segment SVG de longueur nulle sur un axe — invisible ou mal rendu par certains navigateurs.
+// Le nudge de 0.001px force un segment techniquement non nul sans impact visuel perceptible.
+describe('visualRoutes() — évite les segments SVG de longueur nulle', () => {
+  it('décale légèrement x2 quand deux villes partagent exactement la même abscisse', () => {
+    const { component } = monterCarte();
+    component.cities.set([villeSurLaCarte({ city_id: 'a', position_x: 300, position_y: 100 }), villeSurLaCarte({ city_id: 'b', position_x: 300, position_y: 400 })]);
+    component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'b', from_name: 'A', from_emoji: '', to_name: 'B', to_emoji: '', cost: 0, duration: 10 }]);
 
-    it('exclut les routes dont la ville d\'origine ou de destination est introuvable', () => {
-      const { component } = setup();
-      component.cities.set([makeCity({ city_id: 'a' })]);
-      component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'inexistant', from_name: 'A', from_emoji: '', to_name: '?', to_emoji: '', cost: 0, duration: 0 }]);
-      expect(component.visualRoutes()).toHaveLength(0);
-    });
-
-    it('retourne les coordonnées correctes pour une route valide', () => {
-      const { component } = setup();
-      component.cities.set([
-        makeCity({ city_id: 'a', position_x: 100, position_y: 200 }),
-        makeCity({ city_id: 'b', position_x: 500, position_y: 300 }),
-      ]);
-      component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'b', from_name: 'A', from_emoji: '', to_name: 'B', to_emoji: '', cost: 0, duration: 0 }]);
-      const route = component.visualRoutes()[0];
-      expect(route).toEqual({ x1: 100, y1: 200, x2: 500, y2: 300 });
-    });
+    expect(component.visualRoutes()[0].x2).toBeCloseTo(300.001);
   });
 
-  // ===== getCityPosition() =====
+  it('décale légèrement y2 quand deux villes partagent exactement la même ordonnée', () => {
+    const { component } = monterCarte();
+    component.cities.set([villeSurLaCarte({ city_id: 'a', position_x: 100, position_y: 200 }), villeSurLaCarte({ city_id: 'b', position_x: 400, position_y: 200 })]);
+    component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'b', from_name: 'A', from_emoji: '', to_name: 'B', to_emoji: '', cost: 0, duration: 10 }]);
 
-  describe('getCityPosition()', () => {
-    it('convertit les coordonnées en pourcentage de la grille (1000x600)', () => {
-      const { component } = setup();
-      const pos = component.getCityPosition(makeCity({ city_id: 'a', position_x: 500, position_y: 300 }));
-      expect(pos.x).toBeCloseTo(50);
-      expect(pos.y).toBeCloseTo(50);
-    });
+    expect(component.visualRoutes()[0].y2).toBeCloseTo(200.001);
   });
+
+  it('exclut une route dont la ville de départ ou d\'arrivée n\'a pas de coordonnées connues', () => {
+    const { component } = monterCarte();
+    component.cities.set([villeSurLaCarte({ city_id: 'a' })]);
+    component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'inexistant', from_name: 'A', from_emoji: '', to_name: '?', to_emoji: '', cost: 0, duration: 0 }]);
+
+    expect(component.visualRoutes()).toHaveLength(0);
+  });
+
+  it('calcule les coordonnées exactes pour une route reliant deux villes distinctes', () => {
+    const { component } = monterCarte();
+    component.cities.set([villeSurLaCarte({ city_id: 'a', position_x: 100, position_y: 200 }), villeSurLaCarte({ city_id: 'b', position_x: 500, position_y: 300 })]);
+    component.allRoutes.set([{ route_id: 1, city_from: 'a', city_to: 'b', from_name: 'A', from_emoji: '', to_name: 'B', to_emoji: '', cost: 0, duration: 0 } satisfies RouteData]);
+
+    expect(component.visualRoutes()[0]).toEqual({ x1: 100, y1: 200, x2: 500, y2: 300 });
+  });
+});
+
+it('getCityPosition() convertit les coordonnées absolues en pourcentage sur une grille 1000x600', () => {
+  const { component } = monterCarte();
+
+  const position = component.getCityPosition(villeSurLaCarte({ city_id: 'a', position_x: 500, position_y: 300 }));
+
+  expect(position.x).toBeCloseTo(50);
+  expect(position.y).toBeCloseTo(50);
 });

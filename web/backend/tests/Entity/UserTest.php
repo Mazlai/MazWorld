@@ -61,7 +61,7 @@ class UserTest extends TestCase
         $this->assertFalse($this->user->isAccessTokenExpired());
     }
 
-    // ===== getAvatarUrl() =====
+    // ===== getAvatarUrl() — avatar Discord réel vs avatar par défaut =====
 
     public function testGetAvatarUrlReturnsDiscordCdnUrlForStaticAvatar(): void
     {
@@ -75,6 +75,8 @@ class UserTest extends TestCase
 
     public function testGetAvatarUrlReturnsGifForAnimatedAvatar(): void
     {
+        // Discord préfixe les hash d'avatars animés par "a_" — c'est ce préfixe, et lui
+        // seul, qui détermine si on sert un .gif plutôt qu'un .png.
         $this->user->setDiscordAvatar('a_animated_hash');
 
         $this->assertStringContainsString('a_animated_hash.gif', $this->user->getAvatarUrl());
@@ -82,11 +84,22 @@ class UserTest extends TestCase
 
     public function testGetAvatarUrlReturnsDefaultWhenNoAvatar(): void
     {
-        // ID 123456789 % 5 = 4
+        // Sans avatar personnalisé, Discord assigne un avatar par défaut parmi 5 selon
+        // (user_id % 5) — ici 123456789 % 5 = 4.
         $url = $this->user->getAvatarUrl();
 
         $this->assertStringContainsString('cdn.discordapp.com/embed/avatars/', $url);
         $this->assertStringEndsWith('4.png', $url);
+    }
+
+    public function testGetAvatarUrlDefaultVariesWithUserId(): void
+    {
+        // Vérifie que l'index n'est pas figé à 4 : un autre user_id doit retomber sur un
+        // autre avatar par défaut (1000 % 5 = 0), preuve que le modulo dépend bien de l'ID.
+        $autreJoueur = new User();
+        $autreJoueur->setUserId('1000');
+
+        $this->assertStringEndsWith('0.png', $autreJoueur->getAvatarUrl());
     }
 
     // ===== getRoles() =====
@@ -106,7 +119,7 @@ class UserTest extends TestCase
         $this->assertContains('ROLE_ADMIN', $roles);
     }
 
-    // ===== Collections — unicité =====
+    // ===== Collections — unicité (protection contre les doublons d'équipement/visite) =====
 
     public function testAddInventoryEnforcesUniqueness(): void
     {
@@ -114,7 +127,7 @@ class UserTest extends TestCase
         $item->method('setUser')->willReturn($item);
 
         $this->user->addInventory($item);
-        $this->user->addInventory($item); // doublon
+        $this->user->addInventory($item); // ajout du même item une seconde fois
 
         $this->assertCount(1, $this->user->getInventory());
     }
@@ -125,12 +138,12 @@ class UserTest extends TestCase
         $visited->method('setUser')->willReturn($visited);
 
         $this->user->addVisitedCity($visited);
-        $this->user->addVisitedCity($visited); // doublon
+        $this->user->addVisitedCity($visited); // revisite de la même ville
 
         $this->assertCount(1, $this->user->getVisitedCities());
     }
 
-    // ===== toArray() =====
+    // ===== toArray() — sérialisation exposée à l'API =====
 
     public function testToArrayIncludesExpectedKeys(): void
     {
@@ -148,14 +161,14 @@ class UserTest extends TestCase
         $this->assertSame('willowbrook', $data['current_city']);
     }
 
-    // ===== getUserIdentifier() =====
+    // ===== getUserIdentifier() — utilisé par Symfony Security =====
 
     public function testGetUserIdentifierReturnsUserId(): void
     {
         $this->assertSame('123456789', $this->user->getUserIdentifier());
     }
 
-    // ===== addEquippedBadge() =====
+    // ===== Badges équipés — mêmes garanties d'unicité que l'inventaire =====
 
     public function testAddEquippedBadgeEnforcesUniqueness(): void
     {
@@ -167,8 +180,6 @@ class UserTest extends TestCase
 
         $this->assertCount(1, $this->user->getEquippedBadges());
     }
-
-    // ===== removeEquippedBadge() =====
 
     public function testRemoveEquippedBadgeDeletesFromCollection(): void
     {

@@ -35,12 +35,12 @@ class UserServiceTest extends TestCase
         $this->service        = new UserService($this->em, $this->userRepository, $this->encryptor);
     }
 
-    private function makeDiscordUser(string $id = '123', ?string $email = null): DiscordUserDTO
+    private function construireUtilisateurDiscord(string $id = '123', ?string $email = null): DiscordUserDTO
     {
         return new DiscordUserDTO($id, 'Mazlai', null, $email, 'avatar_hash', true, 'Mazlai');
     }
 
-    private function makeTokens(): DiscordTokenDTO
+    private function construireJetonsDiscord(): DiscordTokenDTO
     {
         return new DiscordTokenDTO('access_abc', 'refresh_xyz', 3600, 'Bearer', 'identify email guilds');
     }
@@ -50,7 +50,7 @@ class UserServiceTest extends TestCase
     public function testUpdateUserFromDiscordSetsUsernameAndAvatar(): void
     {
         $user        = $this->createMock(User::class);
-        $discordUser = $this->makeDiscordUser(email: null);
+        $discordUser = $this->construireUtilisateurDiscord(email: null);
 
         $user->expects($this->once())->method('setUsername')->with('Mazlai');
         $user->expects($this->once())->method('setDiscordAvatar')->with('avatar_hash');
@@ -62,7 +62,7 @@ class UserServiceTest extends TestCase
     public function testUpdateUserFromDiscordEncryptsEmailWhenProvided(): void
     {
         $user        = $this->createMock(User::class);
-        $discordUser = $this->makeDiscordUser(email: 'user@discord.com');
+        $discordUser = $this->construireUtilisateurDiscord(email: 'user@discord.com');
 
         $this->encryptor->expects($this->once())
             ->method('encrypt')
@@ -77,7 +77,7 @@ class UserServiceTest extends TestCase
     public function testUpdateUserFromDiscordSkipsEmailWhenNull(): void
     {
         $user        = $this->createMock(User::class);
-        $discordUser = $this->makeDiscordUser(email: null);
+        $discordUser = $this->construireUtilisateurDiscord(email: null);
 
         $this->encryptor->expects($this->never())->method('encrypt');
         $user->expects($this->never())->method('setDiscordEmail');
@@ -90,7 +90,7 @@ class UserServiceTest extends TestCase
     public function testUpdateUserTokensEncryptsBothTokens(): void
     {
         $user   = $this->createMock(User::class);
-        $tokens = $this->makeTokens();
+        $tokens = $this->construireJetonsDiscord();
 
         $this->encryptor->expects($this->exactly(2))
             ->method('encrypt')
@@ -162,7 +162,7 @@ class UserServiceTest extends TestCase
     public function testFindOrCreateReturnsAndUpdatesExistingUser(): void
     {
         $user   = $this->createMock(User::class);
-        $tokens = $this->makeTokens();
+        $tokens = $this->construireJetonsDiscord();
 
         $this->userRepository->method('find')->with('123')->willReturn($user);
         $this->encryptor->method('encrypt')->willReturn('encrypted');
@@ -177,15 +177,15 @@ class UserServiceTest extends TestCase
         $this->em->expects($this->once())->method('persist')->with($user);
         $this->em->expects($this->once())->method('flush');
 
-        $result = $this->service->findOrCreateFromDiscord($this->makeDiscordUser(), $tokens);
+        $result = $this->service->findOrCreateFromDiscord($this->construireUtilisateurDiscord(), $tokens);
 
         $this->assertSame($user, $result);
     }
 
     public function testFindOrCreateCreatesNewUserWhenNotFound(): void
     {
-        $tokens      = $this->makeTokens();
-        $discordUser = $this->makeDiscordUser('999');
+        $tokens      = $this->construireJetonsDiscord();
+        $discordUser = $this->construireUtilisateurDiscord('999');
         $defaultCity = $this->createMock(City::class);
 
         $this->userRepository->method('find')->willReturn(null);
@@ -223,6 +223,6 @@ class UserServiceTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        $this->service->findOrCreateFromDiscord($this->makeDiscordUser(), $this->makeTokens());
+        $this->service->findOrCreateFromDiscord($this->construireUtilisateurDiscord(), $this->construireJetonsDiscord());
     }
 }

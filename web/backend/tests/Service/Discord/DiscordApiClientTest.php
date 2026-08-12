@@ -29,7 +29,7 @@ class DiscordApiClientTest extends TestCase
         );
     }
 
-    private function mockResponse(int $statusCode, array $data = [], string $content = ''): ResponseInterface
+    private function simulerReponse(int $statusCode, array $data = [], string $content = ''): ResponseInterface
     {
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($statusCode);
@@ -77,7 +77,7 @@ class DiscordApiClientTest extends TestCase
             ->expects($this->once())
             ->method('request')
             ->with('GET', $this->stringContains('with_counts=true'), $this->anything())
-            ->willReturn($this->mockResponse(200, []));
+            ->willReturn($this->simulerReponse(200, []));
 
         $this->client->getCurrentUserGuilds('token_abc', true);
     }
@@ -88,14 +88,14 @@ class DiscordApiClientTest extends TestCase
             ->expects($this->once())
             ->method('request')
             ->with('GET', $this->logicalNot($this->stringContains('with_counts')), $this->anything())
-            ->willReturn($this->mockResponse(200, []));
+            ->willReturn($this->simulerReponse(200, []));
 
         $this->client->getCurrentUserGuilds('token_abc', false);
     }
 
     public function testGetCurrentUserGuildsReturnsEmptyArrayOnNon200(): void
     {
-        $this->httpClient->method('request')->willReturn($this->mockResponse(403));
+        $this->httpClient->method('request')->willReturn($this->simulerReponse(403));
 
         $result = $this->client->getCurrentUserGuilds('token_abc');
 
@@ -106,14 +106,14 @@ class DiscordApiClientTest extends TestCase
 
     public function testIsBotInGuildReturnsTrueOn200(): void
     {
-        $this->httpClient->method('request')->willReturn($this->mockResponse(200));
+        $this->httpClient->method('request')->willReturn($this->simulerReponse(200));
 
         $this->assertTrue($this->client->isBotInGuild('guild_123'));
     }
 
     public function testIsBotInGuildReturnsFalseOn404(): void
     {
-        $this->httpClient->method('request')->willReturn($this->mockResponse(404));
+        $this->httpClient->method('request')->willReturn($this->simulerReponse(404));
 
         $this->assertFalse($this->client->isBotInGuild('guild_123'));
     }
@@ -130,7 +130,7 @@ class DiscordApiClientTest extends TestCase
     public function testGetBotInfoReturnsStructuredDataOn200(): void
     {
         $this->httpClient->method('request')->willReturn(
-            $this->mockResponse(200, ['username' => 'MazBot', 'id' => 'bot_id_123'])
+            $this->simulerReponse(200, ['username' => 'MazBot', 'id' => 'bot_id_123'])
         );
 
         $info = $this->client->getBotInfo();
@@ -142,7 +142,7 @@ class DiscordApiClientTest extends TestCase
 
     public function testGetBotInfoReturnsNullOnNon200(): void
     {
-        $this->httpClient->method('request')->willReturn($this->mockResponse(401));
+        $this->httpClient->method('request')->willReturn($this->simulerReponse(401));
 
         $this->assertNull($this->client->getBotInfo());
     }
@@ -158,7 +158,7 @@ class DiscordApiClientTest extends TestCase
 
     public function testRevokeTokenReturnsTrueOn200(): void
     {
-        $this->httpClient->method('request')->willReturn($this->mockResponse(200));
+        $this->httpClient->method('request')->willReturn($this->simulerReponse(200));
 
         $this->assertTrue($this->client->revokeToken('some_token'));
     }

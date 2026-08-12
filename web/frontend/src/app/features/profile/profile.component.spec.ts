@@ -6,7 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import type { UserProfile } from '../../core/models/profile.model';
 
-const MOCK_PROFILE: UserProfile = {
+const PROFIL_MAZLAI: UserProfile = {
   user_id: '123',
   username: 'Mazlai',
   discord_avatar: null,
@@ -22,7 +22,7 @@ const MOCK_PROFILE: UserProfile = {
   inventory_count: 5,
 };
 
-function makeAuthMock() {
+function authMockConnecte() {
   return {
     isAuthenticated: vi.fn().mockReturnValue(true),
     currentUser: vi.fn().mockReturnValue({ username: 'Mazlai' }),
@@ -32,18 +32,18 @@ function makeAuthMock() {
   };
 }
 
-function setup(profileResult: 'never' | UserProfile | 'error' = 'never') {
-  const profileObs =
-    profileResult === 'never' ? NEVER
-    : profileResult === 'error' ? throwError(() => new Error('API error'))
-    : of(profileResult);
+function monterProfil(reponse: 'never' | UserProfile | 'error' = 'never') {
+  const profilObs =
+    reponse === 'never' ? NEVER
+    : reponse === 'error' ? throwError(() => new Error('API error'))
+    : of(reponse);
 
   TestBed.configureTestingModule({
     imports: [ProfileComponent],
     providers: [
       provideRouter([]),
-      { provide: AuthService, useValue: makeAuthMock() },
-      { provide: ProfileService, useValue: { getMyProfile: vi.fn().mockReturnValue(profileObs) } },
+      { provide: AuthService, useValue: authMockConnecte() },
+      { provide: ProfileService, useValue: { getMyProfile: vi.fn().mockReturnValue(profilObs) } },
     ],
   });
   const fixture = TestBed.createComponent(ProfileComponent);
@@ -51,106 +51,88 @@ function setup(profileResult: 'never' | UserProfile | 'error' = 'never') {
   return { component: fixture.componentInstance };
 }
 
-describe('ProfileComponent', () => {
-  afterEach(() => TestBed.resetTestingModule());
+afterEach(() => TestBed.resetTestingModule());
 
-  // ===== Null-safety des computed signals =====
+// Entre le montage du composant et la réponse de l'API, les computed signals doivent
+// afficher des valeurs de repli propres plutôt que undefined/crash (écran de chargement).
+describe('Avant que le profil ne soit chargé — valeurs de repli', () => {
+  it('backgroundColor et backgroundName retombent sur les valeurs par défaut', () => {
+    const { component } = monterProfil();
 
-  describe('Computed signals — null-safety (profile non chargé)', () => {
-    it('backgroundColor vaut "#2f3136" par défaut', () => {
-      const { component } = setup();
-      expect(component.backgroundColor()).toBe('#2f3136');
-    });
-
-    it('backgroundName vaut "Défaut" par défaut', () => {
-      const { component } = setup();
-      expect(component.backgroundName()).toBe('Défaut');
-    });
-
-    it('memberSince vaut "" par défaut', () => {
-      const { component } = setup();
-      expect(component.memberSince()).toBe('');
-    });
-
-    it('badgeSlots contient 6 éléments null par défaut', () => {
-      const { component } = setup();
-      const slots = component.badgeSlots();
-      expect(slots).toHaveLength(6);
-      expect(slots.every(s => s === null)).toBe(true);
-    });
+    expect(component.backgroundColor()).toBe('#2f3136');
+    expect(component.backgroundName()).toBe('Défaut');
   });
 
-  // ===== Computed signals avec profil chargé =====
-
-  describe('Computed signals — avec profil chargé', () => {
-    it('backgroundColor retourne la couleur du fond équipé', () => {
-      const { component } = setup(MOCK_PROFILE);
-      // bg_blue → '#5865f2' d'après les données de l'app
-      expect(component.backgroundColor()).not.toBe('#2f3136');
-      expect(typeof component.backgroundColor()).toBe('string');
-    });
-
-    it('backgroundName retourne le nom du fond équipé', () => {
-      const { component } = setup(MOCK_PROFILE);
-      expect(component.backgroundName()).not.toBe('Défaut');
-    });
-
-    it('memberSince retourne la date formatée en français', () => {
-      const { component } = setup(MOCK_PROFILE);
-      expect(component.memberSince()).toContain('janvier');
-      expect(component.memberSince()).toContain('2024');
-    });
-
-    it('badgeSlots remplit les créneaux avec les badges équipés', () => {
-      const { component } = setup(MOCK_PROFILE);
-      const slots = component.badgeSlots();
-      expect(slots).toHaveLength(6);
-      expect(slots[0]).toBe('badge_star');
-      expect(slots[1]).toBe('badge_verified');
-      expect(slots[2]).toBeNull();
-    });
+  it('memberSince est une chaîne vide tant que la date d\'inscription n\'est pas connue', () => {
+    expect(monterProfil().component.memberSince()).toBe('');
   });
 
-  // ===== États chargement / erreur =====
+  it('badgeSlots affiche 6 emplacements vides plutôt qu\'un tableau vide ou undefined', () => {
+    const slots = monterProfil().component.badgeSlots();
 
-  describe('États isLoading / hasError', () => {
-    it('isLoading passe à false après un chargement réussi', () => {
-      const { component } = setup(MOCK_PROFILE);
-      expect(component.isLoading()).toBe(false);
-    });
+    expect(slots).toHaveLength(6);
+    expect(slots.every(s => s === null)).toBe(true);
+  });
+});
 
-    it('isLoading passe à false même en cas d\'erreur', () => {
-      const { component } = setup('error');
-      expect(component.isLoading()).toBe(false);
-    });
+describe('Une fois le profil chargé', () => {
+  it('reflète le background équipé (bg_blue) plutôt que la couleur par défaut', () => {
+    const { component } = monterProfil(PROFIL_MAZLAI);
 
-    it('hasError passe à true en cas d\'erreur API', () => {
-      const { component } = setup('error');
-      expect(component.hasError()).toBe(true);
-    });
-
-    it('hasError reste false après un chargement réussi', () => {
-      const { component } = setup(MOCK_PROFILE);
-      expect(component.hasError()).toBe(false);
-    });
+    expect(component.backgroundColor()).not.toBe('#2f3136');
+    expect(typeof component.backgroundColor()).toBe('string');
   });
 
-  // ===== load() — retry =====
-
-  describe('load() — retry', () => {
-    it('réinitialise isLoading à true et hasError à false au rechargement', () => {
-      const { component } = setup('error');
-      expect(component.hasError()).toBe(true);
-      expect(component.isLoading()).toBe(false);
-
-      // Simulation du retry : on injecte une nouvelle réponse via le service
-      const mockProfileService = TestBed.inject(ProfileService);
-      (mockProfileService.getMyProfile as ReturnType<typeof vi.fn>).mockReturnValue(NEVER);
-
-      component.load();
-
-      expect(component.isLoading()).toBe(true);
-      expect(component.hasError()).toBe(false);
-    });
+  it('affiche le nom du background équipé plutôt que "Défaut"', () => {
+    expect(monterProfil(PROFIL_MAZLAI).component.backgroundName()).not.toBe('Défaut');
   });
+
+  it('formate la date d\'inscription en français', () => {
+    const { component } = monterProfil(PROFIL_MAZLAI);
+
+    expect(component.memberSince()).toContain('janvier');
+    expect(component.memberSince()).toContain('2024');
+  });
+
+  it('place les badges équipés dans l\'ordre, laisse les slots restants vides', () => {
+    const slots = monterProfil(PROFIL_MAZLAI).component.badgeSlots();
+
+    expect(slots).toHaveLength(6);
+    expect(slots[0]).toBe('badge_star');
+    expect(slots[1]).toBe('badge_verified');
+    expect(slots[2]).toBeNull();
+  });
+});
+
+describe('États de chargement et d\'erreur', () => {
+  it('sort de l\'état de chargement en cas de succès', () => {
+    expect(monterProfil(PROFIL_MAZLAI).component.isLoading()).toBe(false);
+  });
+
+  it('sort aussi de l\'état de chargement en cas d\'échec (pas de blocage indéfini)', () => {
+    expect(monterProfil('error').component.isLoading()).toBe(false);
+  });
+
+  it('hasError se déclenche sur un échec réel de l\'API', () => {
+    expect(monterProfil('error').component.hasError()).toBe(true);
+  });
+
+  it('hasError reste false quand le chargement réussit', () => {
+    expect(monterProfil(PROFIL_MAZLAI).component.hasError()).toBe(false);
+  });
+});
+
+it('load() réarme isLoading et efface hasError pour permettre un nouvel essai après échec', () => {
+  const { component } = monterProfil('error');
+  expect(component.hasError()).toBe(true);
+  expect(component.isLoading()).toBe(false);
+
+  // Le joueur clique sur "Réessayer" : le service est réinterrogé, réponse pas encore arrivée.
+  const profileServiceMock = TestBed.inject(ProfileService);
+  (profileServiceMock.getMyProfile as ReturnType<typeof vi.fn>).mockReturnValue(NEVER);
+
+  component.load();
+
+  expect(component.isLoading()).toBe(true);
+  expect(component.hasError()).toBe(false);
 });
