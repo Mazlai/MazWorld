@@ -10,10 +10,12 @@ class PrometheusRegistryFactory
 {
     public static function create(): CollectorRegistry
     {
-        // APCu est disponible dans l'image Docker (Dockerfile) mais pas forcément en CLI locale
-        // (tests PHPUnit, `symfony server:start` sans Docker) : on retombe sur un stockage en
-        // mémoire plutôt que de faire planter chaque requête en dehors du conteneur.
-        $storage = extension_loaded('apcu') ? new APC() : new InMemory();
+        // extension_loaded('apcu') ne suffit pas : l'extension peut être chargée mais désactivée
+        // pour le SAPI courant (apc.enable_cli=0 par défaut en CLI, cas des runners CI et de
+        // `symfony server:start` sans Docker) — apcu_enabled() est le contrôle que la librairie
+        // elle-même applique avant d'utiliser APCu (Prometheus\Storage\APC::__construct). On
+        // retombe sur un stockage en mémoire plutôt que de faire planter chaque requête.
+        $storage = extension_loaded('apcu') && apcu_enabled() ? new APC() : new InMemory();
 
         return new CollectorRegistry($storage);
     }
