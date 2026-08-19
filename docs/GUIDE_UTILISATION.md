@@ -1,6 +1,6 @@
 # Manuel d'utilisation — MazWorld
 
-**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+**Présenté par Mickael FERNANDEZ**, étudiant M2 Développement Web, Ynov Campus
 
 ---
 
@@ -14,7 +14,7 @@
 
 ---
 
-MazWorld est un jeu économique de voyage : chaque joueur incarne un personnage qui se déplace entre des villes, y travaille pour gagner des mazcoins, dépense cette monnaie en boutique et peut comparer sa progression au classement général. Le jeu se joue indifféremment via le **bot Discord** ou l'**application web** — un seul et même compte, la progression est partagée entre les deux interfaces.
+MazWorld est un jeu économique de voyage : chaque joueur incarne un personnage qui se déplace entre des villes, y travaille pour gagner des mazcoins, dépense cette monnaie en boutique et peut comparer sa progression au classement général. Le jeu se joue indifféremment via le **bot Discord** ou l'**application web** : un seul et même compte est utilisé, et la progression est partagée entre les deux interfaces.
 
 ---
 
@@ -22,7 +22,7 @@ MazWorld est un jeu économique de voyage : chaque joueur incarne un personnage 
 
 La connexion se fait exclusivement via **Discord OAuth**, depuis la page d'accueil de l'application web (bouton de connexion). Aucun mot de passe n'est créé sur MazWorld : l'identité du joueur est celle de son compte Discord.
 
-Sur Discord, aucune connexion n'est nécessaire — les commandes du bot identifient directement l'utilisateur qui les exécute.
+Sur Discord, aucune connexion n'est nécessaire, car les commandes du bot identifient directement l'utilisateur qui les exécute.
 
 ---
 
@@ -67,15 +67,15 @@ Un voyage en cours (`/map`) a une durée fixe ; le joueur reste bloqué à sa po
 
 ## 4. Rôles
 
-- **Joueur standard** — accès à l'ensemble des fonctionnalités de jeu, web et Discord.
-- **Administrateur** (`ROLE_ADMIN`) — accès additionnel à la page Statistiques (vue d'ensemble globale et économique du jeu). Ce rôle est attribué en base de données, aucune action du joueur ne l'active.
+- **Joueur standard** : accès à l'ensemble des fonctionnalités de jeu, web et Discord.
+- **Administrateur** (`ROLE_ADMIN`) : accès additionnel à la page Statistiques (vue d'ensemble globale et économique du jeu). Ce rôle est attribué en base de données, aucune action du joueur ne l'active.
 
 ---
 
 ## 5. Questions fréquentes
 
-**Ma commande me répond « en cooldown » / avec un délai affiché** — C'est normal : `/work`, `/daily` et `/coinflip` sont limitées dans le temps (voir tableau §3). Le délai restant est indiqué dans le message d'erreur.
+**Ma commande me répond « en cooldown » / avec un délai affiché.** Rien d'anormal : `/work`, `/daily` et `/coinflip` sont limitées dans le temps (voir tableau §3). Le délai restant est indiqué dans le message d'erreur.
 
-**Je suis redirigé vers l'accueil sur le site web** — La session a expiré ou n'est plus valide : reconnectez-vous via Discord OAuth.
+**Je suis redirigé vers l'accueil sur le site web.** La session a expiré ou n'est plus valide : reconnectez-vous via Discord OAuth.
 
-**Le bot ne répond pas** — Vérifier sur la page « Mes serveurs » que le bot est bien présent sur le serveur Discord concerné et qu'il apparaît en ligne ; sinon, utiliser le lien d'invitation depuis cette même page.
+**Le bot ne répond pas.** Vérifier sur la page « Mes serveurs » que le bot est bien présent sur le serveur Discord concerné et qu'il apparaît en ligne ; sinon, utiliser le lien d'invitation depuis cette même page.

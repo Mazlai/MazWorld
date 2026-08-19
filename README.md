@@ -1,6 +1,6 @@
 # MazWorld
 
-Jeu économique de voyage jouable à la fois via un bot Discord et une application web — projet réalisé dans le cadre d'une certification RNCP niveau Master.
+Jeu économique de voyage jouable à la fois via un bot Discord et une application web, projet réalisé dans le cadre d'une certification RNCP niveau Master.
 
 Les joueurs voyagent entre des villes, y travaillent pour gagner des mazcoins, achètent des équipements (backgrounds, badges) en boutique et grimpent au classement. Le compte est partagé entre les deux interfaces : la progression faite sur Discord se retrouve sur le web, et inversement.
 
@@ -42,6 +42,6 @@ démarre en parallèle le backend (`symfony server:start`), le frontend (`ng ser
 | [Manuel de mise à jour](docs/MISE_A_JOUR.md) | Versionnement, migrations de base de données, mise à jour d'une instance en production |
 | [Stratégie de tests](docs/STRATEGIE_TESTS.md) | Tests unitaires et d'intégration, couverture |
 | [Audit d'accessibilité](docs/AUDIT_ACCESSIBILITE.md) | Conformité WCAG 2.1 AA |
-| [Sécurité — OWASP Top 10](docs/SECURITE_OWASP.md) | Couverture des 10 failles principales |
+| [Sécurité (OWASP Top 10)](docs/SECURITE_OWASP.md) | Couverture des 10 failles principales |
 | [User stories](docs/USER_STORIES.md) | Inventaire des fonctionnalités attendues |
 | [Cahier de recettes](docs/CAHIER_DE_RECETTES.md) | Scénarios de test fonctionnels, structurels et de sécurité |

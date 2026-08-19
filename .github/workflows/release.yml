@@ -49,8 +49,26 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Le corps de la PR "release: vX.Y.Z" est rédigé à la main (résumé, correctifs,
+          # tests) et bien plus riche que ce que --generate-notes peut produire ici : les
+          # PR de release sont fusionnées en squash merge dans main, ce qui aplatit
+          # l'historique détaillé — l'algorithme de GitHub n'a alors plus qu'un seul commit
+          # à énumérer et ne produit qu'une ligne ("release: vX.Y.Z by @auteur"). On passe
+          # donc explicitement par env: (jamais d'interpolation ${{ }} directe dans un run:,
+          # le corps de la PR étant un contenu utilisateur non fiable) plutôt que par le
+          # shell, et on ne retombe sur --generate-notes que si la PR n'a exceptionnellement
+          # aucune description.
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          gh release create "v${{ steps.version.outputs.version }}" \
-            --title "Release v${{ steps.version.outputs.version }}" \
-            --generate-notes \
-            --latest
+          if [ -n "$PR_BODY" ]; then
+            printf '%s\n' "$PR_BODY" > release-notes.md
+            gh release create "v${{ steps.version.outputs.version }}" \
+              --title "Release v${{ steps.version.outputs.version }}" \
+              --notes-file release-notes.md \
+              --latest
+          else
+            gh release create "v${{ steps.version.outputs.version }}" \
+              --title "Release v${{ steps.version.outputs.version }}" \
+              --generate-notes \
+              --latest
+          fi
