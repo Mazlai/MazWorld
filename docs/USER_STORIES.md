@@ -1,6 +1,6 @@
 # User stories - MazWorld
 
-**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+**Présenté par Mickael FERNANDEZ**, étudiant M2 Développement Web, Ynov Campus
 
 ---
 
@@ -31,7 +31,7 @@
 
 Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tracés dans GitHub Issues avec le label **`SU`** ("Scénario Utilisateur"), dans une structure `Initiative > Epic > Feature > SU` mise en place grâce aux sous-issues natives de GitHub (les relations parent/enfant sont vérifiées par l'API, pour un total de 78 SU tous rattachés à une feature ou une epic).
 
-**Point de rigueur à souligner** : aucune des 78 issues SU ne comporte déjà, dans son corps, la formule littérale *"En tant que… je veux… afin de…"* : certaines sont des tickets vides ou de simples checklists techniques (héritage des débuts du projet, avant formalisation de la méthode). La formulation ci-dessous a donc été **reconstruite** à partir du titre de chaque SU et du contexte de sa feature/epic parente, sans ajouter de bénéfice ou de comportement non décrit dans le ticket d'origine.  Quand un ticket ne désigne aucun bénéficiaire joueur identifiable (infrastructure pure, outillage CI), l'acteur est explicitement un développeur/mainteneur et non un joueur fictif.
+**Point de rigueur à souligner** : aucune des 78 issues SU ne comporte déjà, dans son corps, la formule littérale *"En tant que… je veux… afin de…"* : certaines sont des tickets vides ou de simples checklists techniques (héritage des débuts du projet, avant formalisation de la méthode). La formulation ci-dessous a donc été **reconstruite** à partir du titre de chaque SU et du contexte de sa feature/epic parente, sans ajouter de bénéfice ou de comportement non décrit dans le ticket d'origine.  Quand un ticket ne désigne aucun bénéficiaire joueur identifiable (infrastructure pure, outillage CI), l'acteur retenu est explicitement un développeur ou un mainteneur, jamais un joueur fictif.
 
 **Légende d'état :** ✅ Terminé (`CLOSED`) & 🔄 Ouvert (`OPEN`, non implémenté à ce jour).
 
@@ -128,7 +128,7 @@ Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tr
 | [#40](../../issues/40) | ✅ | En tant que joueur, je souhaite que le bot réagisse de façon fiable aux événements Discord (connexion, message, interaction) pour que mes commandes soient toujours prises en compte. |
 | [#41](../../issues/41) | ✅ | En tant que joueur, je souhaite que mes commandes slash soient correctement acheminées, avec gestion des permissions et des erreurs, afin d'obtenir une réponse fiable quelle que soit la commande utilisée. |
 | [#42](../../issues/42) | ✅ | En tant que joueur, je souhaite que le bot Discord puisse communiquer de façon fiable avec l’API du jeu, afin que les actions que je déclenche depuis Discord soient bien prises en compte. |
-| [#87](../../issues/87) | ✅ | En tant que joueur, je souhaite obtenir un message explicite en cas d’échec d’une commande, pour savoir ce qui s’est passé et non pas recevoir un silence ou un crash. |
+| [#87](../../issues/87) | ✅ | En tant que joueur, je souhaite obtenir un message explicite en cas d’échec d’une commande, pour comprendre ce qui s’est passé sans essuyer un silence ou un crash. |
 | [#88](../../issues/88) | ✅ | En tant que mainteneur, je veux logger chaque commande exécutée, afin de diagnostiquer les anomalies et suivre l'utilisation du bot. |
 
 ## 10. Gestion des serveurs Discord (Features #66, #67, #68)
@@ -155,7 +155,7 @@ Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tr
 | [#179](../../issues/179) | ✅ | En tant que joueur, je veux que mes tokens Discord (accès/refresh) soient stockés chiffrés en base de données, pour qu'un vol de la base ne mette pas directement mon compte Discord en danger. |
 | [#180](../../issues/180) | ✅ | En tant que joueur, je souhaite que les erreurs techniques internes (chemins de fichiers, requêtes SQL…) ne soient jamais affichées dans les réponses de l’application, pour qu’un attaquant ne puisse pas profiter de ces informations à mon détriment. |
 
-> Note de traçabilité : le corps de l’issue #180 se réclame de la Feature #175, mais le lien parent structurel GitHub la rattache directement à l’Epic #173 — divergence mineure dans les métadonnées du repo, signalée ici par souci d’exactitude plutôt que corrigée silencieusement.
+> Note de traçabilité : le corps de l’issue #180 se réclame de la Feature #175, mais le lien parent structurel GitHub la rattache directement à l’Epic #173. Il s’agit d’une divergence mineure dans les métadonnées du repo, signalée ici par souci d’exactitude sans être corrigée silencieusement.
 
 ## 13. Qualité et tests (Epic #89 — Feature #90)
 
@@ -186,7 +186,7 @@ Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tr
 | [#108](../../issues/108) | ✅ | En tant que développeur, je souhaite disposer d’un environnement Docker Compose identique en développement et en production, pour déployer et faire évoluer l’application de manière fiable et reproductible. |
 | [#99](../../issues/99) | ✅ | En tant que mainteneur, je souhaite disposer d’un processus de release automatisé et normalisé (versioning, tag), pour livrer les évolutions de façon fiable et traçable. |
 | [#101](../../issues/101) | 🔄 | En tant que mainteneur, je souhaite migrer l'hébergement vers un VPS OVHcloud et automatiser son déploiement, pour obtenir une infrastructure de production stable et accessible publiquement. |
-| [#100](../../issues/100) | ⛔ abandonnée | *En tant que mainteneur, je souhaitais déployer l'application sur un Raspberry Pi afin de pouvoir disposer d'un hébergement à faible coût — plan initial remplacé par le VPS OVHcloud (#101), l'issue reste ouverte mais n'est plus poursuivie.* |
+| [#100](../../issues/100) | ⛔ abandonnée | *En tant que mainteneur, je souhaitais déployer l'application sur un Raspberry Pi afin de pouvoir disposer d'un hébergement à faible coût. Ce plan initial a été remplacé par le VPS OVHcloud (#101) ; l'issue reste ouverte mais n'est plus poursuivie.* |
 
 ## 16. Monitoring (Epic #102 — Feature #103)
 
@@ -201,4 +201,4 @@ Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tr
 
 - **78 scénarios utilisateur** au total, **73 clos**, **4 ouverts** (#93, #101, #105, #106), **1 abandonné** (#100, remplacé par #101).
 - Acteurs identifiés : **joueur** (majorité, ~50 SU), **développeur/mainteneur** (tâches d’infrastructure, de qualité et de sécurité sans bénéficiaire joueur direct), **administrateur de serveur Discord** (#84).
-- Hiérarchie source : 5 Initiatives, 18 Epics, 33 Features, 78 SU — vérifiée via l'API GitHub (relations parent/enfant natives), aucune SU orpheline.
+- Hiérarchie source : 5 Initiatives, 18 Epics, 33 Features, 78 SU, vérifiée via l'API GitHub (relations parent/enfant natives) ; aucune SU orpheline.
