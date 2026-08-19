@@ -194,11 +194,11 @@ Ce document dresse la liste de tous les **scénarios utilisateur** du projet, tr
 |---|---|---|
 | [#104](../../issues/104) | ✅ | En tant que mainteneur, je veux que les dépendances vulnérables ou obsolètes soient détectées et mises à jour automatiquement (Dependabot) afin de réduire l'exposition aux vulnérabilités connues. |
 | [#187](../../issues/187) | ✅ | En tant que mainteneur, je souhaite logger les échecs d’authentification (bot, JWT) dans un canal dédié, pour détecter les tentatives d’intrusion et protéger les comptes joueurs. |
-| [#106](../../issues/106) | 🔄 | En tant que mainteneur, je veux visualiser les métriques applicatives et de sécurité dans Grafana, afin de surveiller la santé et la sécurité du système en production. |
+| [#106](../../issues/106) | ✅ | En tant que mainteneur, je veux visualiser les métriques applicatives et de sécurité dans Grafana, afin de surveiller la santé et la sécurité du système en production. |
 | [#105](../../issues/105) | 🔄 | En tant que mainteneur, je souhaite gérer les conteneurs Docker de production via une interface web (Portainer) pour simplifier la supervision et éviter les lignes de commande. |
 
 ## Synthèse
 
-- **78 scénarios utilisateur** au total, **73 clos**, **4 ouverts** (#93, #101, #105, #106), **1 abandonné** (#100, remplacé par #101).
+- **78 scénarios utilisateur** au total, **74 clos**, **3 ouverts** (#93, #101, #105), **1 abandonné** (#100, remplacé par #101).
 - Acteurs identifiés : **joueur** (majorité, ~50 SU), **développeur/mainteneur** (tâches d’infrastructure, de qualité et de sécurité sans bénéficiaire joueur direct), **administrateur de serveur Discord** (#84).
 - Hiérarchie source : 5 Initiatives, 18 Epics, 33 Features, 78 SU, vérifiée via l'API GitHub (relations parent/enfant natives) ; aucune SU orpheline.
