@@ -1,7 +1,6 @@
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
 import { api, ApiError } from "../../api/client";
 import { Command } from "../../models/Command";
@@ -16,6 +15,8 @@ const daily: Command = {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const avatarURL = interaction.user.displayAvatarURL();
 
+    await interaction.deferReply();
+
     try {
       const result = await api.post<DailyResponse>(
         "/api/commands/daily",
@@ -24,19 +25,18 @@ const daily: Command = {
       );
 
       if (result.success) {
-        await interaction.reply({ embeds: [buildDailySuccessEmbed(result, avatarURL)] });
+        await interaction.editReply({ embeds: [buildDailySuccessEmbed(result, avatarURL)] });
       } else {
-        await interaction.reply({ embeds: [buildDailyAlreadyClaimedEmbed(result, avatarURL)], flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ embeds: [buildDailyAlreadyClaimedEmbed(result, avatarURL)] });
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 429) {
-        await interaction.reply({ content: `⏰ ${error.message}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: `⏰ ${error.message}` });
         return;
       }
       console.error("Erreur dans /daily:", error);
-      await interaction.reply({
+      await interaction.editReply({
         content: "❌ Une erreur est survenue lors de la réclamation de votre récompense quotidienne.",
-        flags: MessageFlags.Ephemeral,
       });
     }
   },
