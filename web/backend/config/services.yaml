@@ -26,6 +26,9 @@ services:
         arguments:
             $encryptionKey: '%env(APP_ENCRYPTION_KEY)%'
 
+    Prometheus\CollectorRegistry:
+        factory: ['App\Metrics\PrometheusRegistryFactory', 'create']
+
     App\Service\Discord\DiscordApiClient:
         arguments:
             $clientId: '%env(DISCORD_CLIENT_ID)%'

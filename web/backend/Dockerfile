@@ -6,10 +6,21 @@ COPY composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
 
 FROM php:8.2-fpm-alpine AS php_base
-RUN apk add --no-cache icu-libs \
+RUN apk add --no-cache icu-libs fcgi \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS icu-dev \
     && docker-php-ext-install pdo_mysql intl opcache \
-    && apk del .build-deps
+    && pecl install apcu \
+    && docker-php-ext-enable apcu \
+    && apk del .build-deps \
+    && { \
+         echo '[www]'; \
+         echo 'ping.path = /ping'; \
+         echo 'ping.response = pong'; \
+         echo 'pm.max_children = 10'; \
+         echo 'pm.start_servers = 3'; \
+         echo 'pm.min_spare_servers = 2'; \
+         echo 'pm.max_spare_servers = 6'; \
+       } >> /usr/local/etc/php-fpm.d/www.conf
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
