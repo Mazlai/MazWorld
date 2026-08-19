@@ -1,0 +1,152 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: mazworld-saturation
+    folder: MazWorld
+    interval: 1m
+    rules:
+      - uid: mazworld-host-memory-high
+        title: "Mémoire hôte saturée"
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: "Mémoire hôte utilisée à plus de 90 % pendant 5 minutes"
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+              instant: true
+          - refId: C
+            datasourceUid: "-100"
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [90]
+                  operator:
+                    type: and
+                  query:
+                    params: ["A"]
+
+      - uid: mazworld-container-cpu-high
+        title: "CPU d'un conteneur saturé"
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Alerting
+        labels:
+          severity: warning
+        annotations:
+          summary: "Un conteneur MazWorld dépasse 90 % de CPU pendant 5 minutes"
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: max by (name) (rate(container_cpu_usage_seconds_total{name!=""}[5m])) * 100
+              instant: true
+          - refId: C
+            datasourceUid: "-100"
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [90]
+                  operator:
+                    type: and
+                  query:
+                    params: ["A"]
+
+  - orgId: 1
+    name: mazworld-red-thresholds
+    folder: MazWorld
+    interval: 1m
+    rules:
+      - uid: mazworld-error-rate-high
+        title: "Taux d'erreur applicatif élevé"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: "Plus de 5 % des requêtes HTTP se terminent en erreur (4xx/5xx) depuis 5 minutes"
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: 100 * sum(rate(mazworld_http_requests_total{status=~"4..|5.."}[5m])) / sum(rate(mazworld_http_requests_total[5m]))
+              instant: true
+          - refId: C
+            datasourceUid: "-100"
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [5]
+                  operator:
+                    type: and
+                  query:
+                    params: ["A"]
+
+      - uid: mazworld-latency-p95-high
+        title: "Latence applicative dégradée (p95)"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          severity: warning
+        annotations:
+          summary: "La latence p95 dépasse 1 seconde depuis 5 minutes, tous endpoints confondus"
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: histogram_quantile(0.95, sum by (le) (rate(mazworld_http_request_duration_seconds_bucket[5m])))
+              instant: true
+          - refId: C
+            datasourceUid: "-100"
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [1]
+                  operator:
+                    type: and
+                  query:
+                    params: ["A"]

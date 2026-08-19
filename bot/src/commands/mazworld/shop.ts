@@ -28,16 +28,18 @@ const shop: Command = {
     const userId   = interaction.user.id;
     const username = interaction.user.username;
 
+    await interaction.deferReply();
+
     let userCoins = 0;
     try {
       const data = await api.get<ShopListResponse>("/api/shop", userId, username);
       userCoins = data.user_coins;
     } catch {
-      await interaction.reply({ content: "❌ Impossible de charger le magasin.", flags: 64 });
+      await interaction.editReply({ content: "❌ Impossible de charger le magasin." });
       return;
     }
 
-    await interaction.reply({ embeds: [buildShopHomeEmbed(userCoins)], components: [buildShopCategorySelect()] });
+    await interaction.editReply({ embeds: [buildShopHomeEmbed(userCoins)], components: [buildShopCategorySelect()] });
     const response = await interaction.fetchReply();
 
     const collector = response.createMessageComponentCollector({

@@ -1,6 +1,6 @@
 # Stratégie de tests — MazWorld
 
-**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+**Présenté par Mickael FERNANDEZ**, étudiant M2 Développement Web, Ynov Campus
 
 ---
 
@@ -27,7 +27,7 @@ Le backend Symfony est couvert par deux catégories de tests clairement séparé
 | Tests unitaires (TU) | `unit` | Non |
 | Tests d'intégration (TI) | `integration` | Oui (MySQL) |
 
-Couverture : **77.82 % des lignes**, **82.04 % des méthodes** — 301 tests, 744 assertions (rapport HTML : `web/backend/coverage-reports/07-final/` — seul rapport de couverture conservé dans le dépôt, les autres étant exclus via `.gitignore`).
+Couverture : **77.82 % des lignes**, **82.04 % des méthodes**, pour 301 tests et 744 assertions (rapport HTML : `web/backend/coverage-reports/07-final/`, seul rapport de couverture conservé dans le dépôt, les autres étant exclus via `.gitignore`).
 
 **Couverture isolée par groupe** : le chiffre ci-dessus combine TU et TI. En isolant `--group unit` seul (`php bin/phpunit --group unit --coverage-text`), sans base de données :
 
@@ -137,7 +137,7 @@ PHPUnit 11 vérifie que les tests ne laissent pas de gestionnaires d'exceptions 
 
 #### Tests de repository : valeur ajoutée
 
-Les tests de repository (TI) ne valident pas les données des fixtures — ils valident que les **QueryBuilders DQL sont sémantiquement corrects** :
+Les tests de repository (TI) vérifient surtout que les **QueryBuilders DQL sont sémantiquement corrects**, plutôt que les données des fixtures :
 - Les clauses `WHERE` filtrent effectivement
 - Les clauses `ORDER BY` sont appliquées par MySQL
 - Les cas limites (résultat vide) sont bien gérés
@@ -150,7 +150,7 @@ Les fixtures (`AppFixtures`, `ShopFixtures`) ne sont pas testées directement ca
 
 #### Mocks et Intelephense
 
-Les propriétés mock utilisent le pattern `/** @var Interface&MockObject */` pour que l'IDE reconnaisse les méthodes PHPUnit (`expects()`, `method()`). Intelephense indexe automatiquement `vendor/phpunit/phpunit` — après réindexation du projet, les avertissements disparaissent.
+Les propriétés mock utilisent le pattern `/** @var Interface&MockObject */` pour que l'IDE reconnaisse les méthodes PHPUnit (`expects()`, `method()`). Intelephense indexe automatiquement `vendor/phpunit/phpunit`, et les avertissements disparaissent après réindexation du projet.
 
 Si les avertissements persistent, déclencher manuellement la réindexation : `Ctrl+Shift+P → Intelephense: Index workspace`.
 
@@ -177,7 +177,7 @@ Cette suite de tests répond à l'exigence de couverture majoritaire (> 50 %) re
 
 Le frontend Angular est couvert par des tests unitaires et d'intégration composants (TI-composants), exécutés via **Vitest** (moteur de test intégré à `@angular/build:unit-test` depuis Angular 19).
 
-Couverture : **62.48 % des lignes** (911/1458), **59.82 % des fonctions** (201/336), **74.66 % des branches** (554/742) — 232 tests, 31 fichiers (rapport HTML : `web/frontend/coverage/01-final/`).
+Couverture : **62.48 % des lignes** (911/1458), **59.82 % des fonctions** (201/336), **74.66 % des branches** (554/742), pour 232 tests et 31 fichiers (rapport HTML : `web/frontend/coverage/01-final/`).
 
 Le rapport inclut **tous** les fichiers sources, y compris les templates `.html` et les composants de fonctionnalité dont le rendu n'est pas directement ciblé par les tests. Les chiffres sont donc représentatifs de la couverture réelle de l'ensemble du codebase.
 
@@ -199,13 +199,13 @@ Une version antérieure de ce document indiquait 73.43 % de lignes. Trois causes
    | commands | — | — | — | 100 % |
    | dashboard | 33 | 0 | 2 | 100 % |
 
-   Les 6 premières features ont 4 fois plus de boucles `@for`/blocs `@if` en moyenne que les 5 suivantes, ce qui est cohérent avec le fait qu'elles affichent des collections (routes, items, entrées de classement, serveurs, records par catégorie) plutôt qu'une entité unique ou du contenu majoritairement statique. Ce n'est pas un objectif délibéré de la suite de tests, contrairement à la couverture de logique : c'est un effet de bord du rendu initial, qui varie avec la complexité structurelle du template, pas avec la qualité du test.
-2. **L'environnement n'est pas parfaitement reproductible** — le service frontend utilise l'image Docker `node:22` (tag flottant, non figé sur un patch précis). Versions de `vitest`/`@vitest/coverage-v8`/`@angular/build` et fichiers de configuration vérifiés identiques entre les deux mesures ; seule la version exacte de Node/V8 sous-jacente a pu différer, ce qui affecte le comportement de l'API de couverture native de V8 sur les modules jamais chargés (routes en lazy-loading sans test dédié).
-3. **La couverture V8 elle-même n'est pas déterministe d'une exécution à l'autre, même sans rien changer**. Je m'en suis aperçu par hasard, en relançant `npx ng test --no-watch --coverage` deux fois de suite, sur la même machine, sans aucune modification de code entre les deux : `auth.service.ts` est passé de 69.84 % à 88.88 % de lignes couvertes selon l'exécution, alors que les 8 tests du fichier restent strictement identiques et passent à chaque fois. Ça m'a d'abord fait douter de mes propres mesures. En isolant le fichier(`--include auth.service.spec.ts`) je retombe systématiquement sur 69.84 % ; c'est uniquement lors d'une exécution de la suite complète, où Vitest répartit les fichiers de test sur plusieurs workers en parallèle, que le chiffre varie — la fusion des rapports de couverture V8 entre workers n'est pas garantie stable à l'échelle d'un fichier. L'effet reste heureusement contenu au niveau agrégat (62.48 % → 63.16 % de lignes entre deux runs complets, contre un écart de ~19 points sur ce seul fichier) et n'affecte pas les pourcentages du tableau `@for`/`@if` ci-dessous, revérifiés identiques sur les deux runs. Ce phénomène est propre à l'instrumentation V8 : la couverture backend (Xdebug/PCOV côté PHPUnit) a été revérifiée strictement identique (26.55 % TU seul, à la décimale près) sur deux exécutions successives.
+   Les 6 premières features ont 4 fois plus de boucles `@for`/blocs `@if` en moyenne que les 5 suivantes, ce qui est cohérent avec le fait qu'elles affichent des collections (routes, items, entrées de classement, serveurs, records par catégorie) plutôt qu'une entité unique ou du contenu majoritairement statique. Contrairement à la couverture de logique, cet écart reflète surtout un effet de bord du rendu initial, lié à la complexité structurelle du template davantage qu'à la qualité du test.
+2. **L'environnement n'est pas parfaitement reproductible.** Le service frontend utilise l'image Docker `node:22` (tag flottant, non figé sur un patch précis). Versions de `vitest`/`@vitest/coverage-v8`/`@angular/build` et fichiers de configuration vérifiés identiques entre les deux mesures ; seule la version exacte de Node/V8 sous-jacente a pu différer, ce qui affecte le comportement de l'API de couverture native de V8 sur les modules jamais chargés (routes en lazy-loading sans test dédié).
+3. **La couverture V8 elle-même n'est pas déterministe d'une exécution à l'autre, même sans rien changer**. Je m'en suis aperçu par hasard, en relançant `npx ng test --no-watch --coverage` deux fois de suite, sur la même machine, sans aucune modification de code entre les deux : `auth.service.ts` est passé de 69.84 % à 88.88 % de lignes couvertes selon l'exécution, alors que les 8 tests du fichier restent strictement identiques et passent à chaque fois. Ça m'a d'abord fait douter de mes propres mesures. En isolant le fichier(`--include auth.service.spec.ts`) je retombe systématiquement sur 69.84 % ; c'est uniquement lors d'une exécution de la suite complète, où Vitest répartit les fichiers de test sur plusieurs workers en parallèle, que le chiffre varie, parce que la fusion des rapports de couverture V8 entre workers n'est pas garantie stable à l'échelle d'un fichier. L'effet reste heureusement contenu au niveau agrégat (62.48 % → 63.16 % de lignes entre deux runs complets, contre un écart de ~19 points sur ce seul fichier) et n'affecte pas les pourcentages du tableau `@for`/`@if` ci-dessous, revérifiés identiques sur les deux runs. Ce phénomène est propre à l'instrumentation V8 : la couverture backend (Xdebug/PCOV côté PHPUnit) a été revérifiée strictement identique (26.55 % TU seul, à la décimale près) sur deux exécutions successives.
 
-Le nombre de tests/fichiers de composants et la couverture de **logique métier** (fonctions extraites, computed signals, services) restent la preuve de valeur pour la compétence RNCP puisque c'est elle qui progresse avec l'ajout de tests (voir les 6 services ci-dessous), pas le rendu de template.
+Le nombre de tests/fichiers de composants et la couverture de **logique métier** (fonctions extraites, computed signals, services) restent la preuve de valeur pour la compétence RNCP, puisque c'est elle qui progresse avec l'ajout de tests (voir les 6 services ci-dessous), contrairement au rendu de template.
 
-En me relisant, je suis tombé sur un vrai trou : `HomeComponent` et `CommandsComponent` (routes en lazy-loading, jamais exercées par aucun test existant) étaient à **0 % strict**. Contrairement aux écrans que j'ai délibérément laissés de côté, ce n'était pas un choix : juste un oubli sur une logique réelle, même minime (`HomeComponent.login()` déclenche l'OAuth Discord, `CommandsComponent.commandsFor()` filtre par catégorie). Ajouté depuis (`home.component.spec.ts`, `commands.component.spec.ts`).
+En me relisant, je suis tombé sur un vrai trou : `HomeComponent` et `CommandsComponent` (routes en lazy-loading, jamais exercées par aucun test existant) étaient à **0 % strict**. Contrairement aux écrans que j'ai délibérément laissés de côté, il s'agit ici d'un simple oubli sur une logique réelle, même minime (`HomeComponent.login()` déclenche l'OAuth Discord, `CommandsComponent.commandsFor()` filtre par catégorie). Ajouté depuis (`home.component.spec.ts`, `commands.component.spec.ts`).
 
 **Pas de séparation TU/TI isolable côté frontend** : contrairement au backend (groupes PHPUnit `unit`/`integration` filtrables en une commande), Vitest/Angular ne propose ici aucun mécanisme de tag ou de projet séparant les tests. Les tests de composants passent tous par `TestBed`, y compris ceux qui ne dépendent d'aucune API (ex. les guards utilisent `TestBed.runInInjectionContext()`). Isoler un chiffre « TU pur » nécessiterait de reconstituer manuellement une liste de fichiers, sans commande unique pour le faire. Le chiffre combiné ci-dessus est donc présenté tel quel, en cohérence avec la nature des tests Angular modernes plutôt qu'en simulant une séparation qui n'existe pas dans l'outillage.
 
@@ -290,24 +290,24 @@ web/frontend/src/
 
 #### Vitest, pas Jasmine/Karma
 
-Angular 21 utilise `@angular/build:unit-test` avec Vitest comme exécuteur natif. L'API diffère de Jasmine : `vi.fn()` (pas `jasmine.createSpyObj`), `.mockReturnValue()` (pas `.and.returnValue()`), `toBe(true/false)` (pas `toBeTrue()`/`toBeFalse()`).
+Angular 21 utilise `@angular/build:unit-test` avec Vitest comme exécuteur natif. L'API diffère de Jasmine : `vi.fn()` au lieu de `jasmine.createSpyObj`, `.mockReturnValue()` au lieu de `.and.returnValue()`, `toBe(true/false)` au lieu de `toBeTrue()`/`toBeFalse()`.
 
 #### Couverture ciblée sur la logique critique
 
-Les composants de fonctionnalité (dashboard, carte, profil, boutique, classement...) ont chacun un test dédié, mais celui-ci cible leur **logique** (fonctions extraites, computed signals, tri, pagination ; voir la liste des fichiers ci-dessus), pas le **rendu complet du template** : ils dépendent d'API REST actives et de données dynamiques, et générer assez de variantes de données mockées pour couvrir tout le template produirait des tests fragiles sans valeur ajoutée. La couverture est concentrée sur :
+Les composants de fonctionnalité (dashboard, carte, profil, boutique, classement...) ont chacun un test dédié, mais celui-ci cible leur **logique** (fonctions extraites, computed signals, tri, pagination ; voir la liste des fichiers ci-dessus) plutôt que le **rendu complet du template** : ils dépendent d'API REST actives et de données dynamiques, et générer assez de variantes de données mockées pour couvrir tout le template produirait des tests fragiles sans valeur ajoutée. La couverture est concentrée sur :
 
-- **Guards** — logique d'accès (auth, guest, admin)
-- **Intercepteur JWT** — injection du token, URLs publiques
-- **Services** — `AuthService`/`ProfileService` (mapping de réponse, signaux computés), `AuthStorageService` (sessionStorage, SSR), et 6 services REST simples (`InventoryService`, `RecordsService`, `ServersService`, `ShopService`, `StatsService`, `TravelService`)
-- **Utilitaires** — `profile.utils.ts` (badges, fonds, dates)
-- **Composants UI partagés** — 5 composants réutilisables à travers toute l'application
-- **Logique des composants de fonctionnalité** — fonctions pures extraites (`formatDuration`, `canAffordTravel`, `getRankEmoji`, `fmt()`...), testées indépendamment du rendu du template
+- **Guards** : logique d'accès (auth, guest, admin)
+- **Intercepteur JWT** : injection du token, et son exclusion sur les URLs publiques
+- **Services** : `AuthService`/`ProfileService` (mapping de réponse, signaux computés), `AuthStorageService` (sessionStorage, SSR), et 6 services REST simples (`InventoryService`, `RecordsService`, `ServersService`, `ShopService`, `StatsService`, `TravelService`)
+- **Utilitaires**, avec `profile.utils.ts` (badges, fonds, dates)
+- **Composants UI partagés** (5 composants réutilisables à travers toute l'application)
+- **Logique des composants de fonctionnalité**, via les fonctions pures extraites (`formatDuration`, `canAffordTravel`, `getRankEmoji`, `fmt()`...), testées indépendamment du rendu du template
 
 #### Pourquoi les tests de composants mockent leur service (et pourquoi 6 services ont quand même leur propre test)
 
-Chaque test de composant de fonctionnalité mocke son service (`{ provide: ShopService, useValue: mockService }`) — un choix délibéré et standard : isoler la logique du **composant** (tri, `canBuy()`, pagination) de l'implémentation du **service**, pour ne pas faire dépendre le test du composant du détail de construction d'une requête HTTP. C'est pour cette raison que `ProfileService` a en plus son propre test dédié (`profile.service.spec.ts`, avec `HttpTestingController`) : il contient une vraie transformation de réponse (`.pipe(map(res => res.profile))`) que le mock du composant ne vérifie jamais.
+Chaque test de composant de fonctionnalité mocke son service (`{ provide: ShopService, useValue: mockService }`), un choix délibéré et standard qui isole la logique du **composant** (tri, `canBuy()`, pagination) de l'implémentation du **service**, pour ne pas faire dépendre le test du composant du détail de construction d'une requête HTTP. C'est pour cette raison que `ProfileService` a en plus son propre test dédié (`profile.service.spec.ts`, avec `HttpTestingController`) : il contient une vraie transformation de réponse (`.pipe(map(res => res.profile))`) que le mock du composant ne vérifie jamais.
 
-Les 6 services ajoutés (`InventoryService`, `RecordsService`, `ServersService`, `ShopService`, `StatsService`, `TravelService`) n'ont pas cette justification : ce sont de pures délégations vers `HttpClient`, sans transformation. Je les ai quand même testés pour une raison précise que j'ai réalisée en les lisant : plusieurs de leurs méthodes POST renomment un champ JS en snake_case pour l'API (`itemId` → `item_id`, `badgeId`/`slot` → `badge_id`/`slot`, `destinationId` → `destination_id`), une faute de frappe silencieuse à cet endroit casserait le contrat d'API sans qu'aucun test ne le détecte. Les tests ajoutés vérifient l'URL, la méthode HTTP et, pour les `POST`, la forme exacte du payload envoyé.
+Les 6 services ajoutés (`InventoryService`, `RecordsService`, `ServersService`, `ShopService`, `StatsService`, `TravelService`) n'entrent pas dans ce cas, puisqu'il s'agit de pures délégations vers `HttpClient`, sans transformation. Je les ai quand même testés pour une raison précise que j'ai réalisée en les lisant : plusieurs de leurs méthodes POST renomment un champ JS en snake_case pour l'API (`itemId` → `item_id`, `badgeId`/`slot` → `badge_id`/`slot`, `destinationId` → `destination_id`), une faute de frappe silencieuse à cet endroit casserait le contrat d'API sans qu'aucun test ne le détecte. Les tests ajoutés vérifient l'URL, la méthode HTTP et, pour les `POST`, la forme exacte du payload envoyé.
 
 #### Angular TestBed pour les composants
 
@@ -319,7 +319,7 @@ Les composants UI partagés (Avatar, Badge, Spinner, etc.) utilisent `TestBed.cr
 
 #### Gestion des erreurs asynchrones
 
-Pour les Observables qui émettent une erreur, la conversion `lastValueFrom(observable$)` permet d'utiliser `await expect(...).rejects.toThrow(...)` — syntaxe native Vitest, sans `done` callback ni `.toThrowError()` imbriqué.
+Pour les Observables qui émettent une erreur, la conversion `lastValueFrom(observable$)` permet d'utiliser `await expect(...).rejects.toThrow(...)`, la syntaxe native Vitest, sans `done` callback ni `.toThrowError()` imbriqué.
 
 ---
 
@@ -401,7 +401,7 @@ J'ai testé ce qui a une logique isolable, et laissé de côté le reste en tout
 Le code du bot se répartit en quatre catégories, avec une seule réellement pertinente à tester unitairement :
 
 - **Logique pure, testée** (`cooldownManager.ts`, `embeds.ts`, `components.ts`, `travelMiddleware.ts`) : aucune dépendance à une session Discord live. `EmbedBuilder`/`ActionRowBuilder`/`ButtonBuilder`/`StringSelectMenuBuilder` (`embeds.ts`, `components.ts`) sont de simples constructeurs d'objet, exécutables hors ligne ; `travelMiddleware.ts` ne dépend que d'un appel API et d'un objet `interaction`, tous deux mockables sans introduire de framework de test Discord.
-- **Commandes slash** (`commands/mazworld/*.ts`, ex. `coinflip.ts`, `shop.ts`) : orchestrent directement `interaction.reply()`/`interaction.deferReply()` et l'état complet d'une interaction Discord. Les tester unitairement reviendrait à re-simuler l'intégralité du cycle d'interaction Discord.js pour une valeur ajoutée faible — la logique métier qu'elles orchestrent (achat, pari, travail) est déjà couverte côté backend (`CommandsController`, `ShopController`). Non testées, à l'image des controllers Symfony qui ne sont pas testés en TU mais en TI.
+- **Commandes slash** (`commands/mazworld/*.ts`, ex. `coinflip.ts`, `shop.ts`) : orchestrent directement `interaction.reply()`/`interaction.deferReply()` et l'état complet d'une interaction Discord. Les tester unitairement reviendrait à re-simuler l'intégralité du cycle d'interaction Discord.js pour une valeur ajoutée faible, puisque la logique métier qu'elles orchestrent (achat, pari, travail) est déjà couverte côté backend (`CommandsController`, `ShopController`). Non testées, à l'image des controllers Symfony, testés en TI plutôt qu'en TU.
 - **Rendu canvas** (`profileCard.ts`) : génère une image pixel par pixel. La tester reviendrait soit à comparer des snapshots d'image (fragile, faible valeur), soit à ne tester que les deux tables de correspondance couleur/emoji qu'elle contient, ce qui ne justifie pas un fichier de test dédié. Non testé, à l'image des repositories Doctrine sans DQL custom qui ne sont pas testés côté backend car cela reviendrait à tester l'ORM lui-même.
 - **Bootstrap et scripts utilitaires** (`index.ts`, `utils/rest.ts`, `utils/clean-commands.ts`, `handlers/*`) : câblage d'événements Discord et scripts d'enregistrement de commandes exécutés une fois au déploiement. Non testés pour la même raison que `public/index.php` ou `main.ts` ne le sont pas côté backend/frontend.
 

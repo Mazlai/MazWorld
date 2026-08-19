@@ -1,0 +1,30 @@
+// Découvre tous les conteneurs du réseau Docker de la stack MazWorld.
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Docker expose son nom de conteneur (avec un "/" en préfixe) en méta-label __meta_docker_*,
+// qui n'est pas un label Loki tant qu'on ne le promeut pas explicitement — sans cette étape,
+// tous les logs atterrissent sous un même service_name générique, impossible à filtrer par conteneur.
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+// Récupère les logs (stdout/stderr) de chaque conteneur découvert et les transmet à Loki.
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

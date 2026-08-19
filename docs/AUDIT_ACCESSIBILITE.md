@@ -1,6 +1,6 @@
 # Audit d'accessibilité — MazWorld
 
-**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+**Présenté par Mickael FERNANDEZ**, étudiant M2 Développement Web, Ynov Campus
 
 ---
 
@@ -8,7 +8,7 @@
 
 1. [Choix du référentiel et du niveau](#choix-du-référentiel-et-du-niveau)
 2. [Outils d'audit](#outils-daudit)
-3. [État des SUs — Feature #178 (conformité WCAG 2.1 AA)](#état-des-sus--feature-178-conformité-wcag-21-aa)
+3. [État des SUs pour la Feature #178 (conformité WCAG 2.1 AA)](#état-des-sus--feature-178-conformité-wcag-21-aa)
 4. [Points conformes (dès l'audit initial)](#points-conformes-dès-laudit-initial)
 
 ---
@@ -24,11 +24,11 @@
 
 Trois référentiels étaient candidates :
 
-**RGAA 4.1** (Référentiel Général d'Amélioration de l'Accessibilité) — déclinaison française de WCAG 2.1 avec des tests adaptés au contexte réglementaire français (loi du 11 février 2005, décret 2019-768). Sa conformité est **juridiquement obligatoire pour les organismes publics et certains services d'intérêt général**. MazWorld est une application privée de jeu : cette obligation légale ne s'applique pas. Choisir le RGAA ajouterait des exigences de procédure (déclaration de conformité publiée, schéma pluriannuel, mentions légales) qui n'ont pas de justification fonctionnelle dans ce contexte.
+**RGAA 4.1** (Référentiel Général d'Amélioration de l'Accessibilité), déclinaison française de WCAG 2.1 avec des tests adaptés au contexte réglementaire français (loi du 11 février 2005, décret 2019-768). Sa conformité est **juridiquement obligatoire pour les organismes publics et certains services d'intérêt général**. MazWorld est une application privée de jeu : cette obligation légale ne s'applique pas. Choisir le RGAA ajouterait des exigences de procédure (déclaration de conformité publiée, schéma pluriannuel, mentions légales) qui n'ont pas de justification fonctionnelle dans ce contexte.
 
-**OPQUAST** (450 bonnes pratiques) — référentiel de **qualité web** couvrant accessibilité, performance, SEO et UX. Il ne constitue pas un standard d'accessibilité à proprement parler : ses critères accessibilité sont un sous-ensemble non structuré, sans niveaux de conformité formels. Il n'est pas adapté pour démontrer la conformité aux exigences d'accessibilité d'une application web.
+**OPQUAST** (450 bonnes pratiques), référentiel de **qualité web** couvrant accessibilité, performance, SEO et UX. Il ne constitue pas un standard d'accessibilité à proprement parler : ses critères accessibilité sont un sous-ensemble non structuré, sans niveaux de conformité formels. Il n'est pas adapté pour démontrer la conformité aux exigences d'accessibilité d'une application web.
 
-**WCAG 2.1** (Web Content Accessibility Guidelines, W3C) — standard international sur lequel le RGAA est fondé. Il définit les critères de succès de manière technologie-agnostique, est reconnu dans toutes les juridictions et constitue la référence de l'industrie. C'est le choix le plus pertinent pour une SPA Angular à vocation internationale.
+**WCAG 2.1** (Web Content Accessibility Guidelines, W3C) est le standard international sur lequel le RGAA est fondé. Il définit les critères de succès de manière technologie-agnostique, est reconnu dans toutes les juridictions et constitue la référence de l'industrie. C'est le choix le plus pertinent pour une SPA Angular à vocation internationale.
 
 ### Niveau retenu : AA
 
@@ -36,7 +36,7 @@ WCAG 2.1 définit trois niveaux :
 
 - **Niveau A** (minimum) : supprime les barrières les plus critiques, mais laisse des obstacles significatifs pour les utilisateurs de lecteurs d'écran, de navigation clavier ou de technologies d'assistance. Insuffisant pour une application interactive.
 - **Niveau AA** (standard) : objectif de référence pour les applications web professionnelles. C'est le niveau exigé par EN 301 549 (directive européenne sur l'accessibilité numérique), par la Section 508 américaine (WCAG 2.0 AA), et par le RGAA lui-même pour les organismes publics. C'est la cible reconnue par l'industrie pour garantir une expérience accessible au plus grand nombre.
-- **Niveau AAA** (optimal) : le W3C déclare explicitement qu'il n'est pas possible de satisfaire tous les critères AAA pour l'ensemble d'un site, certains critères étant mutuellement exclusifs selon le type de contenu. Ce niveau est adapté à des contenus spécifiques (vidéo sous-titrée, langue des signes...), pas à une SPA complète.
+- **Niveau AAA** (optimal) : le W3C déclare explicitement qu'il n'est pas possible de satisfaire tous les critères AAA pour l'ensemble d'un site, certains critères étant mutuellement exclusifs selon le type de contenu. Ce niveau s'applique à des contenus spécifiques (vidéo sous-titrée, langue des signes...) ; une SPA complète s'y prête mal.
 
 **Le niveau AA est donc le seul choix raisonnablement atteignable et suffisamment exigeant** pour MazWorld.
 
