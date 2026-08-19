@@ -1,6 +1,6 @@
 # Sécurité — OWASP Top 10 (2021)
 
-**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+**Présenté par Mickael FERNANDEZ**, étudiant M2 Développement Web, Ynov Campus
 
 ---
 
@@ -146,7 +146,7 @@ $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeS
 
 ### Mesures implémentées
 
-**Doctrine ORM — requêtes paramétrées exclusivement**
+**Doctrine ORM : requêtes paramétrées exclusivement**
 
 Toutes les interactions avec la base de données passent par l'ORM Doctrine ou son QueryBuilder. Aucune requête SQL brute n'est construite par concaténation de chaînes. Doctrine utilise des PDO prepared statements nativement.
 
@@ -319,7 +319,7 @@ Aucun objet PHP n'est reconstruit depuis des données utilisateur (`unserialize`
 
 **Intégrité de la pipeline CI/CD**
 
-La pipeline CI est définie dans `.github/workflows/ci.yml`, versionné dans le dépôt. Tout changement du workflow passe par une pull request et revue de code. La pipeline exécute les tests unitaires et d'intégration, le linting et un build Docker sanity-check à chaque PR — garantissant que chaque artefact intégré est testé.
+La pipeline CI est définie dans `.github/workflows/ci.yml`, versionné dans le dépôt. Tout changement du workflow passe par une pull request et revue de code. La pipeline exécute les tests unitaires et d'intégration, le linting et un build Docker sanity-check à chaque PR, garantissant que chaque artefact intégré est testé.
 
 **Revue humaine des mises à jour (Dependabot)**
 
@@ -335,7 +335,7 @@ Dependabot crée des PRs mais ne merge pas automatiquement. Chaque mise à jour 
 
 **Canal Monolog `security` dédié (Feature #103)**
 
-Un canal Monolog séparé centralise tous les événements de sécurité, configurables pour être routés vers un fichier ou un agrégateur de logs distinct des logs applicatifs.
+Un canal Monolog séparé centralise tous les événements de sécurité. En production (`config/packages/monolog.yaml`, `when@prod`), il écrit sur `stderr` au format JSON, capté comme n'importe quel log de conteneur par la stack de supervision mise en place depuis (Grafana Alloy → Loki, voir [SUPERVISION.md §9](SUPERVISION.md#9-logs--loki--grafana-alloy)) : l'agrégateur distinct annoncé ici a depuis pris forme sous Loki.
 
 **JwtSecurityLogSubscriber**
 
@@ -360,7 +360,7 @@ public function onJWTExpired(JWTExpiredEvent $event): void
 
 Chaque JWT invalide (potentielle tentative de falsification) génère un `warning` avec l'IP source et le chemin visé.
 
-**BotAuthenticator — échecs d'authentification**
+**BotAuthenticator, échecs d'authentification**
 
 ```php
 // BotAuthenticator.php

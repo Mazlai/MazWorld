@@ -1,6 +1,6 @@
 # Cahier de recettes — MazWorld
 
-**Présenté par Mickael FERNANDEZ** — Étudiant M2 Développement Web, Ynov Campus
+**Présenté par Mickael FERNANDEZ**, Étudiant M2 Développement Web, Ynov Campus
 **Compétence RNCP visée : C2.3.1**
 
 ---
@@ -20,11 +20,11 @@
 
 Ce document répond à la compétence RNCP **C2.3.1**. Il reprend les fonctionnalités attendues du prototype (issues de `docs/USER_STORIES.md`) sous forme de scénarios exécutables, organisés en trois familles : **fonctionnel** (la fonctionnalité fait ce qu'elle doit), **structurel** (robustesse, cas limites, accès concurrent) et **sécurité** (protections d'accès).
 
-**Comment lire ce cahier** — pour chaque famille, deux tableaux séparés, volontairement :
+**Comment lire ce cahier.** Pour chaque famille, deux tableaux séparés, volontairement :
 1. **Recette** : ce qu'un joueur fait, ce qu'il doit voir, ce qu'il a réellement vu. Rien de technique ici.
-2. **Traçabilité technique** : comment chaque ligne a été vérifiée, avec code retour et référence de correctif le cas échéant. Sert à l'audit, pas à la lecture fonctionnelle.
+2. **Traçabilité technique** : comment chaque ligne a été vérifiée, avec code retour et référence de correctif le cas échéant. Sert à l'audit ; peu utile pour une lecture fonctionnelle directe.
 
-Chaque scénario de ce cahier a été exécuté dans les conditions réelles de l'application (backend, base de données et logique métier réels, sans simulation ni mock), en suivant le parcours décrit en colonne « Parcours utilisateur ». Le résultat obtenu a systématiquement été constaté, jamais supposé — cette exécution a d'ailleurs révélé une anomalie (F13), depuis corrigée.
+Chaque scénario de ce cahier a été exécuté dans les conditions réelles de l'application (backend, base de données et logique métier réels, sans simulation ni mock), en suivant le parcours décrit en colonne « Parcours utilisateur ». Le résultat obtenu a systématiquement été constaté, jamais supposé. Cette exécution a d'ailleurs révélé une anomalie (F13), depuis corrigée.
 
 Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 
@@ -40,8 +40,8 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 | F04 | Voyager vers une ville déjà visitée | Trajet gratuit | Retour à Ironhaven (déjà visitée) : aucun débit | ✅ |
 | F05 | `/work` dans Discord | Gain entre 20 € et 30 € | +30 €, message citant le métier et la tâche | ✅ |
 | F06 | `/daily` dans Discord | Récompense fixe de 5 € | +5 € exactement | ✅ |
-| F07 | `/coinflip pile 50` — cas victoire | Mise créditée en cas de victoire | +50 €, message de victoire (2ᵉ essai sur 6) | ✅ |
-| F08 | `/coinflip pile 50` — cas défaite | Mise débitée en cas de défaite | -50 €, message de défaite (1ᵉʳ essai) | ✅ |
+| F07 | `/coinflip pile 50` (cas victoire) | Mise créditée en cas de victoire | +50 €, message de victoire (2ᵉ essai sur 6) | ✅ |
+| F08 | `/coinflip pile 50` (cas défaite) | Mise débitée en cas de défaite | -50 €, message de défaite (1ᵉʳ essai) | ✅ |
 | F09 | Achat en boutique (`/shop` ou page Boutique) | Prix exact débité, item ajouté à l'inventaire | Achat "Ciel Nocturne" 100 €, débit exact, confirmation | ✅ |
 | F10 | Équiper un background possédé (`/inventory` ou web) | Le fond équipé change, visible sur profil et carte | Fond changé et confirmé sur le profil | ✅ |
 | F11 | Équiper puis déséquiper un badge | Badge visible puis absent, sans erreur | Les deux étapes confirmées, aucune erreur | ✅ |
@@ -63,8 +63,8 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 | F09 | `POST /api/shop/purchase` → `new_balance` cohérent, `owned: true` | `ShopController::purchaseItem` |
 | F10 | `POST /api/profile/equip/background` puis `GET /api/profile/me` | `ProfileController::equipBackground` |
 | F11 | `POST /api/profile/equip/badge` puis `.../unequip/badge` | Bug historique de collision déjà corrigé (cf. `docs/STRATEGIE_TESTS.md`) |
-| F12 | Cas 2 authentifié via `X-Bot-Secret` + `X-Discord-User-Id` (mécanisme réel du bot), pas un JWT | `BotAuthenticator` |
-| F13 | **Cause réelle** : `ServersController::listServers()` et `ProfileController::getAdminGuilds()` utilisaient le token OAuth **encore chiffré** (`TokenEncryptorService`) au lieu de le déchiffrer avant l'appel à Discord — l'appel échouait silencieusement côté Discord (401), et le code retombait sur une liste vide sans erreur visible (`DiscordApiClient::getCurrentUserGuilds`, `return []` sur tout code ≠ 200). **Correctif** : déchiffrement ajouté avant chaque appel Discord, et le rafraîchissement de token passe désormais par `UserService::updateUserTokens()` (qui re-chiffre correctement), au lieu de stocker les nouveaux tokens en clair comme c'était le cas avant. Revérifié : `GET /api/servers` renvoie les 7 serveurs administrés attendus, avec le bon statut de présence du bot sur chacun. *(Note opérationnelle : un redémarrage du conteneur `backend` a été nécessaire après le correctif — les workers PHP-FPM ne semblaient pas recharger le code modifié immédiatement, probablement un délai de propagation des dates de modification de fichier entre Windows et le conteneur.)* | Correctif appliqué |
+| F12 | Cas 2 authentifié via `X-Bot-Secret` + `X-Discord-User-Id`, le mécanisme réel utilisé par le bot (aucun JWT ici) | `BotAuthenticator` |
+| F13 | **Cause réelle** : `ServersController::listServers()` et `ProfileController::getAdminGuilds()` utilisaient le token OAuth **encore chiffré** (`TokenEncryptorService`) au lieu de le déchiffrer avant l'appel à Discord. L'appel échouait donc silencieusement côté Discord (401), et le code retombait sur une liste vide sans erreur visible (`DiscordApiClient::getCurrentUserGuilds`, `return []` sur tout code ≠ 200). **Correctif** : déchiffrement ajouté avant chaque appel Discord, et le rafraîchissement de token passe désormais par `UserService::updateUserTokens()` (qui re-chiffre correctement), au lieu de stocker les nouveaux tokens en clair comme c'était le cas avant. Revérifié : `GET /api/servers` renvoie les 7 serveurs administrés attendus, avec le bon statut de présence du bot sur chacun. *(Note opérationnelle : un redémarrage du conteneur `backend` a été nécessaire après le correctif, car les workers PHP-FPM ne semblaient pas recharger le code modifié immédiatement, probablement en raison d'un délai de propagation des dates de modification de fichier entre Windows et le conteneur.)* | Correctif appliqué |
 | F14 | Contenu statique frontend (`commands.data.ts`), vérification visuelle uniquement | — |
 
 ---
@@ -83,7 +83,7 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 | S08 | Voyager vers une ville dont le coût dépasse le solde | Refus | « Vous n'avez pas assez d'argent. (0€ / 50€) » | ✅ |
 | S09 | `/daily` puis `/daily` à nouveau immédiatement | Refus, décompte affiché | « Vous avez déjà réclamé votre récompense. Revenez dans 23h 59m. » | ✅ |
 | S10 | `/work` puis `/work` à nouveau immédiatement | Refus, décompte affiché | « Vous êtes fatigué ! Reposez-vous encore 0h 59m avant de retravailler. » | ✅ |
-| S11 | *Constat fait pendant l'exécution, pas un scénario prévu dans les 30 initiaux — pas un parcours joueur* | — | Le verrou anti-concurrence de `/coinflip` protège un cas mathématiquement inatteignable en usage séquentiel normal (le plafond à 50 % impose un solde ≥ 20 € dès la mise minimale) — pertinent uniquement contre deux requêtes strictement simultanées (double-clic, rejeu de requête), jamais par un joueur normal même maladroit | ✅ |
+| S11 | *Constat fait pendant l'exécution, en dehors des 30 scénarios initiaux prévus, sans lien avec un parcours joueur* | — | Le verrou anti-concurrence de `/coinflip` protège un cas mathématiquement inatteignable en usage séquentiel normal (le plafond à 50 % impose un solde ≥ 20 € dès la mise minimale), et n'est pertinent que contre deux requêtes strictement simultanées (double-clic, rejeu de requête), jamais par un joueur normal même maladroit | ✅ |
 
 ## 4. Structurel — Traçabilité technique
 
@@ -91,9 +91,9 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 |---|---|
 | S01/S02 | `409` sur `/api/commands/work` et `/api/commands/coinflip` pendant `traveling_to` actif |
 | S03 | `COINFLIP_MIN=10` / `COINFLIP_MAX=500` (`CommandsController`) |
-| S04 | `maxBet = min(floor(coins/2), 500)` — 250/2 = 125, conforme |
-| S05/S06 | `ShopController::purchaseItem` — `402` (solde), `409` (déjà possédé) |
-| S07/S08 | `TravelController::start` — `409` (déjà en voyage), `402` (solde) |
+| S04 | `maxBet = min(floor(coins/2), 500)`, soit 250/2 = 125, conforme |
+| S05/S06 | `ShopController::purchaseItem` : `402` (solde), `409` (déjà possédé) |
+| S07/S08 | `TravelController::start` : `409` (déjà en voyage), `402` (solde) |
 | S09/S10 | `429`, cooldowns `DAILY_COOLDOWN=86400s`, `WORK_COOLDOWN=3600s` |
 | S11 | Vérifié par lecture de code (`CommandsController::coinflip`), non déclenché artificiellement (aurait nécessité deux requêtes réellement simultanées) |
 
@@ -101,7 +101,7 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 
 ## 5. Sécurité — Recette
 
-*Certaines lignes décrivent une action volontairement anormale (rejouer un jeton, falsifier un secret) : ce n'est pas un parcours joueur, c'est le geste qu'un test de sécurité doit reproduire délibérément.*
+*Certaines lignes décrivent une action volontairement anormale (rejouer un jeton, falsifier un secret) : elles reproduisent le geste qu'un test de sécurité doit exécuter délibérément, en dehors de tout parcours joueur.*
 
 | ID | Action testée | Résultat attendu | Résultat obtenu | Statut |
 |---|---|---|---|---|
@@ -112,7 +112,7 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 | SEC05 | Demander un renouvellement de session sans le cookie associé | Refusé, message clair | Refusé | ✅ |
 | SEC06 | Répéter la tentative de connexion rapidement, au-delà de la limite prévue | Blocage temporaire au-delà de 10/min | Bloqué après les premières tentatives | ✅ |
 | SEC07 | Inspecter les en-têtes renvoyés par le serveur | Protections standards présentes | Les 4 protections attendues sont présentes | ✅ |
-| SEC08 | Utiliser une session au-delà de sa durée de vie | Refus propre, pas d'erreur brute | Refusé proprement après expiration | ✅ |
+| SEC08 | Utiliser une session au-delà de sa durée de vie | Refus propre, sans erreur brute | Refusé proprement après expiration | ✅ |
 | SEC09 | Le bot (ou un tiers) se présente avec un secret incorrect | Requête rejetée | Rejetée | ✅ |
 | SEC10 | Observer les messages d'erreur reçus tout au long des tests | Jamais de détail technique exposé | Toujours un message clair, jamais une fuite technique | ✅ |
 
@@ -120,7 +120,7 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 
 | ID | Vérification | Référence historique |
 |---|---|---|
-| SEC01 | `401` sans en-tête `Authorization` | Ce défaut "refusé par défaut" a lui-même été un correctif — `ef059ca` (SU #192) : avant lui, une route non listée retombait sur un accès public |
+| SEC01 | `401` sans en-tête `Authorization` | Ce défaut "refusé par défaut" a lui-même été un correctif (`ef059ca`, SU #192) : avant lui, une route non listée retombait sur un accès public |
 | SEC02 | `403` (`ROLE_USER`) → `200` (`ROLE_ADMIN`), même compte | `StatsController`, `#[IsGranted('ROLE_ADMIN')]` + `adminGuard` frontend |
 | SEC03 | `POST /api/auth/logout` puis réutilisation → `401` | `JwtBlacklistSubscriber` |
 | SEC04 | `POST /api/auth/discord/callback` avec `state` invalide → `400` | `AuthController::discordCallback` |
@@ -128,8 +128,8 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 | SEC06 | 10 appels/minute dépassés → `429` | `limiter.auth_callback` |
 | SEC07 | `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Content-Security-Policy` présents | `SecurityHeadersSubscriber` |
 | SEC08 | Jeton à durée de vie courte (15 s de test) : valide puis `401 Expired JWT Token` | Premier essai à 2 s faussé par le temps de génération du jeton lui-même, refait à 15 s |
-| SEC09 | `X-Bot-Secret` incorrect → `401` | Comparaison corrigée par le passé — `bb6f402` (SU #186), `hash_equals()` contre les timing attacks |
-| SEC10 | Cohérence observée sur toutes les erreurs de la session (401/402/403/409/429) | Corrigé par le passé — `5351c5b` (SU #180), suppression des `$e->getMessage()` exposés dans 13 contrôleurs |
+| SEC09 | `X-Bot-Secret` incorrect → `401` | Comparaison corrigée par le passé (`bb6f402`, SU #186) : `hash_equals()` contre les timing attacks |
+| SEC10 | Cohérence observée sur toutes les erreurs de la session (401/402/403/409/429) | Corrigé par le passé (`5351c5b`, SU #180) : suppression des `$e->getMessage()` exposés dans 13 contrôleurs |
 
 ---
 
@@ -138,8 +138,8 @@ Légende statut : ✅ conforme · 🔧 anomalie détectée puis corrigée
 | Où | Anomalie | Statut |
 |---|---|---|
 | F02 | Classement inaccessible sans connexion malgré une intention publique | 🔧 Corrigée (`b06cde4`) |
-| F13 | Page "Mes serveurs" vide pour un compte pourtant administrateur — token OAuth utilisé encore chiffré | 🔧 Corrigée (`ServersController` + `ProfileController`) |
-| Historique (`a27bc74`) | `401` sur `/api/profile/me` — même famille que F02 | 🔧 Déjà corrigée avant ce cahier |
+| F13 | Page "Mes serveurs" vide pour un compte pourtant administrateur, à cause d'un token OAuth utilisé encore chiffré | 🔧 Corrigée (`ServersController` + `ProfileController`) |
+| Historique (`a27bc74`) | `401` sur `/api/profile/me`, même famille que F02 | 🔧 Déjà corrigée avant ce cahier |
 | Historique (`ef059ca`) | Nouvelles routes API publiques par défaut faute de règle explicite | 🔧 Déjà corrigée avant ce cahier |
 | Historique (`bb6f402`) | Comparaison du secret bot vulnérable aux timing attacks | 🔧 Déjà corrigée avant ce cahier |
 | Historique (`5351c5b`) | Messages d'exception exposés dans 13 contrôleurs | 🔧 Déjà corrigée avant ce cahier |

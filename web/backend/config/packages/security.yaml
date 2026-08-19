@@ -28,6 +28,7 @@ security:
             lazy: true
 
     access_control:
+        - { path: ^/api/healthz, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/discord, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/verify, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/me, roles: ROLE_USER }

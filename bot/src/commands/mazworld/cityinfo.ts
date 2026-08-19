@@ -1,7 +1,6 @@
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
-  MessageFlags,
 } from "discord.js";
 import { api, ApiError } from "../../api/client";
 import { Command } from "../../models/Command";
@@ -18,6 +17,8 @@ const cityinfo: Command = {
     const username  = interaction.user.username;
     const avatarURL = interaction.user.displayAvatarURL();
 
+    await interaction.deferReply();
+
     try {
       const travelStatus = await api.get<TravelStatus>("/api/travel/status", userId, username);
 
@@ -26,30 +27,26 @@ const cityinfo: Command = {
         const hours    = Math.floor(timeLeft / 3600);
         const minutes  = Math.floor((timeLeft % 3600) / 60);
 
-        await interaction.reply({
+        await interaction.editReply({
           content:
             `🚂 Vous êtes en voyage vers **${travelStatus.destination_emoji ?? ""} ${travelStatus.destination_name ?? ""}**\n` +
             `⏱️ Arrivée dans ${hours}h ${minutes}m\n\n` +
             `💡 Utilisez \`/cityinfo\` une fois arrivé pour découvrir la ville !`,
-          flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
       const mapData = await api.get<MapResponse>("/api/travel/map", userId, username);
-      await interaction.reply({ embeds: [buildCityinfoEmbed(mapData, avatarURL)] });
+      await interaction.editReply({ embeds: [buildCityinfoEmbed(mapData, avatarURL)] });
     } catch (error) {
       if (error instanceof ApiError) {
-        await interaction.reply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: `❌ ${error.message}` });
         return;
       }
       console.error("Erreur dans /cityinfo:", error);
-      const errorMessage = "❌ Une erreur est survenue lors de l'affichage des informations de la ville.";
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: errorMessage });
-      } else {
-        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
-      }
+      await interaction.editReply({
+        content: "❌ Une erreur est survenue lors de l'affichage des informations de la ville.",
+      });
     }
   },
 };

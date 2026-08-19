@@ -2,7 +2,6 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   ComponentType,
-  MessageFlags,
 } from "discord.js";
 import { api, ApiError } from "../../api/client";
 import { Command } from "../../models/Command";
@@ -25,11 +24,13 @@ const map: Command = {
     const username  = interaction.user.username;
     const avatarURL = interaction.user.displayAvatarURL();
 
+    await interaction.deferReply();
+
     try {
       const travelStatus = await api.get<TravelStatus>("/api/travel/status", userId, username);
 
       if (travelStatus.traveling && travelStatus.arrival_time) {
-        await interaction.reply({ embeds: [buildTravelInProgressEmbed(travelStatus, avatarURL)] });
+        await interaction.editReply({ embeds: [buildTravelInProgressEmbed(travelStatus, avatarURL)] });
         return;
       }
 
@@ -37,12 +38,11 @@ const map: Command = {
       const { routes } = mapData;
       const rows = buildMapButtons(routes);
 
-      const { resource } = await interaction.reply({
+      await interaction.editReply({
         embeds: [buildMapEmbed(mapData, avatarURL)],
         components: rows,
-        withResponse: true,
       });
-      const response = resource?.message;
+      const response = await interaction.fetchReply();
       if (rows.length === 0 || !response) return;
 
       const collector = response.createMessageComponentCollector({
@@ -112,12 +112,7 @@ const map: Command = {
       });
     } catch (error) {
       console.error("Erreur dans /map:", error);
-      const errorMessage = "❌ Une erreur est survenue lors de l'affichage de la carte.";
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: errorMessage });
-      } else {
-        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
-      }
+      await interaction.editReply({ content: "❌ Une erreur est survenue lors de l'affichage de la carte." });
     }
   },
 };
